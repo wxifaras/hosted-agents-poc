@@ -1,0 +1,324 @@
+{
+  "version": "2.0.0",
+  "options": { "cwd": "${workspaceFolder}" },
+  "tasks": [
+    {
+      "label": "Setup: Sync dependencies",
+      "type": "process",
+      "command": "uv",
+      "args": ["sync", "--frozen", "--group", "validation", "--inexact"],
+      "detail": "Create .venv with Python 3.14 and install locked development/validation dependencies. Preserve installed optional extras.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup: Sync dependencies with optional integrations",
+      "type": "process",
+      "command": "uv",
+      "args": ["sync", "--frozen", "--group", "validation", "--all-extras"],
+      "detail": "Also install optional App Configuration and telemetry dependencies; does not configure or contact Azure services.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup: Check Python environment",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.common.validate_environment", "--mode", "local"],
+      "detail": "Run the Rich import/interpreter preflight without loading Azure settings.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup: Prepare local environment",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Setup: Sync dependencies", "Setup: Check Python environment"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Smoke test all local agents",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.run_scenarios", "--scenario", "smoke", "--mode", "local"],
+      "detail": "Requires all three local hosts already running. Sends real model requests sequentially and records Rich/JSONL results; can incur token charges. No deployment, grants, or automatic retries.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Run unit tests",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "pytest", "-q", "tests\\unit"],
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Check lint",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "ruff", "check", "src\\backend\\app", "scripts", "tests"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Check formatting",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "ruff", "format", "--check", "src\\backend\\app", "scripts", "tests"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Check types",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "mypy"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Run all local checks",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Quality: Check lint", "Quality: Check formatting", "Quality: Check types", "Quality: Run unit tests"],
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "Agents: Preview hosted deployment (unsupported)",
+      "type": "process",
+      "command": "azd",
+      "args": ["deploy", "--all", "--preview", "--environment", "${input:infraEnvironment}"],
+      "detail": "Currently unsupported/skipped for hosted agents by azd. A successful exit is not a deployment plan or verification. No image build or deployment.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Deploy all hosted agents",
+      "type": "process",
+      "command": "azd",
+      "args": ["deploy", "--all", "--environment", "${input:infraEnvironment}"],
+      "detail": "Explicit paid operation: remote ACR builds and immutable hosted agent versions. Existing foundation/model are reused.",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Access: Preview hosted agent permissions",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_agent_rbac", "--environment", "${input:infraEnvironment}"],
+      "detail": "Shows actual hosted instance principals and scoped Foundry User grants. Does not modify roles.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Access: Apply hosted agent permissions",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_agent_rbac", "--environment", "${input:infraEnvironment}", "--apply"],
+      "detail": "Explicit model/state data permission on the selected Foundry account for deployed agent identities, not the developer. No Blob or impersonation grants.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Smoke test all hosted agents",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.hosted_smoke", "--environment", "${input:infraEnvironment}"],
+      "detail": "Three real remote inference requests, one per active hosted agent, using the Azure CLI user. Can incur model/session usage. Not localhost.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Deploy and smoke test all hosted agents",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Agents: Deploy all hosted agents", "Access: Apply hosted agent permissions", "Agents: Smoke test all hosted agents"],
+      "detail": "Explicit paid agent deployment, scoped agent RBAC, then independent hosted smoke. Does not verify delegation, isolation or recovery, or reprovision the foundation.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Access: Preview Supervisor impersonation permission",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_agent_rbac", "--environment", "${input:infraEnvironment}", "--delegation"],
+      "detail": "Read-only plan for the Supervisor's single custom impersonation action at the selected project.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Access: Apply Supervisor impersonation permission",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_agent_rbac", "--environment", "${input:infraEnvironment}", "--delegation", "--apply"],
+      "detail": "Explicit custom impersonation role and project-scoped assignment only for the actual Supervisor identity. Does not establish working delegation. No Blob or telemetry grants.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Diagnose hosted caller context",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.context_probe", "--environment", "${input:infraEnvironment}"],
+      "detail": "Direct Research versus one Supervisor-to-Research presence-only probe. No model inference, workflow-state writes, grants or deployments. Missing context is reported as FAIL.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Test hosted workflow state and delegation",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.hosted_workflow", "--environment", "${input:infraEnvironment}"],
+      "detail": "Currently blocked by missing verified specialist caller context. Paid synthetic hosted create/inspect/replay/continue, separate specialist histories and unknown-workflow rejection. No crash or OOM injection.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Deploy and test hosted delegation",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Agents: Deploy all hosted agents", "Access: Apply hosted agent permissions", "Agents: Smoke test all hosted agents", "Agents: Test hosted workflow state and delegation"],
+      "detail": "Currently blocked by missing verified specialist caller context. Explicit paid deployment, model permissions, independent smoke and workflow test; no foundation reprovisioning. Fails closed rather than bypassing isolation.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Infrastructure: Compile Bicep",
+      "type": "process",
+      "command": "az",
+      "args": ["bicep", "build", "--file", "infra\\main.bicep", "--outfile", "artifacts\\infra-validation\\main.json"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Infrastructure: Validate template (Azure CLI)",
+      "type": "process",
+      "command": "az",
+      "args": ["deployment", "sub", "validate", "--subscription", "${input:infraSubscription}", "--name", "hosted-agents-poc-dev", "--location", "northcentralus", "--template-file", "infra\\main.bicep", "--parameters", "@infra\\preview.parameters.json", "--query", "{state:properties.provisioningState,error:error,diagnostics:properties.diagnostics}", "--output", "json"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Infrastructure: Preview changes (Azure CLI)",
+      "type": "process",
+      "command": "az",
+      "args": ["deployment", "sub", "what-if", "--subscription", "${input:infraSubscription}", "--name", "hosted-agents-poc-dev", "--location", "northcentralus", "--template-file", "infra\\main.bicep", "--parameters", "@infra\\preview.parameters.json", "--verbose"],
+      "detail": "Read-only native what-if. Uses the checked-in North Central US preview inputs; does not provision or grant permissions.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Infrastructure: Preview changes (azd)",
+      "type": "process",
+      "command": "azd",
+      "args": ["provision", "--preview"],
+      "detail": "Requires an initialized azd environment; the preprovision hook validates the subscription, environment name, and region.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Infrastructure: Apply changes (azd)",
+      "type": "process",
+      "command": "azd",
+      "args": ["provision"],
+      "detail": "MUTATES AZURE and can incur charges. Run only after reviewing the native what-if. Does not invoke developer RBAC grants.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Infrastructure: Inspect deployment operations",
+      "type": "process",
+      "command": "az",
+      "args": ["deployment", "operation", "sub", "list", "--subscription", "${input:infraSubscription}", "--name", "${input:infraDeployment}", "--verbose", "--output", "json"],
+      "detail": "Inspect operations after deployment. Inspect nested operations with az deployment operation group list.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup: Create .env from deployment",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.generate_env", "--subscription", "${input:infraSubscription}", "--environment", "${input:infraEnvironment}"],
+      "detail": "Discovers the latest successful deployment for the selected environment. Creates .env without overwriting an existing file.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup: Update .env from deployment",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.generate_env", "--subscription", "${input:infraSubscription}", "--environment", "${input:infraEnvironment}", "--update"],
+      "detail": "Refreshes only project endpoint, model deployment, and optional App Configuration endpoint. Preserves all other local values.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Access: Preview developer permissions",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_local_rbac", "--subscription", "${input:infraSubscription}", "--credential-source", "${input:infraCredential}", "--environment", "${input:infraEnvironment}"],
+      "detail": "Separate from deployment; reads outputs from the deployed foundation and previews missing scoped roles.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Access: Apply developer permissions",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_local_rbac", "--subscription", "${input:infraSubscription}", "--credential-source", "${input:infraCredential}", "--environment", "${input:infraEnvironment}", "--apply"],
+      "detail": "Explicitly grants displayed missing roles, then verifies synthetic Blob/monitoring access. Never runs as a provisioning/debug hook.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Debug: Check Supervisor ports",
+      "type": "aitk",
+      "command": "debug-check-prerequisites",
+      "args": { "portOccupancy": [5679, 8088] }
+    },
+    {
+      "label": "Debug: Start Supervisor for Inspector",
+      "type": "process",
+      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "debugpy", "--listen", "127.0.0.1:5679", "-m", "app.agents.supervisor.main"],
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": { "PORT": "8088", "ENVIRONMENT": "development" }
+      },
+      "dependsOn": ["Debug: Check Supervisor ports"],
+      "problemMatcher": {
+        "owner": "poc",
+        "pattern": {
+          "regexp": "^(.+):(\\d+):(\\d+): (error|warning): (.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Running on http://127\\.0\\.0\\.1:8088(?:\\s|$)"
+        }
+      }
+    },
+    {
+      "label": "Debug: Open Supervisor Inspector",
+      "type": "process",
+      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "args": ["-c", "print('Foundry Agent Inspector requested.')", "${input:openSupervisorInspector}"],
+      "presentation": { "reveal": "never" },
+      "dependsOn": ["Debug: Start Supervisor for Inspector"],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "openSupervisorInspector",
+      "type": "command",
+      "command": "ai-mlstudio.openTestTool",
+      "args": { "triggeredFrom": "tasks", "port": 8088 }
+    },
+    {
+      "id": "infraSubscription",
+      "type": "promptString",
+      "description": "Explicit Azure subscription name or ID",
+      "default": "lz-app1"
+    },
+    {
+      "id": "infraDeployment",
+      "type": "promptString",
+      "description": "Exact timestamped subscription deployment name for operation inspection (az deployment sub list)"
+    },
+    {
+      "id": "infraEnvironment",
+      "type": "promptString",
+      "description": "Environment whose latest successful deployment will be discovered",
+      "default": "hosted-agents-poc-dev"
+    },
+    {
+      "id": "infraCredential",
+      "type": "pickString",
+      "description": "Local identity to grant (azd must match the az CLI user)",
+      "options": ["az", "azd"],
+      "default": "az"
+    }
+  ]
+}

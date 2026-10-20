@@ -1,0 +1,43 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Supervisor host",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "module": "app.agents.supervisor.main",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": { "PORT": "8088", "ENVIRONMENT": "development" }
+    },
+    {
+      "name": "Supervisor + Foundry Agent Inspector",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": { "host": "127.0.0.1", "port": 5679 },
+      "preLaunchTask": "Debug: Open Supervisor Inspector",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Research host",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "module": "app.agents.research.main",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": { "PORT": "8089", "ENVIRONMENT": "development" }
+    },
+    {
+      "name": "Data Analysis host",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "module": "app.agents.data_analysis.main",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": { "PORT": "8090", "ENVIRONMENT": "development" }
+    }
+  ]
+}

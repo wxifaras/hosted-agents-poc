@@ -218,3 +218,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# POC local state and generated validation evidence
+artifacts/
+.foundry/
+.azure/
+docs/tmp/
+
+# Native Bicep build products
+infra/main.json

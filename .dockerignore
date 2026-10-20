@@ -1,0 +1,17 @@
+**
+!pyproject.toml
+!uv.lock
+!LICENSE
+!src/
+!src/backend/
+!src/backend/Dockerfile
+!src/backend/app/
+!src/backend/app/**
+!scripts/
+!scripts/**
+**/__pycache__/
+**/*.pyc
+**/.env
+**/.env.*
+**/.azure/
+**/.foundry/

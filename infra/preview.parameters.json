@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": { "value": "hosted-agents-poc-dev" },
+    "location": { "value": "northcentralus" },
+    "enableAppConfiguration": { "value": false },
+    "modelCapacity": { "value": 10 },
+    "modelName": { "value": "gpt-5-mini" },
+    "modelVersion": { "value": "2025-08-07" },
+    "modelDeploymentName": { "value": "gpt-5-mini" },
+    "modelSku": { "value": "GlobalStandard" },
+    "acrSku": { "value": "Basic" },
+    "storageSku": { "value": "Standard_LRS" },
+    "logRetentionDays": { "value": 30 },
+    "logDailyQuotaGb": { "value": 1 },
+    "blobSoftDeleteDays": { "value": 7 }
+  }
+}

@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+name: hosted-agents-poc
+requiredVersions:
+  azd: '>=1.36.0'
+  extensions:
+    azure.ai.agents: '>=1.0.0-beta.19'
+services:
+  supervisor-agent:
+    host: azure.ai.agent
+    kind: hosted
+    name: supervisor-agent
+    description: MAF Supervisor smoke and explicit durable workflow delegation to two specialist conversations.
+    sessionConfiguration:
+      idleTimeoutSeconds: 120
+    project: .
+    language: docker
+    docker:
+      path: src/backend/Dockerfile
+      context: .
+      remoteBuild: true
+    protocols:
+      - protocol: responses
+        version: 2.0.0
+    env:
+      AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
+      ENVIRONMENT: hosted
+      POC_AGENT_NAME: supervisor
+    container:
+      resources:
+        cpu: '0.5'
+        memory: 1Gi
+  research-agent:
+    host: azure.ai.agent
+    kind: hosted
+    name: research-agent
+    description: Independent MAF Research smoke host; external research tools are not connected.
+    sessionConfiguration:
+      idleTimeoutSeconds: 120
+    project: .
+    language: docker
+    docker:
+      path: src/backend/Dockerfile
+      context: .
+      remoteBuild: true
+    protocols:
+      - protocol: responses
+        version: 2.0.0
+    env:
+      AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
+      ENVIRONMENT: hosted
+      POC_AGENT_NAME: research
+    container:
+      resources:
+        cpu: '0.5'
+        memory: 1Gi
+  data-analysis-agent:
+    host: azure.ai.agent
+    kind: hosted
+    name: data-analysis-agent
+    description: Independent MAF Data Analysis smoke host; no file analysis or recovery workflow yet.
+    sessionConfiguration:
+      idleTimeoutSeconds: 120
+    project: .
+    language: docker
+    docker:
+      path: src/backend/Dockerfile
+      context: .
+      remoteBuild: true
+    protocols:
+      - protocol: responses
+        version: 2.0.0
+    env:
+      AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
+      ENVIRONMENT: hosted
+      POC_AGENT_NAME: data_analysis
+    container:
+      resources:
+        cpu: '0.5'
+        memory: 1Gi
+infra:
+  provider: bicep
+  path: infra
+  module: main
+hooks:
+  preprovision:
+    shell: pwsh
+    run: ./scripts/deploy/check_provision_inputs.ps1
+    interactive: false
+    continueOnError: false

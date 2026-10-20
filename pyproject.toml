@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hosted-agents-poc"
+version = "0.1.0"
+description = "Microsoft Agent Framework Hosted Agents runtime experiments."
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "agent-framework-core==1.19.0",
+    "agent-framework-foundry==1.13.1",
+    "agent-framework-foundry-hosting==1.0.0b260918",
+    "azure-ai-agentserver-responses==2.2.0b1",
+    "azure-ai-projects==2.6.1",
+    "azure-core==1.41.0",
+    "azure-identity==1.25.3",
+    "opentelemetry-api==1.45.1",
+    "opentelemetry-sdk==1.45.1",
+    "pydantic==2.14.1",
+    "pydantic-settings==2.15.0",
+    "python-dotenv==1.2.3",
+]
+
+[project.optional-dependencies]
+appconfig = ["azure-appconfiguration-provider==2.5.0"]
+telemetry = ["azure-monitor-opentelemetry==1.8.11"]
+
+[dependency-groups]
+dev = [
+    "debugpy==1.8.22",
+    "mypy==2.4.0",
+    "pytest==9.1.1",
+    "pytest-asyncio==1.4.0",
+    "ruff==0.17.0",
+]
+validation = ["httpx==0.28.1", "rich==15.0.0"]
+
+[[tool.uv.index]]
+name = "package-feed-proxy"
+url = "https://packagefeedproxy.microsoft.io/pypi/simple/"
+default = true
+
+[tool.setuptools]
+packages = { find = { where = ["src/backend", "."], include = ["app*", "scripts*"], exclude = ["tests*"] } }
+package-dir = { app = "src/backend/app", scripts = "scripts" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py314"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+files = ["src/backend/app", "scripts"]
+
+[[tool.mypy.overrides]]
+module = ["azure.appconfiguration.*", "azure.monitor.*", "agent_framework_foundry_hosting"]
+ignore_missing_imports = true
