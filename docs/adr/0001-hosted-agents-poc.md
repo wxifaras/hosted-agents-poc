@@ -103,8 +103,14 @@ visible user ID. Our guard therefore stops before the authoritative State Store
 item operations run. This is an application validation blocker, **not established
 proof that Foundry cannot preserve caller identity or authorize nested state access**.
 
-**Proposed correction, not implemented by this documentation change:** separate
-State Store authorization requirements from container-local user-ID requirements.
+**Proposed validation-led alignment, not implemented by this documentation
+change:** separate State Store authorization requirements from container-local
+user-ID requirements, but do not remove the guard and infer that delegation
+works. The runtime contract describes platform-injected user IDs, and the
+[official user-aware Python handler][python-isolation] requires both user and
+call context before serving platform-managed history. That is an appropriate
+sample policy, not a universal State Store API prerequisite.
+
 Retain verified hosted context, call/session/workflow bindings, service-enforced
 user isolation, and all missing-mapping failures. Validate actual authorized
 access and cross-user/session denial before marking delegation complete.
@@ -118,6 +124,33 @@ the call-context header; the approved Supervisor-only project role was confirmed
 That attempt did not populate the nested user ID or prove a successful workflow.
 Neither widening permissions speculatively nor requiring every diagnostic flag
 to be true is a substitute for testing the authorization contract.
+
+#### Identity mechanisms are not interchangeable
+
+| Mechanism | Meaning / boundary |
+|---|---|
+| Entra credential on the request | Authenticates the calling human, service, or agent; a service credential alone is not proof of the original human caller |
+| `x-agent-foundry-call-id` | Opaque first-party caller context; forward unchanged and let Foundry validate it |
+| `x-ms-user-identity` | Stable application-user label supplied by an authorized trusted service; not an access token or OAuth on-behalf-of exchange |
+| `x-agent-user-id` | Platform-resolved output for user-aware handling and application-owned partitioning; not a client-supplied authorization input |
+
+The [session guide][sessions] separates sandbox continuity (`agent_session_id`)
+from history continuity (`conversation` or `previous_response_id`). A conversation
+autobinds a session; a session ID alone does not replay history. The
+[agent-management guide][agent-management] governs versions/protocol configuration,
+not proof that a request acts for the original end user.
+
+The [delegation guide][delegation] requires stable labels derived from
+authenticated server-side identity and explicit impersonation permission.
+The sources inspected do not establish that copying a resolved global user ID
+into an application-user label must reproduce the identical resolved ID downstream.
+Define the identity model and expected binding before making raw-ID equality
+the acceptance criterion. A present call ID also does not prove its original
+caller context survived the hop; check the actual request and resource behavior.
+
+Administrative session visibility is a separate case: the isolation documentation
+allows project-level Foundry User administrators to manage sessions across users.
+Do not classify that expected privilege as a user-isolation failure.
 
 ### Recovery and validation
 
@@ -221,9 +254,10 @@ not automatically added because a release announcement mentions them.
 
 ## Next validation increments
 
-1. Align the authorization guard with the documented contract; prove hosted
-   State Store access and missing/mismatched-scope rejection without weakening
-   isolation. Then complete both specialist calls and distinct-history follow-up.
+1. Define the intended identity model and run the focused delegation tests below.
+   Use the findings to align the guard without weakening ownership or isolation;
+   do not assume guard removal fixes the workflow. Then complete both specialist
+   calls and distinct-history follow-up.
 2. Build a tiny synthetic CSV analysis with a real derived artifact; add XLSX
    and plotting. Analysis logic can progress in parallel with authorization work.
 3. Add scoped artifact I/O, actual file idle/resume checks, and measured capacity
@@ -233,6 +267,38 @@ not automatically added because a release announcement mentions them.
 5. Complete cross-user/session/specialist denial tests, Research tools, and
    trace-backed findings. Keep A2A, semantic memory, HITL, advanced steering,
    and optional Insights/evaluation work outside the initial success gate.
+
+### Planned delegation tests
+
+All tests below are **planned, not newly implemented or executed**. Existing
+presence probes and client-default-header tests do not satisfy this matrix.
+Use synthetic data and fresh explicit workflows; do not reset existing mappings.
+
+Before hosted execution, record the chosen identity model, actual invoking
+principal and scoped permissions, target agents/versions, and owner approval.
+Distinguish two genuine Entra identities from two delegated application labels:
+the latter tests the trusted-service delegation contract, not two independent
+user authentications. Hosted calls can incur usage and need separate authorization.
+No new grant, deployment, guard change, failure injection, commit, or push is
+authorized merely by recording this plan.
+
+| ID | Environment | Test | Required evidence |
+|---|---|---|---|
+| DLG-01 | Local, no network | Capture actual prepared outbound requests through the pinned SDK, not just client defaults | Intended target and exact forwarded call context verified in memory; delegation label included only under the chosen contract; diagnostics contain booleans, never credentials/context values |
+| DLG-02 | Hosted | User A creates/reads a small user-isolated State Store marker; user B cannot retrieve A's marker | A continuity succeeds; B is isolated or receives the expected denial/not-found outcome; missing/mismatched workflow mappings fail without writes or reminting |
+| DLG-03 | Hosted | A creates a response, A continues it, then B attempts A's response chain | A continuation succeeds; B receives the expected authorization/visibility rejection and no A history; timeouts, transport failures, and unrelated 5xx errors are not passing negative tests |
+| DLG-04 | Hosted, after the preceding cases | Full Supervisor -> Research -> Data Analysis workflow and follow-up | Both specialists complete, distinct conversations/mappings persist, authorized follow-up reuses them, and unrelated users/conversations cannot inherit private history |
+
+Adapt [the official A-A-B test][aab-isolation] for DLG-03. A controlled delegated-user
+variant may intentionally share one sandbox to test history isolation independently
+of sandbox routing; this does not make arbitrary shared files/caches user-isolated.
+Keep a separate genuine-Entra-user variant, and distinguish administrative
+session-management operations from end-user history/state operations.
+
+Do not silently fall back to empty history, accept any exception as isolation
+success, or retry model requests until the test happens to pass. Record expected
+versus actual outcomes. Only the full behavior test can complete the delegation
+validation milestone; a diagnostic flag or successful HTTP transport cannot.
 
 Review this record when authorization semantics, runtime/protocol, state ownership,
 or POC scope changes. Update dated findings without rewriting decision history;
@@ -246,8 +312,41 @@ use a new superseding ADR for a materially different accepted architecture.
 [delegation]: https://learn.microsoft.com/azure/foundry/agents/how-to/isolate-sessions-per-user#isolate-sessions-for-your-own-users
 [resilience]: https://learn.microsoft.com/azure/foundry/agents/concepts/long-running-agent-resilience
 [september]: https://devblogs.microsoft.com/foundry/whats-new-in-microsoft-foundry-september-2026/
+[sessions]: https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/manage-hosted-sessions?pivots=azd
+[agent-management]: https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/manage-hosted-agent?pivots=rest
+[python-isolation]: https://github.com/microsoft-foundry/foundry-samples/blob/41299fd5a460a9287e29c8414b1c027906cf5b6f/samples/python/hosted-agents/bring-your-own/responses/session-multiplexing/src/hello-world-session-multiplexing-python-responses/main.py
+[aab-isolation]: https://github.com/microsoft-foundry/foundry-samples/blob/41299fd5a460a9287e29c8414b1c027906cf5b6f/samples/python/hosted-agents/bring-your-own/responses/session-multiplexing/src/hello-world-session-multiplexing-python-responses/scripts/invoke_previous_response_isolation.py
+[a2a-sample]: https://github.com/microsoft-foundry/foundry-samples/tree/41299fd5a460a9287e29c8414b1c027906cf5b6f/samples/python/hosted-agents/agent-framework/a2a/01-delegation
+[a2a-caller]: https://github.com/microsoft-foundry/foundry-samples/blob/41299fd5a460a9287e29c8414b1c027906cf5b6f/samples/python/hosted-agents/agent-framework/a2a/01-delegation/caller/src/agent-framework-a2a-caller-responses/main.py
+[a2a-auth]: https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/agent-to-agent
+[maf-user-isolation]: https://github.com/microsoft/agent-framework/tree/08851e69d722b0e0961c08eecf8575db995f0172/dotnet/samples/04-hosting/FoundryHostedAgents/responses/Using-Samples/UserIsolationAgent
+[toolbox-context]: https://github.com/microsoft-foundry/foundry-samples/blob/41299fd5a460a9287e29c8414b1c027906cf5b6f/samples/python/hosted-agents/agent-framework/responses/25-claude-foundry-toolbox/src/claude-foundry-toolbox-responses/main.py
 
 - [Hosted agent runtime contract][runtime].
 - [State Store caller identity and isolation][state-store].
+- [Hosted session lifecycle and conversation binding][sessions].
+- [Hosted agent/version management][agent-management].
+- [Application-user delegation and its trust boundary][delegation].
 - [Long-running agent resilience][resilience].
 - [September 2026 feature announcement][september] (published October 15, 2026).
+
+### Official sample references
+
+Source-inspected on 2026-10-20 at the pinned revisions below; not deployed or run
+as part of this research. Samples illustrate contracts, not proof that our current
+implementation or pinned dependency set behaves identically.
+
+| Sample | Useful pattern | Boundary / caution |
+|---|---|---|
+| [Python session-multiplexing handler][python-isolation] | Platform-authorized `get_history()` and explicit user/call-context checks | User-aware single-agent handler, not our complete Responses-to-Responses chain |
+| [Python A-A-B isolation script][aab-isolation] | Authorized continuation followed by a cross-user attempt using `x-ms-user-identity` | Delegated labels are not two independently authenticated Entra principals; assert the intended denial, not any failure |
+| [Python hosted A2A delegation][a2a-sample] | Hosted caller/executor through Toolbox and a remote-agent connection | Different transport/authentication arrangement; not a drop-in fix for the current bare Responses client |
+| [MAF .NET UserIsolationAgent][maf-user-isolation] | Per-user AgentSession and explicit application-user delegation | .NET API example; explicitly distinguishes delegated labels from OAuth token exchange |
+| [Python Foundry Toolbox client][toolbox-context] | SDK-managed opaque call-ID forwarding to a first-party service | Toolbox example, not evidence that our specialist state/history access is authorized |
+
+The A2A sample uses `UserEntraToken`, while the [current A2A tool guide][a2a-auth]
+recommends `agentic-identity` for Foundry targets. Reconcile the intended auth mode,
+SDK/API versions, and permissions before adoption; do not make A2A mandatory here.
+The [sample caller][a2a-caller] also includes an SDK workaround that falls back to
+empty history after a fetch failure. Do not copy that workaround into our
+continuity/isolation validation, where it would hide the behavior being tested.
