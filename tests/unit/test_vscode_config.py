@@ -125,7 +125,11 @@ def test_inspector_task_does_not_wait_for_attachment_before_readiness() -> None:
     assert "--wait-for-client" not in host["args"]
     assert host["options"]["env"] == {"PORT": "8088", "ENVIRONMENT": "development"}
     assert tasks["Debug: Open Supervisor Inspector"]["dependsOn"] == ["Debug: Start Supervisor for Inspector"]
-    assert document["inputs"][0]["args"]["port"] == 8088
+    inputs = {item["id"]: item for item in document["inputs"]}
+    inspector = inputs["openSupervisorInspector"]
+    assert inspector["type"] == "command"
+    assert inspector["command"] == "ai-mlstudio.openTestTool"
+    assert inspector["args"]["port"] == 8088
     launch = json.loads((ROOT / ".vscode" / "launch.json").read_text(encoding="utf-8"))
     attach = next(config for config in launch["configurations"] if config["request"] == "attach")
     assert attach["connect"] == {"host": "127.0.0.1", "port": 5679}
