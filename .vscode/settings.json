@@ -1,0 +1,87 @@
+{
+    // Python interpreter
+    "python.defaultInterpreterPath": "${workspaceFolder}/src/backend/.venv/Scripts/python.exe",
+
+    // Python analysis settings
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/src/backend",
+        "${workspaceFolder}/scripts",
+        "${workspaceFolder}/src/backend/mcp/.venv/Lib/site-packages"
+    ],
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.useLibraryCodeForTypes": true,
+    "python.analysis.diagnosticMode": "openFilesOnly",
+
+    // Pylance settings
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.indexing": true,
+
+    // TypeScript SDK for the nested chat frontend
+    "js/ts.tsdk.path": "src/frontend/web/chat/node_modules/typescript/lib",
+    "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+
+    // GitHub Copilot MCP Server Configuration
+    "github.copilot.chat.mcp": {
+        "enabled": true,
+        "servers": ".vscode/mcp.json"
+    },
+
+    // Ruff linting
+    "ruff.enable": true,
+    "ruff.lint.enable": true,
+
+    // Auto-activate environment
+    "python.terminal.activateEnvironment": true,
+
+    // Testing
+    "python.testing.pytestEnabled": true,
+    "python.testing.cwd": "${workspaceFolder}/src/backend",
+    "python.testing.pytestArgs": [
+        "tests",
+        "-v"
+    ],
+    "python.testing.unittestEnabled": false,
+
+    // Formatting
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.rulers": [120],
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+
+    // Black formatter settings
+    "black-formatter.args": [
+        "--line-length=120"
+    ],
+
+    // isort settings (must match Black profile)
+    "isort.args": [
+        "--line-length=120",
+        "--profile=black"
+    ],
+
+    // Files
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/.pytest_cache": true,
+        "**/.mypy_cache": true,
+        "**/htmlcov": true,
+        "**/*.egg-info": true
+    },
+
+    "files.watcherExclude": {
+        "**/.venv/**": true,
+        "**/node_modules/**": true,
+        "**/bin/**": true,
+        "**/obj/**": true
+    },
+
+    // Explorer
+    "explorer.compactFolders": false
+}
