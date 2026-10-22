@@ -25,6 +25,7 @@ services:
       AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
       ENVIRONMENT: hosted
       POC_AGENT_NAME: supervisor
+      POC_ENABLE_IDENTITY_TESTS: 'true'
     container:
       resources:
         cpu: '0.5'
@@ -49,6 +50,7 @@ services:
       AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
       ENVIRONMENT: hosted
       POC_AGENT_NAME: research
+      POC_ENABLE_IDENTITY_TESTS: 'true'
     container:
       resources:
         cpu: '0.5'

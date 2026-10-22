@@ -19,6 +19,7 @@ class Settings(AppConfigAwareSettings):
 
     environment: str = "development"
     poc_agent_name: AgentName = "supervisor"
+    poc_enable_identity_tests: bool = False
     foundry_project_endpoint: HttpUrl | None = None
     azure_ai_model_deployment_name: str = ""
     applicationinsights_connection_string: SecretStr | None = None

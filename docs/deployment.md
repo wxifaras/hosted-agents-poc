@@ -165,6 +165,8 @@ credential-free `--help`; no script signs you in automatically.
 
 ### VS Code task and debugger reference
 
+The [detailed task guide](tasks-detailed.md) covers every task, grouped by purpose,
+with test use cases, execution flows, prerequisites, and evidence boundaries.
 The [task table at the end of the README](../README.md#vs-code-tasks)
 is the quick reference for the current task names and purposes.
 
@@ -225,6 +227,241 @@ An interrupted/failed workflow can remain `progress: running`. That means an
 unfinished turn was persisted, not that successful work is still executing.
 Inspection is allowed; automatic replay/recovery is disabled. Missing mappings
 never authorize creating replacements.
+
+### Identity variants and isolation experiment
+
+#### Prepare isolated native-user authentication
+
+Run **Access: Create isolated user auth profiles** to enter comma-separated full
+sign-in names, such as `user1@tenant.onmicrosoft.com,user2@tenant.onmicrosoft.com`.
+The selected azd environment supplies `AZURE_TENANT_ID`. The task also asks for
+RBAC: `consumer` (default) or `none` (authentication only). Microsoft sign-in opens
+for each account; enter passwords, password resets, and MFA only in Microsoft's
+window, never in task inputs, command arguments, or this repository.
+
+CLI preview, followed by explicit sign-in:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.common.auth_profiles --users "user1@tenant.onmicrosoft.com,user2@tenant.onmicrosoft.com" --environment hosted-agents-poc-dev
+# Add --rbac consumer to preview the project-scoped invocation grants too.
+# After reviewing the plan, repeat the command with --apply.
+```
+
+Use `--tenant <tenant-guid>` to override environment discovery. Without `--apply`,
+the helper only records a plan; it does not create profile caches or sign in.
+It never copies the developer cache or changes the parent process environment.
+The CLI defaults to `--rbac none`; the task's explicit selection controls RBAC.
+
+With `--rbac consumer`, run from your existing operator/admin CLI context, not
+from a test-user profile. Before any user sign-in, the helper validates the
+environment's project/subscription/tenant, resolves every requested account to a
+distinct enabled Member user, and validates the built-in invoke-only Consumer
+role. It plans all users before writing anything. Only `--apply` creates missing
+project-scoped assignments, using stable assignment names and existing role
+helpers. Unconditional inherited/group Consumer grants are reused; conditional
+Consumer grants require review instead of being widened. Assignment write
+permission is required only when grants are missing.
+
+No Foundry User, Owner, impersonation, Blob, model, or subscription-wide grants
+are created. Other existing roles are not removed or reduced; this is not a full
+least-privilege audit. Each assignment is read back before user sign-in begins.
+Readback is not effective data-plane access proof, and RBAC propagation can take
+time. If later grants or authentication fail, earlier grants/profiles remain;
+there is no automatic rollback, login fallback, or retry.
+Each tenant/user gets a distinct hashed directory below
+`$env:LOCALAPPDATA\HostedAgentsPoc\Auth`. The helper refuses paths overlapping the
+repository or active CLI cache, and rejects existing cache entries or completed
+logins for another user/tenant. Earlier successful profiles are retained on failure.
+
+The helper prints a PowerShell `AZURE_CONFIG_DIR` assignment for each verified
+profile. Set it in a separate terminal before using that identity. The task
+cannot change the environment of an already open terminal. Browser/Windows SSO
+can offer an existing account, so explicitly select the requested UPN; directory
+names alone are not identity proof. To recover a wrongly populated profile, sign
+out manually only under that profile's printed `AZURE_CONFIG_DIR`, then retry.
+The helper never automatically signs out, clears caches, or disables MFA/CA.
+
+Profile caches contain authentication material: keep them local and do not share,
+copy, or commit them. Only CLI account metadata is captured by the helper;
+passwords/tokens are not collected or added to run evidence.
+
+**Authentication is not authorization or isolation proof.** Native-user
+invocation normally needs the least-privilege Foundry Agent Consumer role at the
+approved project/agent scope, not an impersonation grant. This task optionally
+grants only project-scoped Consumer access and invokes no agents. Do not use the
+synthetic-label matrix below as a
+substitute for a genuine two-Entra-user test. Future native-user tests must use
+the selected CLI credential explicitly, without a developer-credential fallback.
+
+#### Test genuine native Entra users
+
+After profile setup and an approved Consumer grant, run **Agents: Test native
+Entra user isolation**, entering exactly two full UPNs. The CLI equivalent is:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.native_user_isolation --users "user1@tenant.onmicrosoft.com,user2@tenant.onmicrosoft.com" --environment hosted-agents-poc-dev --run --no-color --verbose
+```
+
+Without `--run`, only prerequisites are checked and hosted tests remain BLOCKED.
+The existing operator identity reads Research's active version/routing/120-second
+idle metadata; it never authenticates the actual test requests. Each native
+credential uses a separate child-process `AZURE_CONFIG_DIR`, verifies CLI and
+Graph `/me` identities, and obtains only the Foundry token from that profile.
+Tokens stay in process memory. There is no login, developer-credential fallback,
+acting-user header, role change, or deployment.
+
+The test uses Research's existing opt-in diagnostic handler and separate
+one-hour State Store markers. In each direction it verifies both callers'
+positive context, owner state/history continuity, other-user state denial,
+history denial with and without an explicit owner session, owner continuation
+after those attempts, and unchanged owner state. Generic history `404/not_found`
+also requires positive owner response readback. Unexpected access remains FAIL
+even if no marker is returned; unrelated failures are not isolation passes.
+Actual outgoing requests are checked for absence of delegated-user, forwarded
+call-context, and client-forged platform-user headers.
+
+This is direct native-user isolation, not hosted Supervisor-to-specialist
+delegation, filesystem/artifact authorization, model-quality, or recovery proof.
+No normal workflow mappings are created or reset. No automatic retries are made.
+
+The VS Code task asks **Verbose** or **Not verbose**, defaulting to Verbose.
+These select `--verbose` and `--no-verbose`, respectively.
+In verbose mode, Rich REQUEST/RESPONSE panels show the
+captured diagnostic message, acting user alias, response/session bindings, safe
+HTTP URI/status/correlation headers, elapsed invocation time, and validated
+diagnostic reply. Rejected calls show only safe error classification; a 403/404
+is not called a passing isolation check until the assertion evaluates it.
+These replies are deterministic diagnostic JSON, not model-generated answers.
+Elapsed time includes authentication/transport, not just server processing.
+
+For shorter CLI output, omit `--verbose`. Sanitized exchange events are still
+saved in `events.jsonl` with `kind: request` or `kind: response`, alongside the
+assertion events. `results.jsonl` remains assertion-only, so verbosity does not
+change pass/fail counts or exit codes. Tokens, cookies, opaque call IDs, raw
+service-error messages, and unapproved headers are excluded. Owner-resource GET
+readback remains represented by its confirmation in the history-denial assertion.
+
+#### Run the delegated-label diagnostics
+
+After explicit approval, use **Agents: Test hosted identity variants and isolation**:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.identity_matrix --environment hosted-agents-poc-dev --no-color
+```
+
+This requires `POC_ENABLE_IDENTITY_TESTS=true` on Supervisor and Research. The
+setting defaults to false; the POC manifest explicitly enables it for the
+owner-authorized experiment. Disable it and redeploy those services when this
+diagnostic surface is no longer needed. It never relaxes `POC_WORKFLOW` checks.
+
+The fixed diagnostic variants do not mix mechanisms: original call context only,
+or explicit synthetic application-user delegation only. The caller-comparison
+header is diagnostic, never authorization. User labels are generated server-side
+per verified Supervisor caller/run; arbitrary acting-user or store overrides
+are rejected. No additional permission is granted by this task.
+
+The diagnostic expected-user value follows the selected mechanism: original
+caller for call-context forwarding, selected synthetic A/B label for delegated
+forwarding. Context results label this source explicitly. Equality is an
+observation, not an authorization decision or proof of an enforced boundary.
+
+The Research diagnostic requires hosted call/session context but intentionally
+does not require the visible user-ID field, so service authorization can actually
+be observed. Small markers use a separate user-isolated
+`hosted-agents-poc-identity-experiments-v1` State Store, with a verified one-hour
+item lifetime. Reads do not initialize absent stores/items. Markers expire;
+normal workflow mappings are never opened, reset, or deleted.
+
+State and platform-history checks are reported separately from context presence.
+The A-A-B-A test requires A's initial continuation to succeed, B's access to
+produce a specific visibility rejection, and A to continue again afterward;
+unrelated failures are not passes. The history
+handler returns deterministic synthetic text, not model output. Conversation/
+response records and hosting still incur service usage.
+
+The Rich report and saved evidence include a separate
+`delegated-user: A continues after B attempt` assertion. Its observations show
+whether A saw the history marker, reused the original child session, and created
+a new response. This uses A's original client and the response preceding B's
+attempt, not any response returned to B. An A-continuation PASS never overrides
+a B-isolation FAIL. For nested runs, deploy the Supervisor containing this
+assertion before testing; an older version's successful owner GET is not evidence
+of post-B continuation.
+
+The operator also reports `Matrix completeness`. Every required core assertion
+must appear once; empty/partial matrices, duplicate names, or a genuine-user PASS
+that contradicts the protocol's untested flag fail validation. Original failed
+and blocked checks remain in the report. A completeness PASS means the expected
+assertions were collected, not that they passed. Old Supervisor versions missing
+final-A continuation cannot satisfy this evidence requirement.
+
+Two delegated labels are not two genuine Entra users. The latter tests are
+explicitly BLOCKED until another authenticated principal is available, making
+the overall scenario nonzero even if all delegated-user checks pass. This is
+diagnostic evidence, not completion of the full specialist workflow.
+
+For the developer-to-Research control, without a Supervisor hop:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.identity_matrix --environment hosted-agents-poc-dev --direct-control --no-color
+```
+
+This uses the current Azure CLI principal and separate synthetic delegated
+labels. It starts directly with Responses/`previous_response_id` and runs the
+same strengthened A-A-B-A sequence; no fake platform call/session context is created.
+The current operator must independently have the custom impersonation action:
+Supervisor's assignment does not grant it to the developer. A `403` before
+Research executes blocks the control and is not an isolation pass. The script
+does not grant roles, refresh authentication, or retry denied requests.
+
+For the nested response-chain control (no explicit conversation creation):
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.identity_matrix --environment hosted-agents-poc-dev --response-chains --no-color
+```
+
+This requires the Supervisor version that supports `compare-chains`. It separates
+conversation-object binding from hosted-caller identity handling. A missing
+conversation ID is not a failed requirement when a response chain was explicitly
+chosen; verified call/session/user checks and actual history assertions still apply.
+
+For the separately authorized history-only negative test:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.identity_matrix --environment hosted-agents-poc-dev --history-only --no-color --verbose
+```
+
+This selects `compare-history-only` on Supervisor and requires a version that
+implements it. B sends A's `previous_response_id` without explicitly sending
+`agent_session_id`. A's initial and final continuations retain the original
+session binding. This changes only B's explicit sandbox binding relative to the
+nested response-chain control; it does not turn the labels into genuine users.
+`--history-only` and `--response-chains` are mutually exclusive.
+
+The B-history result records `explicit_session_requested: false`; completeness
+fails if that observation is absent or contradicts the selected history-only mode.
+Boolean-only egress checks also compare the serialized previous-response/session
+fields with the requested bindings on successful and HTTP-rejected requests.
+They inspect application HTTP request objects, not downstream gateway changes,
+and never return the actual IDs or request bodies.
+
+Generic `404/not_found` is only accepted as a masked history denial when the
+request targets the Responses endpoint and A successfully retrieves the exact
+completed response after B's rejected continuation. A generic 404 by itself,
+an unrelated permission failure, or a transport outage is not an isolation pass.
+The [ADR](adr/0001-hosted-agents-poc.md#planned-delegation-tests) records the
+passing direct delegated-label control and the still-failing nested controls.
+Temporary developer grants used for those approved controls were removed; the
+command does not recreate them, and a later run may require fresh approval.
+
+Supervisor's current diagnostic also compares final application HTTP request
+targets/identity headers and bearer principal/client claims against its actual
+instance metadata. Results contain booleans only; unknown/unreadable credential
+metadata is not reported as a match. This is inspection of our own request,
+not token signature verification or a substitute for isolation tests.
+It cannot prove that an intermediary leaves the request unchanged after the
+application transport boundary. No tokens, raw claims, or opaque call IDs are
+printed or persisted by the audit.
 
 ## Session idle policy
 

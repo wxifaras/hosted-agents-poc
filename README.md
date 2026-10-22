@@ -14,6 +14,11 @@ Three separate hosted-agent deployments share one Foundry project and model
 deployment. Bicep defines the foundation; agent deployment builds and publishes
 the containers separately.
 
+This POC uses authenticated public endpoints. "Private" Blob storage means the
+container disallows anonymous access, not that it uses private networking.
+Storage uses an enforced Network Security Perimeter with permissive IPv4 ingress,
+not a private endpoint. See the [infrastructure boundaries](infra/README.md).
+
 ```mermaid
 flowchart TD
     accTitle: Hosted Agents POC infrastructure
@@ -115,7 +120,7 @@ provisioning or a new agent version.
 1. **Prepare the environment:** run **Setup: Prepare local environment**, or:
 
    ```powershell
-   uv sync --frozen --group validation
+   uv sync --frozen --group validation --inexact
    uv run --frozen --no-sync --group validation python -m scripts.common.validate_environment --mode local --no-color
    ```
 
@@ -189,6 +194,20 @@ For already-deployed agents, **Agents: Smoke test all hosted agents** avoids a
 new build/version and requires no local F5 hosts. Use `azd provision` for reviewed
 foundation changes and `azd deploy` for code; do not substitute `azd up`.
 
+To demonstrate **direct native-user isolation** on an existing Research deployment:
+
+1. Run **Access: Create isolated user auth profiles** with two full user UPNs.
+   Choose `consumer` for the required project-scoped invocation grants, or `none`
+   if access is already configured.
+2. Run **Agents: Test native Entra user isolation** with those same users and
+   choose **Verbose** or **Not verbose**.
+
+This uses real user credentials and synthetic state/history diagnostics, with no
+model inference requested. Hosted usage can still incur charges. It tests the
+direct Research boundary, not Supervisor-to-specialist user propagation or
+downstream user permissions. See the
+[native-user test details](docs/deployment.md#test-genuine-native-entra-users).
+
 **Agents: Test hosted workflow state and delegation** is a separate, currently
 non-passing scenario. **Agents: Deploy and test hosted delegation** additionally
 creates new versions. Read the [current authorization finding](docs/adr/0001-hosted-agents-poc.md#authorization-contract-and-proposed-alignment)
@@ -218,6 +237,7 @@ separates implementation from observed hosted results.
 |---|---|
 | [POC ADR](docs/adr/0001-hosted-agents-poc.md) | Accepted architecture, state/identity boundaries, feature adoption, dated progress, and pending experiments |
 | [Deployment guide](docs/deployment.md) | Detailed setup, local debugging, tasks, configuration/sizing, diagnostics, evidence, and teardown |
+| [Detailed task guide](docs/tasks-detailed.md) | Task purposes, prerequisites, side effects, test use cases, and Mermaid execution flows |
 | [Infrastructure guide](infra/README.md) | Bicep contracts, NSP boundaries, outputs, and provisioning/RBAC details |
 
 The published documentation is self-contained. Local working notes and generated
@@ -234,12 +254,14 @@ subscription/environment, save anything needed, then follow the
 ## VS Code tasks
 
 Use **Terminal > Run Task**. Task names use `Area: Action + target`.
+See [Detailed task guide](docs/tasks-detailed.md) for every task's purpose,
+prerequisites, side effects, test steps, and Mermaid interaction diagrams.
 Local checks do not deploy, grant permissions, or inject failures. Agent smoke
 tests invoke real models and can incur charges. See the
 [deployment guide](docs/deployment.md#vs-code-task-and-debugger-reference)
 for setup, execution boundaries, and debugger details.
 
-| Task | Purpose / boundary |
+| Selected task | Purpose / boundary |
 |---|---|
 | **Setup: Prepare local environment** | Locked uv sync plus local import preflight; no Azure access |
 | **Setup: Sync dependencies** | `--inexact` preserves installed optional extras |
@@ -248,6 +270,9 @@ for setup, execution boundaries, and debugger details.
 | **Agents: Smoke test all local agents** | Requires all three local hosts already running; real model calls |
 | **Agents: Deploy and smoke test all hosted agents** | Explicit paid build/deploy, scoped model roles, and remote smoke |
 | **Agents: Smoke test all hosted agents** | Remote inference without building new versions |
+| **Agents: Test hosted identity variants and isolation** | Explicit hosted call-context/user-label experiments and synthetic state/history tests; no models; requires diagnostic opt-in |
+| **Agents: Test native Entra user isolation** | Choose verbose request/response panels or shorter output; two native CLI users directly invoke Research, with no delegated labels or models |
 | **Access: Preview hosted agent permissions** | Read-only actual-instance permission inspection |
+| **Access: Create isolated user auth profiles** | Prompt for UPNs and optional project-scoped Consumer RBAC; operator grants precede isolated Microsoft sign-in; no agent calls or administrative/impersonation grants |
 | **Access: Apply hosted agent permissions** | Explicit scoped grants; not proof of delegation |
 | **Quality: Run all local checks** | Lint, format, mypy, and tests; default build task |

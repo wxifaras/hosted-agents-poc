@@ -34,6 +34,7 @@ from app.services.delegation import (
     SpecialistClient,
 )
 from app.services.foundry_state import Caller, ContextPresence, open_store
+from app.services.identity_checks import IDENTITY_PREFIX, IdentityCommand, identity_experiment
 from app.services.workflows import Child, Registry, WorkflowError
 
 
@@ -200,6 +201,19 @@ def build_host(
         if cancellation.is_set():
             raise asyncio.CancelledError
         text = await context.get_input_text() or ""
+        if text.startswith(IDENTITY_PREFIX):
+            try:
+                if request.get("background") or context.is_recovery:
+                    raise WorkflowError("Identity experiments do not support background/recovery.")
+                experiment = IdentityCommand.model_validate_json(text[len(IDENTITY_PREFIX) :])
+                result = await identity_experiment(name, settings, experiment, context)
+            except WorkflowError as error:
+                Logger(name).error("Identity experiment rejected", agent=name, reason=str(error))
+                return failed_response(request, context, str(error))
+            except ValidationError:
+                Logger(name).error("Invalid identity experiment schema", agent=name)
+                return failed_response(request, context, "Invalid identity experiment command/report.")
+            return TextResponse(context, request, text=result)
         if text.startswith(CONTEXT_PREFIX):
             try:
                 if request.get("background") or context.is_recovery:

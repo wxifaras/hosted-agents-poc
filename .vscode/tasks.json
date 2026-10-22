@@ -103,6 +103,15 @@
       "problemMatcher": []
     },
     {
+      "label": "Access: Create isolated user auth profiles",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.common.auth_profiles", "--users", "${input:authProfileUsers}", "--environment", "${input:infraEnvironment}", "--rbac", "${input:authProfileRbac}", "--apply"],
+      "detail": "Choose optional project-scoped Foundry Agent Consumer grants under the operator CLI identity, then isolated Microsoft sign-in. No Foundry User/Owner/impersonation grants or agent calls. Passwords/MFA remain in Microsoft's UI.",
+      "presentation": { "reveal": "always", "panel": "dedicated", "focus": true },
+      "problemMatcher": []
+    },
+    {
       "label": "Access: Apply hosted agent permissions",
       "type": "process",
       "command": "uv",
@@ -148,6 +157,24 @@
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.context_probe", "--environment", "${input:infraEnvironment}"],
       "detail": "Direct Research versus one Supervisor-to-Research presence-only probe. No model inference, workflow-state writes, grants or deployments. Missing context is reported as FAIL.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Test hosted identity variants and isolation",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.identity_matrix", "--environment", "${input:infraEnvironment}"],
+      "detail": "Explicit opt-in hosted diagnostics: separate call-context/user-label variants, one-hour synthetic state markers and A-A-B history checks. No model calls or role changes; hosting usage applies. Genuine two-Entra-user tests remain blocked.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Test native Entra user isolation",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.native_user_isolation", "--users", "${input:authProfileUsers}", "--environment", "${input:infraEnvironment}", "--run", "${input:nativeIsolationVerbosity}"],
+      "detail": "Verbose Rich request/response panels for real native-user Research state/history tests. Sanitized diagnostic replies, HTTP status/trace metadata, and unchanged isolation assertions. No models, grants, deployment, login, or retries.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -290,6 +317,28 @@
     }
   ],
   "inputs": [
+    {
+      "id": "nativeIsolationVerbosity",
+      "type": "pickString",
+      "description": "Choose native-user test output detail",
+      "options": [
+        { "label": "Verbose - request/response panels and full details", "value": "--verbose" },
+        { "label": "Not verbose - request labels and assertion summaries", "value": "--no-verbose" }
+      ],
+      "default": "--verbose"
+    },
+    {
+      "id": "authProfileRbac",
+      "type": "pickString",
+      "description": "RBAC: consumer = grant only Foundry Agent Consumer on the selected project before sign-in; none = authentication only. Run from your operator/admin CLI context.",
+      "options": ["consumer", "none"],
+      "default": "consumer"
+    },
+    {
+      "id": "authProfileUsers",
+      "type": "promptString",
+      "description": "Comma-separated full user sign-in names, e.g. user1@tenant.onmicrosoft.com,user2@tenant.onmicrosoft.com. Never enter passwords."
+    },
     {
       "id": "openSupervisorInspector",
       "type": "command",
