@@ -83,6 +83,7 @@ module projectAccess 'project-access.bicep' = {
   params: {
     accountName: 'aif-poc-${suffix}'
     registryName: registry.name
+    insightsName: monitoring.outputs.insightsName
     principalId: foundry.outputs.projectPrincipalId
   }
 }

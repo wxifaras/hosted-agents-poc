@@ -1,5 +1,6 @@
 param accountName string
 param registryName string
+param insightsName string
 param principalId string
 
 resource account 'Microsoft.CognitiveServices/accounts@2025-06-01' existing = {
@@ -8,6 +9,20 @@ resource account 'Microsoft.CognitiveServices/accounts@2025-06-01' existing = {
 
 resource registry 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
   name: registryName
+}
+
+resource insights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: insightsName
+}
+
+resource insightsRead 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(insights.id, principalId, '43d8fa96-e556-4b83-a735-4c5e71f4bac2')
+  scope: insights
+  properties: {
+    principalId: principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '43d8fa96-e556-4b83-a735-4c5e71f4bac2')
+  }
 }
 
 resource modelAccess 'Microsoft.Authorization/roleAssignments@2022-04-01' = {

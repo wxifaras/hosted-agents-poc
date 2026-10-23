@@ -688,6 +688,15 @@ prove that telemetry reached Foundry.
    **Access: Apply hosted agent permissions** so that identity holds
    **Monitoring Metrics Publisher** on the Application Insights resource.
    Role propagation can take several minutes.
+   This publish role does not grant Foundry Insights read access. The
+   **project managed identity** and the interactive Insights user also need
+   **Monitoring Reader** on the connected Application Insights resource.
+   The foundation's project-access module grants the project identity this
+   role; existing environments must apply that grant separately or through
+   a reviewed infrastructure update. **Access: Apply hosted agent permissions**
+   also checks and applies the project read role, and runs automatically in
+   **Agents: Deploy and smoke test all hosted agents**. Bare `azd deploy`
+   does not run the access task or update infrastructure RBAC.
 6. Rerun Step 1 in `verify` mode. In Foundry, select the same project and
    Data Analysis agent, and a time range covering the run's UTC timestamp.
    Allow for telemetry ingestion delay and refresh the trace view. The
@@ -700,6 +709,14 @@ prove that telemetry reached Foundry.
    `gen_ai.agent.name` or `azure.ai.agentserver.agent_name`; join downstream
    spans by `operation_Id`. Confirm ingestion and attribution rather than
    assuming that a successful model response proves tracing works.
+
+If the container fails at `settings.require_model()`, check the deployed
+model configuration before diagnosing telemetry: the manifest must map
+`AZURE_AI_MODEL_DEPLOYMENT_NAME` to `${AZURE_AI_MODEL_DEPLOYMENT_NAME}`.
+A missing or misspelled substitution leaves the model unset even when the
+selected azd environment contains a valid deployment name. Correct it and
+redeploy Data Analysis; existing immutable versions retain the old value.
+`FOUNDRY_PROJECT_ENDPOINT` is platform-supplied and must also be present.
 
 Only the hosted-agent proof traverses Data Analysis. The direct operator MCP
 probes call the toolbox independently and are not expected under its agent

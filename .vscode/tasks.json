@@ -99,7 +99,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_agent_rbac", "--environment", "${input:infraEnvironment}"],
-      "detail": "Shows actual hosted instance principals, scoped Foundry User grants, and Data Analysis's Monitoring Metrics Publisher grant on Application Insights. Does not modify roles.",
+      "detail": "Shows deployed agent model grants, Data Analysis's Monitoring Metrics Publisher, and the project identity's Monitoring Reader on Application Insights. Does not modify roles.",
       "problemMatcher": []
     },
     {
@@ -116,7 +116,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_agent_rbac", "--environment", "${input:infraEnvironment}", "--apply"],
-      "detail": "Explicit model/state data permission on the selected Foundry account for deployed agent identities, not the developer, plus Monitoring Metrics Publisher on Application Insights for Data Analysis only (Entra trace export). No Blob or impersonation grants.",
+      "detail": "Applies scoped model grants, Monitoring Metrics Publisher for Data Analysis, and Monitoring Reader for the project identity on Application Insights. Reuses existing grants; no developer, Blob, or impersonation grants.",
       "problemMatcher": []
     },
     {
@@ -148,7 +148,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_agent_rbac", "--environment", "${input:infraEnvironment}", "--delegation", "--apply"],
-      "detail": "Explicit custom impersonation role and project-scoped assignment only for the actual Supervisor identity. Does not establish working delegation. No Blob or telemetry grants.",
+      "detail": "Applies the standard hosted model/telemetry and project Insights roles, plus the explicit project-scoped impersonation role for Supervisor only. Does not establish working delegation. No Blob grants.",
       "problemMatcher": []
     },
     {

@@ -18,6 +18,7 @@ from scripts.run_scenario import hosted_smoke
 ROOT = Path(__file__).resolve().parents[2]
 SUBSCRIPTION = "11111111-1111-4111-8111-111111111111"
 PRINCIPAL = "22222222-2222-4222-8222-222222222222"
+PROJECT_PRINCIPAL = "44444444-4444-4444-8444-444444444444"
 TENANT = "33333333-3333-4333-8333-333333333333"
 ACCOUNT = f"/subscriptions/{SUBSCRIPTION}/resourceGroups/rg-poc/providers/Microsoft.CognitiveServices/accounts/poc"
 INSIGHTS = f"/subscriptions/{SUBSCRIPTION}/resourceGroups/rg-poc/providers/Microsoft.Insights/components/appi-poc"
@@ -27,9 +28,14 @@ CONTEXT = {
     "AZURE_RESOURCE_GROUP": "rg-poc",
     "AZURE_TENANT_ID": TENANT,
     "AZURE_AI_ACCOUNT_ID": ACCOUNT,
+    "AZURE_AI_PROJECT_ID": ACCOUNT + "/projects/poc",
     "AZURE_APPLICATION_INSIGHTS_ID": INSIGHTS,
 }
-ROLE_IDS = {"Foundry User": PRINCIPAL, "Monitoring Metrics Publisher": "3913510d-42f4-4e42-8a64-420c390055eb"}
+ROLE_IDS = {
+    "Foundry User": PRINCIPAL,
+    "Monitoring Metrics Publisher": "3913510d-42f4-4e42-8a64-420c390055eb",
+    "Monitoring Reader": "43d8fa96-e556-4b83-a735-4c5e71f4bac2",
+}
 
 
 def agent_record(name: str, *, active: bool = True) -> dict:
@@ -61,6 +67,7 @@ def test_shared_manifest_reuses_root_lock_and_runtime_role() -> None:
         assert service["protocols"] == [{"protocol": "responses", "version": "2.0.0"}]
         assert service["container"]["resources"] == {"cpu": "0.5", "memory": "1Gi"}
         assert service["env"]["ENVIRONMENT"] == "hosted"
+        assert service["env"]["AZURE_AI_MODEL_DEPLOYMENT_NAME"] == "${AZURE_AI_MODEL_DEPLOYMENT_NAME}"
         assert service["env"]["POC_AGENT_NAME"] in {"supervisor", "research", "data_analysis"}
         assert not any(key.startswith(("FOUNDRY_", "AGENT_")) or key == "PORT" for key in service["env"])
     docker = (ROOT / "src" / "backend" / "Dockerfile").read_text()
@@ -221,6 +228,10 @@ def test_agent_grants_use_actual_instance_principals_and_preview_is_read_only(
         calls.append(arguments)
         if arguments[:2] == ["account", "show"]:
             return {"tenantId": TENANT}
+        if arguments[:2] == ["resource", "show"]:
+            assert arguments[arguments.index("--ids") + 1] == CONTEXT["AZURE_AI_PROJECT_ID"]
+            assert arguments[arguments.index("--query") + 1] == "identity.principalId"
+            return PROJECT_PRINCIPAL
         if arguments[:3] == ["role", "definition", "list"]:
             role = arguments[arguments.index("--name") + 1]
             return [{"roleName": role, "roleType": "BuiltInRole", "name": ROLE_IDS[role]}]
@@ -238,17 +249,61 @@ def test_agent_grants_use_actual_instance_principals_and_preview_is_read_only(
     create.assert_not_called()
     monkeypatch.setattr(grant_agent_rbac, "assignment_allowed", lambda *args: True)
     assert grant_agent_rbac.main(["--output-dir", str(tmp_path), "--no-color", "--apply"]) == 0
-    assert create.call_count == 4
+    assert create.call_count == 5
     grants = [call.args[0] for call in create.call_args_list]
     assert [(grant.role, grant.scope) for grant in grants] == [("Foundry User", ACCOUNT)] * 3 + [
-        ("Monitoring Metrics Publisher", INSIGHTS)
+        ("Monitoring Reader", INSIGHTS),
+        ("Monitoring Metrics Publisher", INSIGHTS),
     ]
     assert grants[-1].definition_id == ROLE_IDS["Monitoring Metrics Publisher"]
     for call in create.call_args_list:
         _grant, principal, subscription = call.args
-        assert principal == PRINCIPAL
+        assert principal == (PROJECT_PRINCIPAL if _grant.role == "Monitoring Reader" else PRINCIPAL)
         assert subscription == SUBSCRIPTION
         assert call.kwargs["principal_type"] == "ServicePrincipal"
+
+
+def test_project_insights_refuses_foreign_project_before_querying_azure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    query = MagicMock()
+    monkeypatch.setattr(grant_agent_rbac, "az", query)
+    run = ValidationRun("fake-grant", "unit", tmp_path, no_color=True)
+    foreign = {**CONTEXT, "AZURE_AI_PROJECT_ID": ACCOUNT.replace("rg-poc", "rg-other") + "/projects/poc"}
+    with pytest.raises(ValueError, match="exact selected Foundry project"):
+        grant_agent_rbac.grant_project_insights(foreign, run, apply=True)
+    query.assert_not_called()
+
+
+def test_project_insights_reuses_existing_grant_and_bicep_assignment_name(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    create = MagicMock()
+    monkeypatch.setattr(grant_agent_rbac, "create_grant", create)
+    monkeypatch.setattr(grant_agent_rbac, "assignment_allowed", lambda *_args: True)
+    existing: list[dict[str, str]] = []
+
+    def az(arguments: list[str]) -> object:
+        if arguments[:2] == ["resource", "show"]:
+            return PROJECT_PRINCIPAL
+        if arguments[:3] == ["role", "definition", "list"]:
+            return [{"roleName": "Monitoring Reader", "roleType": "BuiltInRole", "name": ROLE_IDS["Monitoring Reader"]}]
+        assert arguments[:3] == ["role", "assignment", "list"]
+        assert arguments[arguments.index("--assignee-object-id") + 1] == PROJECT_PRINCIPAL
+        assert arguments[arguments.index("--scope") + 1] == INSIGHTS
+        return existing
+
+    monkeypatch.setattr(grant_agent_rbac, "az", az)
+    run = ValidationRun("fake-grant", "unit", tmp_path, no_color=True)
+    grant_agent_rbac.grant_project_insights(CONTEXT, run, apply=False)
+    create.assert_not_called()
+    grant_agent_rbac.grant_project_insights(CONTEXT, run, apply=True)
+    create.assert_called_once()
+    assert create.call_args.kwargs["assignment_name"]
+    assert create.call_args.args[1] == PROJECT_PRINCIPAL
+    existing.append({"roleDefinitionId": "/providers/x/" + ROLE_IDS["Monitoring Reader"]})
+    grant_agent_rbac.grant_project_insights(CONTEXT, run, apply=True)
+    create.assert_called_once()
 
 
 def test_telemetry_grant_is_data_analysis_only_and_refuses_foreign_scope(
@@ -294,4 +349,6 @@ def test_hosted_tasks_are_explicit_and_not_in_ordinary_checks() -> None:
     assert tasks["Agents: Deploy all hosted agents"]["args"][:2] == ["deploy", "--all"]
     assert "scripts.run_scenario.hosted_smoke" in tasks["Agents: Smoke test all hosted agents"]["args"]
     assert "--apply" in tasks["Access: Apply hosted agent permissions"]["args"]
+    assert "Monitoring Reader" in tasks["Access: Apply hosted agent permissions"]["detail"]
+    assert "Monitoring Reader" in tasks["Access: Preview hosted agent permissions"]["detail"]
     assert compound["dependsOn"][0] not in tasks["Quality: Run all local checks"]["dependsOn"]

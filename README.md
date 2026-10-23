@@ -136,6 +136,9 @@ on) and enables Agent Framework instrumentation. Application Insights disables
 local auth, so Data Analysis exports with its Entra identity
 (`POC_APPLICATIONINSIGHTS_AUTH_MODE=entra`); **Access: Apply hosted agent
 permissions** grants it Monitoring Metrics Publisher on that resource only.
+The same task also grants the Foundry project's managed identity Monitoring
+Reader on that resource, so Foundry Insights can read the exported telemetry.
+It checks existing assignments before applying either role.
 Prompt/tool-content capture is explicitly disabled. See
 [viewing Step 1 traces](docs/tasks-detailed.md#viewing-step-1-traces-in-foundry)
 for setup, deployment scope, and verification. Direct operator toolbox probes

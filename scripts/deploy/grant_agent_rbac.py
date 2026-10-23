@@ -1,10 +1,10 @@
-"""Preview/apply model access, plus Data Analysis telemetry publishing, for deployed agent identities."""
+"""Preview/apply hosted model access, Data Analysis telemetry publishing, and project Insights reading."""
 
 import argparse
 import json
 import subprocess
 from collections.abc import Mapping, Sequence
-from uuid import UUID
+from uuid import UUID, uuid5
 
 from azure.ai.projects import AIProjectClient
 from azure.core.exceptions import AzureError
@@ -26,24 +26,31 @@ IMPERSONATION_ACTION = (
     "Microsoft.CognitiveServices/accounts/AIServices/agents/endpoints/UserIdentityImpersonation/action"
 )
 TELEMETRY_ROLE = "Monitoring Metrics Publisher"
+INSIGHTS_READER_ROLE = "Monitoring Reader"
 
 
-def grant_data_analysis_telemetry(
-    context: Mapping[str, object], principal: str, run: ValidationRun, *, apply: bool
+def grant_insights_role(
+    context: Mapping[str, object],
+    principal: str,
+    run: ValidationRun,
+    *,
+    role_name: str,
+    subject: str,
+    apply: bool,
 ) -> None:
-    """Let only Data Analysis publish Entra-authenticated telemetry to this POC's Application Insights."""
+    """Preview/apply one identity's role at this POC's Application Insights resource only."""
     subscription = str(context["AZURE_SUBSCRIPTION_ID"])
     group = str(context.get("AZURE_RESOURCE_GROUP", ""))
     scope = str(context.get("AZURE_APPLICATION_INSIGHTS_ID", ""))
     prefix = f"/subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Insights/components/"
     if not group or not scope.casefold().startswith(prefix.casefold()) or scope.count("/") != prefix.count("/"):
         raise ValueError("Selected azd environment lacks a consistent POC Application Insights scope.")
-    definitions = az(["role", "definition", "list", "--name", TELEMETRY_ROLE, "--subscription", subscription])
+    definitions = az(["role", "definition", "list", "--name", role_name, "--subscription", subscription])
     if not isinstance(definitions, list) or len(definitions) != 1:
-        raise ValueError(f"Cannot uniquely resolve {TELEMETRY_ROLE}.")
+        raise ValueError(f"Cannot uniquely resolve {role_name}.")
     role = object_value(definitions[0])
-    if role.get("roleName") != TELEMETRY_ROLE or role.get("roleType") != "BuiltInRole":
-        raise ValueError(f"Expected the built-in {TELEMETRY_ROLE} role.")
+    if role.get("roleName") != role_name or role.get("roleType") != "BuiltInRole":
+        raise ValueError(f"Expected the built-in {role_name} role.")
     identifier = str(UUID(str(role["name"])))
     assignments = az(
         [
@@ -70,26 +77,68 @@ def grant_data_analysis_telemetry(
         and not object_value(item).get("condition")
         for item in assignments
     )
-    service = SERVICES["data_analysis"]
-    observed = {"principal_id": principal, "scope": scope, "role": TELEMETRY_ROLE, "present": present, "apply": apply}
+    observed = {"principal_id": principal, "scope": scope, "role": role_name, "present": present, "apply": apply}
     run.result(
-        f"{service} telemetry",
+        f"{subject} telemetry",
         "PASS",
-        expected="Data Analysis instance identity and exact Application Insights publish plan",
+        expected="Verified identity and resource-scoped Application Insights access plan",
         observed=observed,
     )
     if apply and not present:
         if not assignment_allowed(scope, subscription):
             raise ValueError("Cannot assign roles at Application Insights; administrator action is required.")
+        assignment_name: str | None = None
+        if role_name == INSIGHTS_READER_ROLE:
+            # Match Bicep guid(scope, principalId, roleId), so later provisioning reuses this assignment.
+            assignment_name = str(
+                uuid5(UUID("11fb06fb-712d-4ddd-98c7-e71bbd588830"), f"{scope}-{principal}-{identifier}")
+            )
         create_grant(
-            Grant(TELEMETRY_ROLE, scope, identifier, False), principal, subscription, principal_type="ServicePrincipal"
+            Grant(role_name, scope, identifier, False),
+            principal,
+            subscription,
+            principal_type="ServicePrincipal",
+            assignment_name=assignment_name,
         )
         run.result(
-            f"{service} telemetry grant",
+            f"{subject} telemetry grant",
             "PASS",
-            expected=f"Scoped {TELEMETRY_ROLE} assignment",
+            expected=f"Scoped {role_name} assignment",
             observed={"principal_id": principal, "scope": scope},
         )
+
+
+def grant_data_analysis_telemetry(
+    context: Mapping[str, object], principal: str, run: ValidationRun, *, apply: bool
+) -> None:
+    """Let only Data Analysis publish Entra-authenticated telemetry."""
+    grant_insights_role(
+        context, principal, run, role_name=TELEMETRY_ROLE, subject=SERVICES["data_analysis"], apply=apply
+    )
+
+
+def grant_project_insights(context: Mapping[str, object], run: ValidationRun, *, apply: bool) -> None:
+    """Resolve the selected project's managed identity and grant it Insights read access."""
+    account = str(context["AZURE_AI_ACCOUNT_ID"])
+    project = str(context.get("AZURE_AI_PROJECT_ID", ""))
+    if not project.startswith(account + "/projects/") or project.count("/") != account.count("/") + 2:
+        raise ValueError("Insights requires the exact selected Foundry project ARM scope.")
+    identity = az(
+        [
+            "resource",
+            "show",
+            "--ids",
+            project,
+            "--api-version",
+            "2025-06-01",
+            "--query",
+            "identity.principalId",
+            "--subscription",
+            str(context["AZURE_SUBSCRIPTION_ID"]),
+        ]
+    )
+    principal = str(UUID(str(identity)))
+    grant_insights_role(context, principal, run, role_name=INSIGHTS_READER_ROLE, subject="Foundry project", apply=apply)
 
 
 def grant_supervisor_delegation(
@@ -197,7 +246,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Grant only Foundry User on this POC account after resolving each deployed instance principal."""
+    """Resolve deployed identities and preview/apply their resource-scoped model and telemetry roles."""
     args = build_parser().parse_args(argv)
     run = ValidationRun(
         "hosted-agent-rbac",
@@ -294,7 +343,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                     expected="Scoped Foundry User assignment",
                     observed={"principal_id": principal, "scope": scope},
                 )
+        grant_project_insights(context, run, apply=args.apply)
         grant_data_analysis_telemetry(context, principals[SERVICES["data_analysis"]], run, apply=args.apply)
+        run.console.print(
+            "Insights reading is limited to the Foundry project identity at its Application Insights resource."
+        )
         if args.delegation:
             grant_supervisor_delegation(context, principals[SERVICES["supervisor"]], run, apply=args.apply)
             run.console.print(

@@ -20,12 +20,26 @@ It is deliberately not a provisioning hook.
 - Log Analytics and Application Insights with a Foundry connection. Local
   Application Insights authentication is disabled; eventual agent deployment
   must use Entra-authenticated telemetry and actual agent identity permissions.
-- Project-identity model access and ACR pull permissions.
+- Project-identity model access, ACR pull permissions, and Monitoring Reader
+  on the connected Application Insights resource for Foundry Insights.
 - Optional App Configuration, disabled by default.
 
 No agent image/version is deployed by these templates. Agent-specific Blob,
 telemetry, and state roles must target actual agent identities once created.
 No capability host, Cosmos, Search, SQL, AKS, or Container Apps is created.
+
+The project's **Monitoring Reader** role is separate from the deployed Data
+Analysis agent's **Monitoring Metrics Publisher** role: the project reads
+telemetry for Insights, while the agent publishes it. Existing environments
+need the new project-identity grant applied; redeploying an agent alone does
+not apply infrastructure RBAC. An administrator can assign Monitoring Reader
+directly at the connected Application Insights resource, or review and apply
+the updated infrastructure. **Access: Apply hosted agent permissions** also
+checks and reapplies this project role without reprovisioning, and is already
+part of **Agents: Deploy and smoke test all hosted agents**. Bare `azd deploy`
+does not run that access task. The interactive Insights user also needs
+Monitoring Reader, as described in the
+[Foundry Insights prerequisites](https://learn.microsoft.com/azure/foundry/observability/how-to/agent-insights#prerequisites).
 
 All-public-IP NSP ingress is intentionally broad internet reachability for this
 synthetic POC, not private networking or anonymous data access. Prefix acceptance

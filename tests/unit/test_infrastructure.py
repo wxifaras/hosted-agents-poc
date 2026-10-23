@@ -91,10 +91,34 @@ def test_foundation_has_no_unapproved_components_or_user_admin_grants(compiled: 
     assert "modelDeploymentName" in model["name"]
     assert model["sku"]["name"] == "[parameters('modelSku')]"
     roles = [item for item in resources if item["type"] == "Microsoft.Authorization/roleAssignments"]
-    assert len(roles) == 2
+    assert len(roles) == 3
     assert all(item["properties"]["principalType"] == "ServicePrincipal" for item in roles)
     assert "AZURE_AI_PROJECT_ENDPOINT" in compiled["outputs"]
     assert not any("CONNECTION_STRING" in name for name in compiled["outputs"])
+
+
+def test_project_identity_can_read_insights_at_resource_scope(compiled: dict) -> None:
+    foundation = next(item for item in compiled["resources"] if item["type"] == "Microsoft.Resources/deployments")
+    access = next(
+        item
+        for item in foundation["properties"]["template"]["resources"]
+        if item["type"] == "Microsoft.Resources/deployments" and item["name"] == "project-access"
+    )
+    parameters = access["properties"]["parameters"]
+    assert "monitoring" in parameters["insightsName"]["value"]
+    assert "projectPrincipalId" in parameters["principalId"]["value"]
+    roles = [
+        item
+        for item in access["properties"]["template"]["resources"]
+        if item["type"] == "Microsoft.Authorization/roleAssignments"
+        and "43d8fa96-e556-4b83-a735-4c5e71f4bac2" in item["properties"]["roleDefinitionId"]
+    ]
+    assert len(roles) == 1
+    role = roles[0]
+    assert "Microsoft.Insights/components" in role["scope"]
+    assert "insightsName" in role["scope"]
+    assert role["properties"]["principalId"] == "[parameters('principalId')]"
+    assert role["properties"]["principalType"] == "ServicePrincipal"
 
 
 def test_templates_require_only_deployment_target_inputs(compiled: dict) -> None:

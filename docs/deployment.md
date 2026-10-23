@@ -109,7 +109,9 @@ uv run --frozen --no-sync --group validation python -m scripts.run_scenario.host
 - Each deployment creates an immutable agent version, even with unchanged code.
 - Agent-instance model grants are separate from local-user RBAC. The helper
   resolves actual instance principals and applies scoped Foundry User roles.
-  Ordinary smoke setup adds no Blob, impersonation, or telemetry roles. The
+  It also ensures Data Analysis has Monitoring Metrics Publisher and the project
+  managed identity has Monitoring Reader on the connected Application Insights.
+  Ordinary smoke setup adds no Blob or impersonation roles. The
   optional Supervisor impersonation grant is separate and does not establish
   verified caller propagation. RBAC propagation may delay requests.
 - Hosted smoke uses the Azure CLI user and actual agent-bound Responses
