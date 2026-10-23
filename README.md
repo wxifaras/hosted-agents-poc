@@ -94,16 +94,61 @@ flowchart LR
 
 ### Data Analysis
 
-`POC_AGENT_NAME=data_analysis`. Discusses supplied synthetic examples using
-Data Analysis-specific instructions. File analysis, Python execution tools,
-and artifact generation are not implemented yet.
+`POC_AGENT_NAME=data_analysis`. Without `TOOLBOX_ENDPOINT`, it discusses
+supplied synthetic examples using Data Analysis-specific instructions. For
+Story #1 the **existing** deployed agent is wired to Microsoft-managed Code
+Interpreter through a Foundry toolbox. It then executes Python in the managed
+sandbox and returns `poc-artifacts-v1` container references. Generated files
+stay in the sandbox and are downloaded by an authenticated client. See
+**Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent**.
+
+To run it, choose **Terminal > Run Task...** in VS Code, select that task,
+then select the environment and mode. Use `enable-if-missing` for initial
+toolbox/agent wiring, or `verify` to test an already-configured deployment.
+Both modes incur sandbox/model usage charges. See the
+[Step 1 task guide](docs/tasks-detailed.md#agents-story-1---1-enable-code-interpreter-on-existing-data-analysis-agent)
+for prerequisites, execution steps, and the complete output-file inventory.
+
+This is a **local test runner calling remote services**, not a sandbox-only
+task: dataset generation, expected checksums, API coordination, and evidence
+writing run locally; agent orchestration runs in the deployed Foundry agent;
+Code Interpreter executes the probe/analysis Python in the managed sandbox.
+There is no implemented "nothing local" mode. The
+[cloud-only execution proposal](docs/tasks-detailed.md#cloud-only-execution-proposed-not-implemented)
+describes that separate, unimplemented approach.
+
+Results are linked from [the Story 1 evidence index](artifacts/story-1/index.md).
+New Step 1 run folders include the UTC start time, step, capability, mode, and a
+short unique suffix, for example
+`artifacts\story-1\2026-10-23_12-04-08Z-step-1-code-interpreter-verify-a1b2c3d4\`.
+Open `01-existing-agent-code-interpreter.md` inside the run folder for the report.
+Existing run folders and their index links are left unchanged.
+
+Data Analysis exports hosted request and Agent Framework traces to the
+Application Insights resource linked to the Foundry project when
+`APPLICATIONINSIGHTS_CONNECTION_STRING` is populated in the selected azd
+environment before deployment. The manifest passes the value as
+`POC_APPLICATIONINSIGHTS_CONNECTION_STRING` because the standard name is
+platform-reserved; a platform-supplied connection is used as the fallback.
+Startup uses the hosting SDK's `configure_observability`, which stamps the
+Foundry agent name/version on every span (what the Foundry trace view filters
+on) and enables Agent Framework instrumentation. Application Insights disables
+local auth, so Data Analysis exports with its Entra identity
+(`POC_APPLICATIONINSIGHTS_AUTH_MODE=entra`); **Access: Apply hosted agent
+permissions** grants it Monitoring Metrics Publisher on that resource only.
+Prompt/tool-content capture is explicitly disabled. See
+[viewing Step 1 traces](docs/tasks-detailed.md#viewing-step-1-traces-in-foundry)
+for setup, deployment scope, and verification. Direct operator toolbox probes
+are not Data Analysis agent invocations.
 
 ```mermaid
 flowchart LR
     accTitle: Data Analysis agent turn
-    accDescr: Data Analysis receives synthetic context, runs the shared model with its own instructions, and returns a text answer without executing analysis tools.
+    accDescr: Data Analysis receives a task, runs the shared model with its own instructions, optionally executes code in the managed Code Interpreter sandbox, and returns an answer with container references.
     Task["Task and synthetic context"] --> Analysis["Data Analysis instructions and model"]
-    Analysis --> Answer["Text answer - no tool execution yet"]
+    Analysis --> Sandbox["Managed Code Interpreter via toolbox, when configured"]
+    Sandbox --> Answer["Answer plus container references"]
+    Analysis --> Answer
 ```
 
 ## Quick start - run in this order
@@ -272,6 +317,7 @@ for setup, execution boundaries, and debugger details.
 | **Agents: Smoke test all hosted agents** | Remote inference without building new versions |
 | **Agents: Test hosted identity variants and isolation** | Explicit hosted call-context/user-label experiments and synthetic state/history tests; no models; requires diagnostic opt-in |
 | **Agents: Test native Entra user isolation** | Choose verbose request/response panels or shorter output; two native CLI users directly invoke Research, with no delegated labels or models |
+| **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent** | Reuses the existing agents. `verify` is read-only plus a paid sandbox proof. `enable-if-missing` creates the Story 1 toolbox and updates only the existing Data Analysis agent, once. Writes a Markdown report |
 | **Access: Preview hosted agent permissions** | Read-only actual-instance permission inspection |
 | **Access: Create isolated user auth profiles** | Prompt for UPNs and optional project-scoped Consumer RBAC; operator grants precede isolated Microsoft sign-in; no agent calls or administrative/impersonation grants |
 | **Access: Apply hosted agent permissions** | Explicit scoped grants; not proof of delegation |

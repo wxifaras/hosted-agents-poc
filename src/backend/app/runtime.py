@@ -1,9 +1,7 @@
 """Compose MAF agents with public Responses protocol handlers."""
 
-from functools import partial
-
-from agent_framework import Agent
-from agent_framework.foundry import FoundryChatClient, FoundryChatOptions
+from agent_framework import Agent, MCPStreamableHTTPTool
+from agent_framework.foundry import FoundryChatClient, FoundryChatOptions, FoundryToolbox
 from azure.core.credentials import TokenCredential
 from azure.identity import DefaultAzureCredential
 
@@ -30,6 +28,25 @@ _INSTRUCTIONS: dict[AgentName, str] = {
     ),
 }
 
+_CODE_INTERPRETER_INSTRUCTIONS = (
+    "You are the Data Analysis specialist in a Hosted Agents runtime POC. "
+    "You have a managed code_interpreter tool. Synthetic input CSV files are mounted in /mnt/data; "
+    "their names end with story1-sales-<rows>.csv. Each code execution runs in a fresh sandbox, so load "
+    "inputs, compute, and save every requested output file under /mnt/data within a single execution. "
+    "Use the tool for every calculation over data and report only values the tool printed. "
+    "Never invent numbers or claim files you did not save. Answer simple non-data questions directly."
+)
+
+
+def data_analysis_tools(
+    name: AgentName, settings: Settings, credential: TokenCredential
+) -> list[MCPStreamableHTTPTool]:
+    """Only Data Analysis gets the managed Code Interpreter toolbox, and only when configured."""
+    if name != "data_analysis" or settings.toolbox_endpoint is None:
+        return []
+    # "both" keeps printed output visible to the model alongside the structured container reference.
+    return [FoundryToolbox(credential, url=settings.toolbox_endpoint, tool_result_content="both")]
+
 
 def build_agent(name: AgentName, settings: Settings, credential: TokenCredential) -> Agent[FoundryChatOptions]:
     """Create the model-backed agent using verified current MAF APIs."""
@@ -39,11 +56,13 @@ def build_agent(name: AgentName, settings: Settings, credential: TokenCredential
         model=settings.azure_ai_model_deployment_name,
         credential=credential,
     )
+    tools = data_analysis_tools(name, settings, credential)
     return Agent(
         client=client,
         id=f"{name}-agent",
         name=f"{name}-agent",
-        instructions=_INSTRUCTIONS[name],
+        instructions=_CODE_INTERPRETER_INSTRUCTIONS if tools else _INSTRUCTIONS[name],
+        tools=tools or None,
         default_options={"store": False},
     )
 
@@ -53,16 +72,17 @@ def run_agent(name: AgentName) -> None:
     settings = get_settings()
     settings.require_model()
     connection = settings.applicationinsights_connection_string
-    configure = partial(
-        configure_logging,
-        name,
-        level=settings.log_level,
-        connection_string=connection.get_secret_value() if connection else None,
-    )
 
-    # The SDK passes its own telemetry kwargs; our callback owns the single pipeline.
-    def configure_host(**_kwargs: object) -> None:
-        configure()
+    # Our callback owns the single pipeline; the SDK's platform-resolved connection string is the fallback.
+    def configure_host(**kwargs: object) -> None:
+        platform_connection = kwargs.get("connection_string")
+        configure_logging(
+            name,
+            level=settings.log_level,
+            connection_string=(connection.get_secret_value() if connection else None)
+            or (platform_connection if isinstance(platform_connection, str) else None),
+            auth_mode=settings.applicationinsights_auth_mode,
+        )
 
     with DefaultAzureCredential() as credential:
         agent = build_agent(name, settings, credential)

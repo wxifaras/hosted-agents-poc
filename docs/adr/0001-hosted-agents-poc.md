@@ -49,6 +49,12 @@ and container recipe.
 - Start with developer-controlled Python analysis in Data Analysis. A separately
   invoked managed Code Interpreter would be a different execution environment,
   not evidence of this container's capacity.
+- **Amendment (2026-10-22, Story #1):** for Story 1, the baseline is
+  Microsoft-managed Code Interpreter. It is attached through a Foundry toolbox
+  to the **existing** Data Analysis hosted agent, using `FoundryToolbox`, only
+  when `TOOLBOX_ENDPOINT` is set. Sandbox measurements describe that managed
+  sandbox, not the hosted container's 0.5 CPU / 1 GiB. Developer-controlled
+  in-container Python remains a separate option and is not implemented.
 
 The disposable POC permits authenticated public endpoints. Blob connectivity
 uses enforced Network Security Perimeter (NSP) with broad IPv4 ingress,
@@ -221,7 +227,7 @@ proof. Analysis tools and automatic recovery are not implemented.
 | Separate forwarding/state/history experiments | Implemented, opt-in | Hosted nested delegated B denial failed; direct native-user Research isolation subsequently passed |
 | Direct native-Entra-user control | Passed for Research 6 in both directions | Two distinct authenticated users, no delegated headers, state/history denial and final owner continuation; not nested propagation proof |
 | Direct delegated-user control | Passed with temporary approved operator permission | Platform user visible, A continuity and B denial verified; temporary grants removed; nested flow still fails |
-| CSV/XLSX analysis and dataset generation | Not implemented | Parse/filter/group/statistics, derived data, and visualization still required |
+| CSV/XLSX analysis and dataset generation | Partial (Story 1) | Managed Code Interpreter on the existing Data Analysis agent (v2 in `hosted-agents-poc-dev`) verified 2026-10-22 with a sandbox-computed SHA-256 and container reference; filter/group/visualize (Story 1 Step 2) pending |
 | ArtifactStore/Blob references | Not implemented | Storage exists; application I/O, checksums, and authorization still required |
 | Capacity harness | Not implemented | Measure progressive workloads at 0.5/1, 1/2, and 2/4 vCPU/GiB; no measured boundary yet |
 | Session filesystem idle/resume | Not validated | Upload, derive, idle/resume same session, verify hashes, continue analysis |
@@ -247,7 +253,7 @@ regional availability, pinned-SDK compatibility, implementation, or test success
 | [State Store (preview)][state-store] | Core durable state | Partial hosted mapping proof, not full checkpoint/isolation proof |
 | Session filesystem and conversation history | Core lifecycle experiment | Interfaces in use; lifecycle and private-history boundaries unverified |
 | Dedicated agent identities and model deployment | Core | In use; actual principals and scoped model access checked |
-| Hosted-agent Toolboxes (GA) + Tool Search (GA) | Planned Research experiment | Not connected; require approved read-only tool discovery/execution and traces |
+| Hosted-agent Toolboxes (GA) + Tool Search (GA) | Story 1 Data Analysis (Code Interpreter); planned Research experiment | Toolbox `story1-data-analysis-ci` with `code_interpreter` is in use by the existing Data Analysis agent; Research is not connected |
 | [Long-running hosted-agent resilience (public preview)][resilience] | Planned core recovery experiment | Not enabled; meaningful checkpoints and opt-in failure tests required |
 | Insights (public preview) | Optional after repeatable traces | Not used; findings require human review, not automatic changes |
 | A2A (GA) | Optional interoperability experiment | Not used; Responses delegation is not A2A interoperability proof |
@@ -256,8 +262,8 @@ regional availability, pinned-SDK compatibility, implementation, or test success
 | Cross-session semantic memory | Optional, separate experiment | Not used; Foundry/Cosmos choices need their own compatibility and isolation checks |
 
 MAF/uv are the framework/toolchain; ACR, Blob, NSP, and Azure Monitor are supporting
-Azure services, not additional Foundry features. Managed Code Interpreter would
-be a separate experiment. Voice, Foundry Local, model-catalog upgrades, a frontend,
+Azure services, not additional Foundry features. Managed Code Interpreter is
+used only for Story 1 (see the amendment above). Voice, Foundry Local, model-catalog upgrades, a frontend,
 production load testing, and multi-region/private-network production design are
 not automatically added because a release announcement mentions them.
 

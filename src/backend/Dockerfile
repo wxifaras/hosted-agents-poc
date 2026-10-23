@@ -16,7 +16,7 @@ COPY src/backend/app ./src/backend/app
 COPY scripts ./scripts
 COPY LICENSE ./
 RUN uv sync --frozen --no-dev --no-editable \
-    && .venv/bin/python -c "import app.hosted; import agent_framework_foundry_hosting"
+    && .venv/bin/python -c "import app.hosted; import agent_framework_foundry_hosting; import microsoft.opentelemetry"
 
 EXPOSE 8088
 CMD ["/app/.venv/bin/python", "-m", "app.hosted"]

@@ -99,7 +99,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_agent_rbac", "--environment", "${input:infraEnvironment}"],
-      "detail": "Shows actual hosted instance principals and scoped Foundry User grants. Does not modify roles.",
+      "detail": "Shows actual hosted instance principals, scoped Foundry User grants, and Data Analysis's Monitoring Metrics Publisher grant on Application Insights. Does not modify roles.",
       "problemMatcher": []
     },
     {
@@ -116,7 +116,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_agent_rbac", "--environment", "${input:infraEnvironment}", "--apply"],
-      "detail": "Explicit model/state data permission on the selected Foundry account for deployed agent identities, not the developer. No Blob or impersonation grants.",
+      "detail": "Explicit model/state data permission on the selected Foundry account for deployed agent identities, not the developer, plus Monitoring Metrics Publisher on Application Insights for Data Analysis only (Entra trace export). No Blob or impersonation grants.",
       "problemMatcher": []
     },
     {
@@ -192,6 +192,15 @@
       "dependsOrder": "sequence",
       "dependsOn": ["Agents: Deploy all hosted agents", "Access: Apply hosted agent permissions", "Agents: Smoke test all hosted agents", "Agents: Test hosted workflow state and delegation"],
       "detail": "Currently blocked by missing verified specialist caller context. Explicit paid deployment, model permissions, independent smoke and workflow test; no foundation reprovisioning. Fails closed rather than bypassing isolation.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "1", "--environment", "${input:infraEnvironment}", "--mode", "${input:story1Step1Mode}"],
+      "detail": "Reuses the existing agents. verify = read-only checks and a paid sandbox proof. enable-if-missing = once, create the Story 1 toolbox and move only the existing data-analysis-agent to a Code Interpreter version (never creates agents; Supervisor/Research untouched). Writes a Markdown report.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
     {
@@ -317,6 +326,13 @@
     }
   ],
   "inputs": [
+    {
+      "id": "story1Step1Mode",
+      "type": "pickString",
+      "description": "verify = no changes; enable-if-missing = create the Story 1 toolbox and update the EXISTING data-analysis-agent once if not already done",
+      "options": ["verify", "enable-if-missing"],
+      "default": "verify"
+    },
     {
       "id": "nativeIsolationVerbosity",
       "type": "pickString",

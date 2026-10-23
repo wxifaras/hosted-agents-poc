@@ -11,6 +11,7 @@ from app import hosted
 from app.core.settings import Settings
 from openai import APIStatusError
 
+from scripts.common.reporting import ValidationRun
 from scripts.deploy import grant_agent_rbac
 from scripts.run_scenario import hosted_smoke
 
@@ -19,13 +20,16 @@ SUBSCRIPTION = "11111111-1111-4111-8111-111111111111"
 PRINCIPAL = "22222222-2222-4222-8222-222222222222"
 TENANT = "33333333-3333-4333-8333-333333333333"
 ACCOUNT = f"/subscriptions/{SUBSCRIPTION}/resourceGroups/rg-poc/providers/Microsoft.CognitiveServices/accounts/poc"
+INSIGHTS = f"/subscriptions/{SUBSCRIPTION}/resourceGroups/rg-poc/providers/Microsoft.Insights/components/appi-poc"
 CONTEXT = {
     "FOUNDRY_PROJECT_ENDPOINT": "https://poc.services.ai.azure.com/api/projects/poc",
     "AZURE_SUBSCRIPTION_ID": SUBSCRIPTION,
     "AZURE_RESOURCE_GROUP": "rg-poc",
     "AZURE_TENANT_ID": TENANT,
     "AZURE_AI_ACCOUNT_ID": ACCOUNT,
+    "AZURE_APPLICATION_INSIGHTS_ID": INSIGHTS,
 }
+ROLE_IDS = {"Foundry User": PRINCIPAL, "Monitoring Metrics Publisher": "3913510d-42f4-4e42-8a64-420c390055eb"}
 
 
 def agent_record(name: str, *, active: bool = True) -> dict:
@@ -64,6 +68,19 @@ def test_shared_manifest_reuses_root_lock_and_runtime_role() -> None:
     assert "uv:0.13.1" in docker
     assert "uv sync --frozen --no-dev" in docker
     assert "COPY pyproject.toml uv.lock" in docker
+    sync_commands = [line for line in docker.splitlines() if line.startswith("RUN uv sync")]
+    assert len(sync_commands) == 2
+    assert all("--no-dev" in line for line in sync_commands)
+    assert "import microsoft.opentelemetry" in docker
+    assert manifest["services"]["data-analysis-agent"]["env"]["POC_APPLICATIONINSIGHTS_CONNECTION_STRING"] == (
+        "${APPLICATIONINSIGHTS_CONNECTION_STRING}"
+    )
+    assert manifest["services"]["data-analysis-agent"]["env"]["POC_APPLICATIONINSIGHTS_AUTH_MODE"] == "entra"
+    reserved = {"APPLICATIONINSIGHTS_CONNECTION_STRING", "APPLICATIONINSIGHTS_AUTH_MODE"}
+    assert not reserved & set(manifest["services"]["data-analysis-agent"]["env"])
+    for other in ("supervisor-agent", "research-agent"):
+        assert not any("APPLICATIONINSIGHTS" in key for key in manifest["services"][other]["env"])
+    assert "APPLICATIONINSIGHTS_CONNECTION_STRING" not in manifest["services"]["data-analysis-agent"]["env"]
     assert '"/app/.venv/bin/python", "-m", "app.hosted"' in docker
     assert "COPY . ." not in docker
     ignored = (ROOT / ".dockerignore").read_text()
@@ -205,7 +222,8 @@ def test_agent_grants_use_actual_instance_principals_and_preview_is_read_only(
         if arguments[:2] == ["account", "show"]:
             return {"tenantId": TENANT}
         if arguments[:3] == ["role", "definition", "list"]:
-            return [{"roleName": "Foundry User", "roleType": "BuiltInRole", "name": PRINCIPAL}]
+            role = arguments[arguments.index("--name") + 1]
+            return [{"roleName": role, "roleType": "BuiltInRole", "name": ROLE_IDS[role]}]
         if arguments[:3] == ["role", "assignment", "list"]:
             assert "--assignee-object-id" in arguments
             assert "--assignee" not in arguments
@@ -220,14 +238,47 @@ def test_agent_grants_use_actual_instance_principals_and_preview_is_read_only(
     create.assert_not_called()
     monkeypatch.setattr(grant_agent_rbac, "assignment_allowed", lambda *args: True)
     assert grant_agent_rbac.main(["--output-dir", str(tmp_path), "--no-color", "--apply"]) == 0
-    assert create.call_count == 3
+    assert create.call_count == 4
+    grants = [call.args[0] for call in create.call_args_list]
+    assert [(grant.role, grant.scope) for grant in grants] == [("Foundry User", ACCOUNT)] * 3 + [
+        ("Monitoring Metrics Publisher", INSIGHTS)
+    ]
+    assert grants[-1].definition_id == ROLE_IDS["Monitoring Metrics Publisher"]
     for call in create.call_args_list:
-        grant, principal, subscription = call.args
+        _grant, principal, subscription = call.args
         assert principal == PRINCIPAL
         assert subscription == SUBSCRIPTION
-        assert grant.scope == ACCOUNT
-        assert grant.role == "Foundry User"
         assert call.kwargs["principal_type"] == "ServicePrincipal"
+
+
+def test_telemetry_grant_is_data_analysis_only_and_refuses_foreign_scope(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    create = MagicMock()
+    monkeypatch.setattr(grant_agent_rbac, "create_grant", create)
+    run = ValidationRun("fake-grant", "unit", tmp_path, no_color=True)
+    foreign = {**CONTEXT, "AZURE_APPLICATION_INSIGHTS_ID": INSIGHTS.replace("rg-poc", "rg-other")}
+    with pytest.raises(ValueError, match="Application Insights scope"):
+        grant_agent_rbac.grant_data_analysis_telemetry(foreign, PRINCIPAL, run, apply=True)
+    existing = [{"roleDefinitionId": "/providers/x/" + ROLE_IDS["Monitoring Metrics Publisher"]}]
+    monkeypatch.setattr(
+        grant_agent_rbac,
+        "az",
+        lambda arguments: (
+            [
+                {
+                    "roleName": "Monitoring Metrics Publisher",
+                    "roleType": "BuiltInRole",
+                    "name": ROLE_IDS["Monitoring Metrics Publisher"],
+                }
+            ]
+            if arguments[:3] == ["role", "definition", "list"]
+            else existing
+        ),
+    )
+    grant_agent_rbac.grant_data_analysis_telemetry(CONTEXT, PRINCIPAL, run, apply=True)
+    create.assert_not_called()
+    assert run.statuses == ["PASS"]
 
 
 def test_hosted_tasks_are_explicit_and_not_in_ordinary_checks() -> None:

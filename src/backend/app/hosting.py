@@ -23,6 +23,7 @@ from pydantic import ValidationError
 
 from app.core.logger import Logger
 from app.core.settings import AgentName, Settings
+from app.services.code_interpreter import container_ids, with_artifacts
 from app.services.delegation import (
     COMMAND_PREFIX,
     CONTEXT_PREFIX,
@@ -261,6 +262,8 @@ def build_host(
                     output_tokens_details={"reasoning_tokens": _count(usage.get("reasoning_token_count"))},
                 )
 
-        return TextResponse(context, request, text=response.text, configure=configure)
+        return TextResponse(
+            context, request, text=with_artifacts(response.text, container_ids(response.messages)), configure=configure
+        )
 
     return server

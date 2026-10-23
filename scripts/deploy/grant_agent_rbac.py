@@ -1,4 +1,4 @@
-"""Preview/apply Foundry model access for actual deployed agent identities, not the local user."""
+"""Preview/apply model access, plus Data Analysis telemetry publishing, for deployed agent identities."""
 
 import argparse
 import json
@@ -25,6 +25,71 @@ from scripts.run_scenario.hosted_smoke import SERVICES
 IMPERSONATION_ACTION = (
     "Microsoft.CognitiveServices/accounts/AIServices/agents/endpoints/UserIdentityImpersonation/action"
 )
+TELEMETRY_ROLE = "Monitoring Metrics Publisher"
+
+
+def grant_data_analysis_telemetry(
+    context: Mapping[str, object], principal: str, run: ValidationRun, *, apply: bool
+) -> None:
+    """Let only Data Analysis publish Entra-authenticated telemetry to this POC's Application Insights."""
+    subscription = str(context["AZURE_SUBSCRIPTION_ID"])
+    group = str(context.get("AZURE_RESOURCE_GROUP", ""))
+    scope = str(context.get("AZURE_APPLICATION_INSIGHTS_ID", ""))
+    prefix = f"/subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Insights/components/"
+    if not group or not scope.casefold().startswith(prefix.casefold()) or scope.count("/") != prefix.count("/"):
+        raise ValueError("Selected azd environment lacks a consistent POC Application Insights scope.")
+    definitions = az(["role", "definition", "list", "--name", TELEMETRY_ROLE, "--subscription", subscription])
+    if not isinstance(definitions, list) or len(definitions) != 1:
+        raise ValueError(f"Cannot uniquely resolve {TELEMETRY_ROLE}.")
+    role = object_value(definitions[0])
+    if role.get("roleName") != TELEMETRY_ROLE or role.get("roleType") != "BuiltInRole":
+        raise ValueError(f"Expected the built-in {TELEMETRY_ROLE} role.")
+    identifier = str(UUID(str(role["name"])))
+    assignments = az(
+        [
+            "role",
+            "assignment",
+            "list",
+            "--assignee-object-id",
+            principal,
+            "--fill-principal-name",
+            "false",
+            "--fill-role-definition-name",
+            "false",
+            "--include-inherited",
+            "--scope",
+            scope,
+            "--subscription",
+            subscription,
+        ]
+    )
+    if not isinstance(assignments, list):
+        raise ValueError("Expected a role-assignment list.")
+    present = any(
+        str(object_value(item).get("roleDefinitionId", "")).endswith("/" + identifier)
+        and not object_value(item).get("condition")
+        for item in assignments
+    )
+    service = SERVICES["data_analysis"]
+    observed = {"principal_id": principal, "scope": scope, "role": TELEMETRY_ROLE, "present": present, "apply": apply}
+    run.result(
+        f"{service} telemetry",
+        "PASS",
+        expected="Data Analysis instance identity and exact Application Insights publish plan",
+        observed=observed,
+    )
+    if apply and not present:
+        if not assignment_allowed(scope, subscription):
+            raise ValueError("Cannot assign roles at Application Insights; administrator action is required.")
+        create_grant(
+            Grant(TELEMETRY_ROLE, scope, identifier, False), principal, subscription, principal_type="ServicePrincipal"
+        )
+        run.result(
+            f"{service} telemetry grant",
+            "PASS",
+            expected=f"Scoped {TELEMETRY_ROLE} assignment",
+            observed={"principal_id": principal, "scope": scope},
+        )
 
 
 def grant_supervisor_delegation(
@@ -229,12 +294,17 @@ def main(argv: Sequence[str] | None = None) -> int:
                     expected="Scoped Foundry User assignment",
                     observed={"principal_id": principal, "scope": scope},
                 )
+        grant_data_analysis_telemetry(context, principals[SERVICES["data_analysis"]], run, apply=args.apply)
         if args.delegation:
             grant_supervisor_delegation(context, principals[SERVICES["supervisor"]], run, apply=args.apply)
-            run.console.print("Delegation is limited to Supervisor at this project. No Blob or telemetry roles added.")
+            run.console.print(
+                "Delegation is limited to Supervisor at this project. Telemetry publishing is limited to "
+                "Data Analysis at its Application Insights resource. No Blob roles added."
+            )
         else:
             run.console.print(
-                "No Blob roles, telemetry roles, user impersonation permission, or orchestration access added."
+                "Telemetry publishing is limited to Data Analysis at its Application Insights resource. "
+                "No Blob roles, user impersonation permission, or orchestration access added."
             )
     except (AzureError, CliError, ValueError, OSError, subprocess.TimeoutExpired) as error:
         run.result(

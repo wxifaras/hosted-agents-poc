@@ -105,9 +105,14 @@ Do not describe those as passing because another task completed.
 - **Implementation:** [grant_agent_rbac.py](../scripts/deploy/grant_agent_rbac.py) with `--apply`.
 - **Execution:** resolves each actual deployed instance principal, checks inherited
   assignments, and creates missing **Foundry User** assignments at the selected
-  Foundry account scope.
-- **Boundary:** these are agent grants, not test-user grants. No Blob, telemetry,
-  or impersonation permission is added in this mode. A grant is not delegation proof.
+  Foundry account scope. For **Data Analysis only**, it also creates a missing
+  **Monitoring Metrics Publisher** assignment on the environment's Application
+  Insights resource (`AZURE_APPLICATION_INSIGHTS_ID`, verified to be in the
+  POC resource group). That resource disables local auth, so trace export uses
+  the agent's Entra identity (`POC_APPLICATIONINSIGHTS_AUTH_MODE=entra`).
+- **Boundary:** these are agent grants, not test-user grants. No Blob, telemetry
+  read, or impersonation permission is added in this mode, and Supervisor and
+  Research get no telemetry role. A grant is not delegation proof.
 
 ### Access: Apply Supervisor impersonation permission
 
@@ -510,6 +515,214 @@ flowchart TD
     Continue --> Bindings["Check persisted scopes and distinct conversations"]
     Bindings --> Missing["Inspect unknown workflow: require explicit rejection"]
     Missing --> Results["Record acceptance results"]
+```
+
+### Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent
+
+**Use case:** Story #1 AC1. Enables Microsoft-managed Code Interpreter on the
+**already-deployed** `data-analysis-agent`, then proves it executes in the
+managed sandbox. It never creates an agent, and Supervisor and Research are
+not changed.
+
+**Prerequisites:** complete the repository's
+[setup and deployment steps](../README.md#quick-start---run-in-this-order).
+The selected environment must have all three existing agents active, and the
+operator must be signed in with access to the Foundry project. The hosted
+Data Analysis agent needs permission to call its toolbox. On a permission
+failure, follow the reported access task; this task does not grant roles.
+
+**Run in VS Code:**
+
+1. Choose **Terminal > Run Task...**.
+2. Select **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent**.
+3. Select the deployed environment.
+4. Select `enable-if-missing` for initial wiring, or `verify` for an
+   already-configured deployment.
+5. Review the terminal verdict and open the linked Markdown report.
+
+**Inputs:** environment (`hosted-agents-poc-dev` by default) and mode:
+
+- `verify` (default): read-only checks plus paid sandbox and model calls.
+  Reports `BLOCKED` if the toolbox or agent wiring is missing.
+- `enable-if-missing`: only when missing, uploads three synthetic CSVs
+  (1k/10k/100k rows) project-scoped, creates toolbox `story1-data-analysis-ci`
+  once, and runs `azd deploy data-analysis-agent`. That deploy moves the same
+  agent to a new version with `TOOLBOX_ENDPOINT`. Reruns detect both and do
+  not redeploy.
+
+**Steps:** [story1_data_analysis.py](../scripts/run_scenario/story1_data_analysis.py)
+
+1. Reads environment/configuration and snapshots all three existing agents:
+   version, status, instance principal, and routing.
+2. Generates the three synthetic CSVs locally in memory and computes their
+   expected SHA-256 checksums.
+3. Reuses the matching toolbox or, in `enable-if-missing` only, uploads the
+   CSVs and creates its version, matched by dataset SHA-256 in metadata.
+4. Probes the toolbox directly as the operator. The sandbox hashes each
+   mounted CSV and generates a PNG. The local runner lists and downloads the
+   PNG through the container files API and checks its PNG signature in memory.
+5. Reuses the existing agent wiring or, in `enable-if-missing` only, updates
+   the environment's toolbox endpoint and deploys just Data Analysis.
+6. Asks the existing Data Analysis endpoint for the 1k file's SHA-256 and
+   Python version, comparing the returned hash with the local value. The answer must also
+   carry a `poc-artifacts-v1` container reference that exists in the project.
+7. Re-snapshots the agents. Supervisor and Research must be unchanged and the
+   Data Analysis identity the same. On success, it writes
+   `artifacts\story-1\agents-baseline.json` for Steps 2-5.
+8. Renders the Markdown report, appends its link and verdict to the evidence
+   index, and prints the evidence path and exit status.
+
+#### Where Step 1 runs
+
+| Location | Work performed |
+|---|---|
+| Local computer running the VS Code task | Test runner, authentication/API calls, synthetic CSV generation, expected checksums and comparisons, PNG signature check, reports, and optional deployment commands |
+| Deployed Foundry hosted agent | Agent orchestration, model calls, and toolbox calls for the hosted execution proof |
+| Managed Code Interpreter sandbox | Executes the supplied probe Python and agent-requested analysis Python, reads mounted inputs, computes hashes, and generates `story1-probe.png` |
+
+The direct operator probe and the hosted-agent proof are separate calls;
+they do not imply the same sandbox container. The implementation observed a
+fresh container per tool call with the current preloaded-file configuration.
+`verify` avoids deployment/configuration changes, but still makes paid
+sandbox/model calls and writes local evidence. There is no local `exec` or
+subprocess fallback for analysis.
+
+#### Step 1 output files
+
+New run folders are under `artifacts\story-1\` and use
+`<YYYY-MM-DD>_<HH-MM-SS>Z-step-1-code-interpreter-<mode>-<8-character-id>`,
+for example `2026-10-23_12-04-08Z-step-1-code-interpreter-verify-a1b2c3d4`.
+The timestamp is UTC, the mode is `verify` or `enable-if-missing`, and the
+suffix distinguishes runs. Existing folders and index links are unchanged.
+
+| File inside each run folder | Contents |
+|---|---|
+| `01-existing-agent-code-interpreter.md` | Main report: checks, expected/observed results, findings, and acceptance verdict |
+| `manifest.json` | Full run ID, start time, scenario/mode, platform, and Python/SDK versions |
+| `events.jsonl` | Incrementally written, sanitized check observations; one JSON record per line |
+| `results.jsonl` | The same check records as `events.jsonl`, for machine processing |
+
+| Shared file under `artifacts\story-1\` | When written |
+|---|---|
+| `index.md` | Created if missing, then appended with each run's report link, timestamp, and verdict when report finalization is reached |
+| `agents-baseline.json` | Created or replaced only after successful validation; stores the environment, run ID, toolbox configuration, and agent snapshots for the Steps 2-5 reuse guard |
+
+Failed or blocked runs keep evidence already written and do not replace the
+baseline. An interrupted process can leave a partial report without a new
+index entry. Start with [the index](../artifacts/story-1/index.md), open a
+linked report, and press `Ctrl+Shift+V` for Markdown Preview. The report is
+also rendered in the task terminal.
+
+**Remote files, not local output files:**
+
+- `story1-sales-1000.csv`, `story1-sales-10000.csv`, and
+  `story1-sales-100000.csv` are generated locally in memory and uploaded to
+  the project-scoped Files API only when setup needs them. Existing matching
+  toolbox inputs are reused.
+- `story1-probe.png` is created inside a managed sandbox. The runner
+  downloads its bytes into memory to verify delivery; it does not save a
+  local PNG. No local CSV copies are saved either.
+- Sandbox files are temporary; this test does not persist them to Blob
+  Storage or embed the PNG in the Step 1 report.
+
+#### Cloud-only execution (proposed, not implemented)
+
+There is **no existing task or flag** that runs the complete validation
+without local execution or local evidence files. For that requirement, a
+possible future design is:
+
+1. Run the validation client in a cloud-hosted runner, such as an Azure
+   Container Apps Job, with an appropriately authorized managed identity.
+2. Have that runner call the existing deployed Foundry agent and toolbox.
+3. Persist reports, JSONL evidence, index, and baseline in Azure storage,
+   such as Blob Storage, rather than on the developer's computer.
+
+This moves the test runner to Azure; it does **not** move the runner or hosted
+agent orchestration into Code Interpreter. Generating datasets inside the
+sandbox would require a further test redesign while preserving an
+independent expected-result check. Cloud-runner infrastructure, identity,
+remote evidence storage, and a launch task are not implemented here; these
+are design considerations, not runnable setup instructions.
+
+#### Viewing Step 1 traces in Foundry
+
+Step 1's hosted proof and trace ingestion are separate checks. A `Met` report
+proves the implemented execution/reuse checks passed; it does not by itself
+prove that telemetry reached Foundry.
+
+1. Identify the Application Insights resource in the selected Foundry
+   project's `application-insights` connection. For this deployment,
+   `AZURE_APPLICATION_INSIGHTS_ID` in the azd environment identifies that
+   resource. Reuse it; do not provision another monitoring resource.
+2. Retrieve its connection string and set
+   `APPLICATIONINSIGHTS_CONNECTION_STRING` in the selected azd environment.
+   Do not put the value in source control, task arguments, or reports.
+   [azure.yaml](../azure.yaml) maps this value into Data Analysis only as
+   `POC_APPLICATIONINSIGHTS_CONNECTION_STRING`: Foundry rejects the standard
+   name as a user-supplied agent environment variable because it is reserved.
+   Settings prefer this application-owned alias while retaining the standard
+   name for local configuration.
+3. Deploy **only** `data-analysis-agent` in that environment. Do not run the
+   all-agents deployment task. A new immutable Data Analysis version is
+   expected; Supervisor/Research versions and agent identities must stay
+   unchanged. No foundation provisioning is needed.
+4. Startup passes the connection to the hosting SDK's public
+   `configure_observability` (the `microsoft-opentelemetry` distro is a
+   locked dependency of the agent server; the [Dockerfile](../src/backend/Dockerfile)
+   checks it imports). That path adds the Foundry enrichment processor, which
+   stamps `gen_ai.agent.name`/version and project ID on every span, exports to
+   Azure Monitor, and enables Agent Framework instrumentation. A custom Azure
+   Monitor setup would bypass the enrichment, so traces would not be
+   attributed to the agent in Foundry. Prompt/tool-content capture is forced
+   off regardless of the SDK's default. If no application setting is present,
+   a platform-supplied connection is used. Startup logs
+   `Telemetry export configured` once.
+5. The POC Application Insights resource disables local (instrumentation-key)
+   authentication, so connection-string-only export is rejected as
+   `Unauthorized`. [azure.yaml](../azure.yaml) therefore sets
+   `POC_APPLICATIONINSIGHTS_AUTH_MODE=entra` for Data Analysis. Foundry rejects
+   the SDK's own `APPLICATIONINSIGHTS_AUTH_MODE` name in agent definitions as
+   platform-reserved, so startup sets that process variable just before
+   configuring export; the SDK then authenticates with the agent's managed
+   identity. Startup logs `auth_mode: entra`. Run
+   **Access: Apply hosted agent permissions** so that identity holds
+   **Monitoring Metrics Publisher** on the Application Insights resource.
+   Role propagation can take several minutes.
+6. Rerun Step 1 in `verify` mode. In Foundry, select the same project and
+   Data Analysis agent, and a time range covering the run's UTC timestamp.
+   Allow for telemetry ingestion delay and refresh the trace view. The
+   hosted proof's response/session IDs are recorded in the Markdown/JSONL
+   evidence for correlation.
+7. If the view is empty, check the agent's console log for
+   `Retryable server-side error: Unauthorized` (missing role or propagation)
+   and inspect the linked Application Insights `requests`
+   and `dependencies` tables. Hosted request spans identify the agent using
+   `gen_ai.agent.name` or `azure.ai.agentserver.agent_name`; join downstream
+   spans by `operation_Id`. Confirm ingestion and attribution rather than
+   assuming that a successful model response proves tracing works.
+
+Only the hosted-agent proof traverses Data Analysis. The direct operator MCP
+probes call the toolbox independently and are not expected under its agent
+trace. Enabling telemetry affects future invocations; earlier unexported
+traces cannot be backfilled. Telemetry incurs monitoring ingestion/storage
+charges in addition to model and sandbox usage.
+
+**Does not prove:** filter/group/visualization correctness (Step 2), capacity
+(Step 3), sandbox boundaries (Step 4), or continuity (Step 5). With toolbox +
+hosted agent, the documented behavior is that users in a project share
+sandbox context.
+
+```mermaid
+flowchart TD
+    accTitle: Story 1 Step 1 reuse flow
+    accDescr: The task snapshots existing agents, reuses or creates the toolbox, probes the sandbox, updates only the existing Data Analysis agent when needed, proves hosted execution, and re-checks that nothing else changed.
+    Snapshot["Snapshot existing agents"] --> Toolbox{"Matching toolbox?"}
+    Toolbox -->|Yes| Probe["Direct sandbox probe"]
+    Toolbox -->|No, enable-if-missing| Create["Upload CSVs and create toolbox once"] --> Probe
+    Probe --> Wired{"Existing DA version wired?"}
+    Wired -->|Yes| Proof["Hosted SHA-256 proof via existing endpoint"]
+    Wired -->|No, enable-if-missing| Update["azd deploy data-analysis-agent only"] --> Proof
+    Proof --> Guard["Re-snapshot: only DA version may change"]
 ```
 
 ## Deployment

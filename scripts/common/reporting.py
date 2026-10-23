@@ -12,6 +12,7 @@ from uuid import uuid4
 from app.core.app_config_source import DEFAULT_ENV_FILE
 from app.core.redaction import sanitize, sanitize_text
 from rich.console import Console
+from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
@@ -30,10 +31,21 @@ class ValidationRun:
     """Write each observed result immediately and render its matching Rich record."""
 
     def __init__(
-        self, scenario: str, mode: str, output_dir: Path, *, no_color: bool = False, verbose: bool = False
+        self,
+        scenario: str,
+        mode: str,
+        output_dir: Path,
+        *,
+        no_color: bool = False,
+        verbose: bool = False,
+        directory_label: str | None = None,
     ) -> None:
+        started_at = datetime.now(UTC)
         self.run_id = uuid4().hex
-        self.path = output_dir / self.run_id
+        directory_name = (
+            f"{started_at:%Y-%m-%d_%H-%M-%SZ}-{directory_label}-{self.run_id[:8]}" if directory_label else self.run_id
+        )
+        self.path = output_dir / directory_name
         self.path.mkdir(parents=True, exist_ok=False)
         self.console = Console(no_color=no_color, markup=False, highlight=False)
         self.verbose = verbose
@@ -46,7 +58,7 @@ class ValidationRun:
             "run_id": self.run_id,
             "scenario": scenario,
             "mode": mode,
-            "started_at": datetime.now(UTC).isoformat(),
+            "started_at": started_at.isoformat(),
             "python": platform.python_version(),
             "platform": platform.platform(),
             "project_version": version("hosted-agents-poc"),
@@ -128,3 +140,62 @@ class ValidationRun:
         if "FAIL" in self.statuses or "SKIP" in self.statuses:
             return 1
         return 2 if "BLOCKED" in self.statuses else 0
+
+
+def markdown_cell(value: object) -> str:
+    """Sanitize one table cell and keep it on a single Markdown table row."""
+    safe = sanitize(value)
+    text = safe if isinstance(safe, str) else json.dumps(safe, ensure_ascii=True)
+    return text.replace("|", "\\|").replace("\r", "").replace("\n", "<br>") or "-"
+
+
+class MarkdownReport:
+    """Incrementally persisted, sanitized Markdown evidence that renders in VS Code Preview."""
+
+    def __init__(self, path: Path, title: str) -> None:
+        self.path = path
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(f"# {sanitize_text(title)}\n", encoding="utf-8")
+
+    def _append(self, text: str) -> None:
+        with self.path.open("a", encoding="utf-8") as stream:
+            stream.write(text)
+
+    def heading(self, text: str, level: int = 2) -> None:
+        self._append(f"\n{'#' * level} {sanitize_text(text)}\n")
+
+    def paragraph(self, text: str) -> None:
+        self._append(f"\n{sanitize_text(text)}\n")
+
+    def bullets(self, items: list[str]) -> None:
+        self._append("\n" + "".join(f"- {sanitize_text(item)}\n" for item in items))
+
+    def table(self, headers: list[str], rows: list[list[object]]) -> None:
+        lines = ["| " + " | ".join(markdown_cell(header) for header in headers) + " |"]
+        lines.append("|" + "---|" * len(headers))
+        lines.extend("| " + " | ".join(markdown_cell(cell) for cell in row) + " |" for row in rows)
+        self._append("\n" + "\n".join(lines) + "\n")
+
+    def code(self, text: str, language: str = "") -> None:
+        self._append(f"\n```{language}\n{sanitize_text(text).rstrip()}\n```\n")
+
+    def render(self, console: Console) -> None:
+        """Show the same persisted Markdown in the terminal."""
+        text = self.path.read_text(encoding="utf-8")
+        console.print()
+        console.rule("Markdown report")
+        try:
+            console.print(Markdown(text))
+        except UnicodeEncodeError:
+            # Legacy code-page consoles cannot draw Rich's Markdown glyphs; the source is still readable.
+            console.print(text.encode("ascii", "replace").decode("ascii"), markup=False, highlight=False)
+        console.print(f"Markdown report: {self.path}  (open it and press Ctrl+Shift+V for VS Code Preview)")
+
+
+def update_index(index: Path, entry: str) -> None:
+    """Append one linked report entry; earlier runs are never overwritten."""
+    index.parent.mkdir(parents=True, exist_ok=True)
+    if not index.exists():
+        index.write_text("# Story 1 evidence index\n\n", encoding="utf-8")
+    with index.open("a", encoding="utf-8") as stream:
+        stream.write(f"- {sanitize_text(entry)}\n")

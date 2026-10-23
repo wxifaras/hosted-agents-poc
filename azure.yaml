@@ -59,7 +59,7 @@ services:
     host: azure.ai.agent
     kind: hosted
     name: data-analysis-agent
-    description: Independent MAF Data Analysis smoke host; no file analysis or recovery workflow yet.
+    description: Existing MAF Data Analysis host; managed Code Interpreter via the Story 1 toolbox when TOOLBOX_ENDPOINT is set.
     sessionConfiguration:
       idleTimeoutSeconds: 120
     project: .
@@ -75,6 +75,9 @@ services:
       AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
       ENVIRONMENT: hosted
       POC_AGENT_NAME: data_analysis
+      TOOLBOX_ENDPOINT: ${DATA_ANALYSIS_TOOLBOX_ENDPOINT}
+      POC_APPLICATIONINSIGHTS_CONNECTION_STRING: ${APPLICATIONINSIGHTS_CONNECTION_STRING}
+      POC_APPLICATIONINSIGHTS_AUTH_MODE: entra
     container:
       resources:
         cpu: '0.5'
