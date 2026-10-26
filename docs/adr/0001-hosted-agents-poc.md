@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted POC baseline; authorization-guard alignment remains proposed |
 | Decision owner | POC owner and maintainers |
-| Recorded / status reviewed | 2026-10-20 / 2026-10-21 |
+| Recorded / status reviewed | 2026-10-20 / 2026-10-26 |
 | Scope | Synthetic-data experiments, not a production service |
 | Validation | Partial; an accepted design is not proof of deployed behavior |
 
@@ -212,14 +212,20 @@ the normal guard or declare end-user isolation proven. The cause of missing/
 ineffective delegated identity remains unresolved. A later direct Research test
 using two genuinely authenticated Entra users passed state/history isolation and
 owner continuation in both directions. That is not hosted-to-hosted delegation
-proof. Analysis tools and automatic recovery are not implemented.
+proof. Managed Code Interpreter analysis is implemented for Data Analysis (Story 1);
+automatic recovery is not implemented.
+
+Per-issue status reports summarize what works, what doesn't and why, and next
+steps: [Validate Hosted Agent Memory and Data Analysis Capacity (#1)](../issue-1-validate-hosted-agent-memory-and-data-analysis-capacity.md)
+and [Validate Representative Hosted Agent Patterns (#4)](../issue-4-validate-representative-hosted-agent-patterns.md).
+Rows below name the environment and agent versions behind each claim.
 
 | Capability | Implementation | Observed evidence / remaining validation |
 |---|---|---|
 | Python/uv, core modules, packaging, Rich scripts | Implemented | Local import/readiness, packaging, lint/types/tests exercised |
 | Bicep foundation and operator access | Implemented | Provisioning, model, developer Blob/monitoring probes observed; invalid Monitoring Reader role ID in `project-access` fixed 2026-10-25; isolated NSP-denial checks pending |
 | Three independent hosted model agents | Implemented | Last all-three hosted smoke passed on version 4; not an orchestration test |
-| Last verified deployment snapshot | Supervisor 11, Research 6, Data Analysis 4 | Native-user tests independently verified Research 6; rediscover versions before testing |
+| Last verified deployment snapshot | `hosted-agents-poc-dev-001`: Supervisor 3, Research 3, Data Analysis 4 (Story 1 Step 1 baseline, 2026-10-26) | The identity experiments below ran in `hosted-agents-poc-dev` (Supervisor 11, Research 6, Data Analysis 4; native-user tests independently verified Research 6). Rediscover versions before testing |
 | Idle policy: 120 seconds | Configured | Raw deployed metadata verified; does not prove file restoration or exact deprovision timing |
 | Random durable mappings/registry | Implemented | Supervisor readback/reuse and unknown-workflow rejection observed; restart and two-user proof pending |
 | Supervisor delegation and child histories | Partial | Research reference persisted before failure; both specialists' completed histories/final result unverified |
@@ -227,10 +233,10 @@ proof. Analysis tools and automatic recovery are not implemented.
 | Separate forwarding/state/history experiments | Implemented, opt-in | Hosted nested delegated B denial failed; direct native-user Research isolation subsequently passed |
 | Direct native-Entra-user control | Passed for Research 6 in both directions | Two distinct authenticated users, no delegated headers, state/history denial and final owner continuation; not nested propagation proof |
 | Direct delegated-user control | Passed with temporary approved operator permission | Platform user visible, A continuity and B denial verified; temporary grants removed; nested flow still fails |
-| CSV/XLSX analysis and dataset generation | Partial (Story 1) | Managed Code Interpreter on the existing Data Analysis agent (v6 in `hosted-agents-poc-dev`) verified 2026-10-24 with a sandbox-computed SHA-256 and container reference; filter/group/visualize with summary, aggregates, CSVs, and chart delivered to the user (Story 1 Step 2, AC2) Met on 2026-10-24, Supervisor path blocked at the nested caller guard; workflow reports now forward Data Analysis container IDs through the Supervisor (`containers`, unit-tested 2026-10-26, pending redeploy and the nested caller guard for an end-to-end demonstration); Story 1 Step 3 (AC3) on 2026-10-24: exact results and all outputs at 1k/10k/100k rows (up to 5.4 MiB) in one sandbox execution each, peak RSS 162 MiB of a 2 GiB / 1 CPU enforced sandbox limit; viable for the tested sizes only; Story 1 Step 4 (AC4) on 2026-10-24: sandbox runs as non-root `sandbox` with no capabilities and a read-only root, has no DNS or egress, gives every tool call a new container, and lets other project principals read sandbox outputs; per-call and toolbox-level `memory_limit` 4g did not change the enforced 2 GiB, network allowlists are rejected by organization policy, a 100 s execution completed beyond the tool's self-described 90 s limit (consistent with the documented 220 s maximum), and containers follow a 20 min idle-expiry policy (expired after 21.5 min idle) versus the documented 30 min; Story 1 Step 5 (AC5) on 2026-10-24: conversation history continues and is isolated per conversation, sandbox variables and files never carry over, a deleted container's files are gone, and state was rebuilt exactly from a sealed checkpoint stored in customer Blob |
-| Story 4 representative patterns (stateless `POC_DELEGATE`) | Implemented 2026-10-26 | In `hosted-agents-poc-dev-001` (Supervisor 2, Research 2, Data Analysis 3): AC1 model-routed delegation Met; AC2 sync and background delegation with simulated sub-agent failure Met; AC3 Research Microsoft Learn MCP tool call Met; AC4/AC5 Partially met (delegated-user header accepted without impersonation, see Story 4 findings); AC6 Data Analysis Code Interpreter through the Supervisor Met; AC7 direct Research invocation Met. The stateful `POC_WORKFLOW` guard is unchanged |
+| CSV analysis and dataset generation (Story 1, issue #1) | Partial: CSV implemented; XLSX not implemented | **`hosted-agents-poc-dev-001`, 2026-10-26 (Data Analysis 4):** Step 1 (Code Interpreter) Met. Step 3 (AC3) Met: exact results and all outputs at 1k/10k/100k rows (up to 5.4 MiB), one sandbox execution each, peak RSS 160.5 MiB of the 2 GiB / 1 CPU enforced sandbox limit (8%, so memory pressure was not reached); viable for the tested sizes only. Step 4 (AC4) Met: sandbox runs as non-root `sandbox` with no capabilities and a read-only root, has no DNS or egress, gives every tool call a new container, and lets other project principals read sandbox outputs; per-call and toolbox-level `memory_limit` 4g did not change the enforced 2 GiB, network allowlists are rejected by organization policy, a 100 s execution completed beyond the tool's self-described 90 s limit (consistent with the documented 220 s maximum), and containers report a 20 min idle-expiry policy versus the documented 30 min (idle wait not run). Step 2 was blocked because it ran before the Step 1 baseline existed, and Step 5 was not run; rerun both. **`hosted-agents-poc-dev`, 2026-10-24 (Data Analysis 6), not yet reproduced in `dev-001`:** Step 2 (AC2) Met: filter/group/visualize with summary, aggregates, CSVs, and chart delivered to the user, Supervisor path blocked at the nested caller guard. Step 4 idle wait: container expired after 21.5 min idle. Step 5 (AC5) Met: conversation history continues and is isolated per conversation, sandbox variables and files never carry over, a deleted container's files are gone, and state was rebuilt exactly from a sealed checkpoint stored in customer Blob. Workflow reports forward Data Analysis container IDs through the Supervisor (`containers`, unit-tested 2026-10-26, pending the nested caller guard for an end-to-end demonstration) |
+| Story 4 representative patterns (stateless `POC_DELEGATE`, issue #4) | Implemented 2026-10-26 | In `hosted-agents-poc-dev-001` on Supervisor 2, Research 2, Data Analysis 3: AC1 model-routed delegation Met; AC2 sync and background delegation with simulated sub-agent failure Met; AC3 Research Microsoft Learn MCP tool call Met; AC4/AC5 Partially met (delegated-user header accepted without impersonation, see Story 4 findings); AC6 Data Analysis Code Interpreter through the Supervisor Met; AC7 direct Research invocation Met. The agents were redeployed afterwards (now 3/3/4); rerun Story 4 Steps 1-7 to confirm on the current versions. The stateful `POC_WORKFLOW` guard is unchanged |
 | ArtifactStore/Blob references | Not implemented | Storage exists; application I/O, checksums, and authorization still required |
-| Capacity harness | Not implemented | Measure progressive workloads at 0.5/1, 1/2, and 2/4 vCPU/GiB; no measured boundary yet |
+| Capacity harness | Partial | Code Interpreter sandbox measured by Story 1 Step 3 (1k-100k rows, peak 8% of the 2 GiB limit; memory pressure and a failure boundary not reached). Hosted agent container sizes (0.5/1, 1/2, 2/4 vCPU/GiB) not measured; analysis runs in the sandbox, not the agent container |
 | Session filesystem idle/resume | Not validated | Upload, derive, idle/resume same session, verify hashes, continue analysis |
 | MAF checkpoints and crash recovery | Not implemented | Stored background execution, process replacement, original-result completion, and replay safety |
 | Reconnect/cancellation/stream replay | Not implemented | Distinguish client disconnect from process loss; advanced steering remains optional |
@@ -739,6 +745,20 @@ findings: on the hosted-agent-origin path the header neither takes effect nor
 is rejected. Do not rely on either behavior; reproduce it for Foundry support.
 Story 4 Steps 4 and 5 therefore remain Partially met. Details and evidence are
 produced by the **Agents: Story 4 - 1** to **7** tasks.
+
+**Status review, 2026-10-26:** Story 1 tasks were rerun in
+`hosted-agents-poc-dev-001` against Supervisor 3, Research 3, and Data Analysis 4,
+after the Story 4 redeploy. Steps 1, 3, and 4 were Met. Step 2 was blocked
+because it ran before the Step 1 baseline existed, and Step 5 was not run. The
+Story 4 results above were recorded on the earlier versions (Supervisor 2,
+Research 2, Data Analysis 3). To confirm them on the current versions, rerun
+Story 4 Step 1 (`verify`, which writes the Story 4 baseline), then Story 1
+Steps 2 and 5, then Story 4 Steps 2-7. Story 1 Step 3 did not reach memory
+pressure (peak 8% of the 2 GiB sandbox limit); larger agreed sizes are needed to
+find the boundary. No decision in this record changed. The per-issue status
+reports for [#1](../issue-1-validate-hosted-agent-memory-and-data-analysis-capacity.md)
+and [#4](../issue-4-validate-representative-hosted-agent-patterns.md) track the
+gaps and next steps.
 
 Review this record when authorization semantics, runtime/protocol, state ownership,
 or POC scope changes. Update dated findings without rewriting decision history;
