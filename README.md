@@ -350,6 +350,8 @@ separates implementation from observed hosted results.
 | [POC ADR](docs/adr/0001-hosted-agents-poc.md) | Accepted architecture, state/identity boundaries, feature adoption, dated progress, and pending experiments |
 | [Deployment guide](docs/deployment.md) | Detailed setup, local debugging, tasks, configuration/sizing, diagnostics, evidence, and teardown |
 | [Detailed task guide](docs/tasks-detailed.md) | Task purposes, prerequisites, side effects, test use cases, and Mermaid execution flows |
+| [Validate Hosted Agent Memory and Data Analysis Capacity (#1)](docs/issue-1-validate-hosted-agent-memory-and-data-analysis-capacity.md) | Status report: what works, what doesn't and why, and next steps |
+| [Validate Representative Hosted Agent Patterns (#4)](docs/issue-4-validate-representative-hosted-agent-patterns.md) | Status report: what works, what doesn't and why, and next steps |
 | [Infrastructure guide](infra/README.md) | Bicep contracts, NSP boundaries, outputs, and provisioning/RBAC details |
 
 The published documentation is self-contained. Local working notes and generated
