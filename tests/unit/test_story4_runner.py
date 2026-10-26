@@ -197,6 +197,7 @@ def test_every_step_summary_renders_with_verified_documentation(tmp_path: Path, 
     assert "**Acceptance verdict: Not evaluated.**" in text
     assert "learn.microsoft.com" in text
     assert step.task_label.startswith("Agents: Story 4 - ") and step.ac
+    assert (step_class.spec.story, step_class.spec.number, step_class.number) == (4, number, number)
 
 
 def test_outcome_and_tool_call_classification() -> None:
@@ -248,7 +249,10 @@ def test_cli_rejects_mode_outside_step1_and_blocked_runs_are_indexed(
     assert code == 2
     index = (tmp_path / "story-4" / "index.md").read_text(encoding="utf-8")
     assert index.startswith("# Story 4 evidence index")
-    assert "Step 7 (direct invocation) - **Not evaluated**" in index
+    (directory,) = (tmp_path / "story-4" / "step-07-direct-invocation").iterdir()
+    link = f"step-07-direct-invocation/{directory.name}"
+    assert f"Step 7 (direct invocation) - **Not evaluated** - [{link}]({link}/report.md)" in index
+    assert (directory / "report.md").is_file()
 
 
 def test_step7_verdict_and_supervisor_isolation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

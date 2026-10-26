@@ -129,18 +129,20 @@ There is no implemented "nothing local" mode. The
 describes that separate, unimplemented approach.
 
 Results are linked from [the Story 1 evidence index](artifacts/story-1/index.md).
-New Step 1 run folders include the UTC start time, step, capability, mode, and a
-short unique suffix, for example
-`artifacts\story-1\2026-10-23_12-04-08Z-step-1-code-interpreter-verify-a1b2c3d4\`.
-Open `01-existing-agent-code-interpreter.md` inside the run folder for the report.
-Existing run folders and their index links are left unchanged.
+Each run is written to
+`artifacts\story-<n>\step-<NN>-<slug>\<YYYYMMDDTHHMMSSZ>-<id8>\report.md`, for example
+`artifacts\story-1\step-01-code-interpreter\20261023T120408Z-a1b2c3d4\report.md`.
+The step folder groups every rerun of a step, and the Step 1 mode is recorded in
+`manifest.json` and the index entry. Runs written before this convention keep
+their original folder names and index links. See
+[output files](docs/tasks-detailed.md#step-1-output-files) for the full layout.
 
 After Step 1, run **Agents: Story 1 - 2 Analyze data and deliver outputs**
 (Story #1 AC2), **Agents: Story 1 - 3 Evaluate dataset sizes** (AC3),
 **Agents: Story 1 - 4 Assess sandbox boundaries** (AC4), and
 **Agents: Story 1 - 5 Assess state continuity** (AC5). They require the Step 1
-baseline, never change the agents or the Step 1 toolbox, and write
-`02-analysis-and-outputs.md` through `05-state-continuity.md`. Step 4 can
+baseline, never change the agents or the Step 1 toolbox, and write their
+reports under `step-02-analysis-and-outputs\` through `step-05-state-continuity\`. Step 4 can
 create and delete a separate probe-only toolbox; Step 5 deletes one sandbox
 container and writes, reads, and deletes one synthetic Blob checkpoint. See the
 [Step 2](docs/tasks-detailed.md#agents-story-1---2-analyze-data-and-deliver-outputs),
@@ -165,7 +167,7 @@ invocation of a sub-agent. Run the tasks in order:
 2. **Agents: Story 4 - 2** through **Agents: Story 4 - 7** reuse that baseline and
    never deploy, grant roles, or change agents.
 
-Reports are written to `artifacts\story-4\<run folder>\` and linked from
+Reports are written to `artifacts\story-4\step-<NN>-<slug>\<run>\report.md` and linked from
 `artifacts\story-4\index.md`, in the same format as Story 1. See the
 [Story 4 task guides](docs/tasks-detailed.md#agents-story-4---1-demonstrate-supervisor-delegation)
 for each step's checks, outputs, and limitations.

@@ -37,7 +37,7 @@ from openai import OpenAIError
 from pydantic import JsonValue
 
 from scripts.common.findings import Finding, doc_cell, render_summary
-from scripts.common.reporting import MarkdownReport, Status, ValidationRun
+from scripts.common.reporting import MarkdownReport, Status, StepSpec, ValidationRun
 from scripts.common.synthetic_data import (
     FILTER_REGION,
     FILTER_STATUS,
@@ -642,9 +642,8 @@ class SandboxStep(ReusingStep):
             self.run.end_request(number, DATA_ANALYSIS, reply.status, (perf_counter() - started) * 1000)
 
 
-STEP4_REPORT = "04-sandbox-boundaries.md"
+STEP4 = StepSpec(1, 4, "sandbox-boundaries")
 STEP4_TASK_LABEL = "Agents: Story 1 - 4 Assess sandbox boundaries"
-STEP4_DIRECTORY = "step-4-sandbox-boundaries"
 AC4 = (
     "Document sandbox security boundaries, session lifetime, network restrictions, and available configuration options."
 )
@@ -700,11 +699,8 @@ def step4_verdict(statuses: Mapping[str, Status]) -> str:
 class Step4(SandboxStep):
     """Benign, targeted boundary probes and a documented-versus-observed matrix; no escape attempts or scans."""
 
-    scenario = "story-1-step-4"
-    directory = STEP4_DIRECTORY
-    report_name = STEP4_REPORT
+    spec = STEP4
     title = "Story 1 / Step 4 - Sandbox security, lifetime, network, and configuration"
-    index_label = "Step 4 (sandbox boundaries)"
 
     def __init__(self, args: argparse.Namespace, run: ValidationRun, report: MarkdownReport) -> None:
         super().__init__(args, run, report)
@@ -1380,9 +1376,8 @@ class Step4(SandboxStep):
         )
 
 
-STEP5_REPORT = "05-state-continuity.md"
+STEP5 = StepSpec(1, 5, "state-continuity")
 STEP5_TASK_LABEL = "Agents: Story 1 - 5 Assess state continuity"
-STEP5_DIRECTORY = "step-5-state-continuity"
 AC5 = (
     "Assess state continuity across requests, rehydration after session recreation, and whether state storage "
     "can reside in the customer's network."
@@ -1413,11 +1408,8 @@ def presence(value: JsonValue) -> str:
 class Step5(SandboxStep):
     """Continuity, recreation, and checkpoint rehydration across the state layers of the existing agent."""
 
-    scenario = "story-1-step-5"
-    directory = STEP5_DIRECTORY
-    report_name = STEP5_REPORT
+    spec = STEP5
     title = "Story 1 / Step 5 - State continuity, rehydration, and customer-network storage"
-    index_label = "Step 5 (state continuity)"
 
     def __init__(self, args: argparse.Namespace, run: ValidationRun, report: MarkdownReport) -> None:
         super().__init__(args, run, report)

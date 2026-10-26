@@ -4,6 +4,7 @@ import argparse
 import json
 import platform
 import re
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from importlib.metadata import version
 from pathlib import Path
@@ -19,6 +20,32 @@ from rich.table import Table
 from rich.text import Text
 
 Status = Literal["PASS", "FAIL", "BLOCKED", "SKIP"]
+
+REPORT_FILE = "report.md"
+
+
+@dataclass(frozen=True)
+class StepSpec:
+    """Single source for a story step's scenario, step folder, and index label.
+
+    Runs are written to ``story-<story>/step-<NN>-<slug>/<YYYYMMDDTHHMMSSZ>-<id8>/report.md``.
+    """
+
+    story: int
+    number: int
+    slug: str
+
+    @property
+    def scenario(self) -> str:
+        return f"story-{self.story}-step-{self.number}"
+
+    @property
+    def directory(self) -> str:
+        return f"step-{self.number:02d}-{self.slug}"
+
+    def label(self, variant: str | None = None) -> str:
+        words = self.slug.replace("-", " ")
+        return f"Step {self.number} ({words}, {variant})" if variant else f"Step {self.number} ({words})"
 
 
 def add_output_arguments(parser: argparse.ArgumentParser) -> None:
@@ -39,14 +66,15 @@ class ValidationRun:
         *,
         no_color: bool = False,
         verbose: bool = False,
-        directory_label: str | None = None,
+        step: StepSpec | None = None,
+        variant: str | None = None,
     ) -> None:
         started_at = datetime.now(UTC)
         self.run_id = uuid4().hex
-        directory_name = (
-            f"{started_at:%Y-%m-%d_%H-%M-%SZ}-{directory_label}-{self.run_id[:8]}" if directory_label else self.run_id
-        )
-        self.path = output_dir / directory_name
+        if step:
+            self.path = output_dir / step.directory / f"{started_at:%Y%m%dT%H%M%SZ}-{self.run_id[:8]}"
+        else:
+            self.path = output_dir / self.run_id
         self.path.mkdir(parents=True, exist_ok=False)
         self.console = Console(no_color=no_color, markup=False, highlight=False)
         self.verbose = verbose
@@ -66,6 +94,10 @@ class ValidationRun:
             "maf_version": version("agent-framework-core"),
             "agentserver_version": version("azure-ai-agentserver-responses"),
         }
+        if step:
+            manifest["step"] = step.directory
+        if variant:
+            manifest["variant"] = variant
         (self.path / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
         self.console.rule(f"{scenario} | {mode} | {self.run_id}")
         self.console.print_json(data=manifest)
@@ -220,3 +252,9 @@ def update_index(index: Path, entry: str, title: str = "Story 1 evidence index")
         index.write_text(f"# {title}\n\n", encoding="utf-8")
     with index.open("a", encoding="utf-8") as stream:
         stream.write(f"- {sanitize_text(entry)}\n")
+
+
+def index_entry(index: Path, label: str, verdict: str, run_path: Path) -> str:
+    """One index line linking the run's ``report.md`` relative to the index."""
+    relative = run_path.relative_to(index.parent).as_posix()
+    return f"{datetime.now(UTC):%Y-%m-%d %H:%M} UTC - {label} - **{verdict}** - [{relative}]({relative}/{REPORT_FILE})"

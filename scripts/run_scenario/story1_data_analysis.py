@@ -43,7 +43,16 @@ from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAIEr
 from pydantic import JsonValue, ValidationError
 
 from scripts.common.findings import Finding, render_summary
-from scripts.common.reporting import MarkdownReport, Status, ValidationRun, add_output_arguments, update_index
+from scripts.common.reporting import (
+    REPORT_FILE,
+    MarkdownReport,
+    Status,
+    StepSpec,
+    ValidationRun,
+    add_output_arguments,
+    index_entry,
+    update_index,
+)
 from scripts.common.synthetic_data import (
     COLUMNS,
     DATASET_SIZES,
@@ -68,7 +77,7 @@ AGENT_TOOLBOX_ENV = "TOOLBOX_ENDPOINT"
 DATA_SCOPE = "https://ai.azure.com/.default"
 STORY_DIR = "story-1"
 BASELINE_FILE = "agents-baseline.json"
-REPORT_NAME = "01-existing-agent-code-interpreter.md"
+STEP1 = StepSpec(1, 1, "code-interpreter")
 TASK_LABEL = "Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent"
 AC1 = (
     "Deploy a Foundry Hosted Data Analysis Agent using Microsoft-managed Code Interpreter, "
@@ -768,9 +777,8 @@ class Step1:
         self.report.summary(render_summary(self.verdict, conclusion, results if ok else [], findings, gaps))
 
 
-STEP3_REPORT = "03-capacity.md"
+STEP3 = StepSpec(1, 3, "dataset-sizes")
 STEP3_TASK_LABEL = "Agents: Story 1 - 3 Evaluate dataset sizes"
-STEP3_DIRECTORY = "step-3-dataset-sizes"
 AC3 = (
     "Test a small, agreed set of progressively larger datasets. Record observed limits and failures, "
     "and conclude whether the tested workloads are viable in the evaluated configuration."
@@ -1233,11 +1241,8 @@ def download_files(
 class ReusingStep:
     """Shared reuse guard for Steps 2-5: compare with the Step 1 baseline and never change anything."""
 
-    scenario = ""
-    directory = ""
-    report_name = ""
+    spec: StepSpec
     title = ""
-    index_label = ""
 
     def __init__(self, args: argparse.Namespace, run: ValidationRun, report: MarkdownReport) -> None:
         self.args = args
@@ -1324,11 +1329,8 @@ class ReusingStep:
 class Step3(ReusingStep):
     """Progressively larger datasets on the existing Data Analysis agent; strictly read-only."""
 
-    scenario = "story-1-step-3"
-    directory = STEP3_DIRECTORY
-    report_name = STEP3_REPORT
+    spec = STEP3
     title = "Story 1 / Step 3 - Progressively larger datasets"
-    index_label = "Step 3 (dataset sizes)"
 
     def __init__(self, args: argparse.Namespace, run: ValidationRun, report: MarkdownReport) -> None:
         super().__init__(args, run, report)
@@ -1808,9 +1810,8 @@ def baseline_problems(
     return [], reuse_differences(baseline, current, version_change=None)
 
 
-STEP2_REPORT = "02-analysis-and-outputs.md"
+STEP2 = StepSpec(1, 2, "analysis-and-outputs")
 STEP2_TASK_LABEL = "Agents: Story 1 - 2 Analyze data and deliver outputs"
-STEP2_DIRECTORY = "step-2-analysis-and-outputs"
 AC2 = (
     "Demonstrate filtering, grouping, summarization, and visualization using synthetic tabular data. "
     "Show how summaries, files, and visuals reach the supervisor or user."
@@ -1940,11 +1941,8 @@ def step2_verdict(statuses: Mapping[str, Status]) -> str:
 class Step2(ReusingStep):
     """Analysis operations and output delivery on the existing Data Analysis agent; never changes agents."""
 
-    scenario = "story-1-step-2"
-    directory = STEP2_DIRECTORY
-    report_name = STEP2_REPORT
+    spec = STEP2
     title = "Story 1 / Step 2 - Analysis operations and output delivery"
-    index_label = "Step 2 (analysis and outputs)"
 
     def __init__(self, args: argparse.Namespace, run: ValidationRun, report: MarkdownReport) -> None:
         super().__init__(args, run, report)
@@ -2370,14 +2368,14 @@ def build_parser() -> argparse.ArgumentParser:
 def run_reusing_step(args: argparse.Namespace, step_class: type[ReusingStep]) -> int:
     """Run a Step 2-5 class with the shared reuse guard, report, and index entry."""
     run = ValidationRun(
-        step_class.scenario,
+        step_class.spec.scenario,
         "hosted",
         args.output_dir,
         no_color=args.no_color,
         verbose=args.verbose,
-        directory_label=step_class.directory,
+        step=step_class.spec,
     )
-    report = MarkdownReport(run.path / step_class.report_name, step_class.title)
+    report = MarkdownReport(run.path / REPORT_FILE, step_class.title)
     step = step_class(args, run, report)
     try:
         step.execute()
@@ -2397,11 +2395,8 @@ def run_reusing_step(args: argparse.Namespace, step_class: type[ReusingStep]) ->
         step.record("Unexpected failure", "FAIL", "Step completes", sanitize_text(str(error)))
     step.conclude()
     report.render(run.console)
-    update_index(
-        args.output_dir / "index.md",
-        f"{datetime.now(UTC):%Y-%m-%d %H:%M} UTC - {step_class.index_label} - **{step.verdict}** - "
-        f"[{run.path.name}]({run.path.name}/{step_class.report_name})",
-    )
+    index = args.output_dir / "index.md"
+    update_index(index, index_entry(index, step_class.spec.label(), step.verdict, run.path))
     return run.finish()
 
 
@@ -2421,15 +2416,16 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         return run_reusing_step(args, story1_sandbox.Step4 if args.step == 4 else story1_sandbox.Step5)
     run = ValidationRun(
-        "story-1-step-1",
+        STEP1.scenario,
         "hosted",
         args.output_dir,
         no_color=args.no_color,
         verbose=args.verbose,
-        directory_label=f"step-1-code-interpreter-{args.mode}",
+        step=STEP1,
+        variant=args.mode,
     )
     report = MarkdownReport(
-        run.path / REPORT_NAME, "Story 1 / Step 1 - Code Interpreter on the existing Data Analysis agent"
+        run.path / REPORT_FILE, "Story 1 / Step 1 - Code Interpreter on the existing Data Analysis agent"
     )
     step = Step1(args, run, report)
     try:
@@ -2448,11 +2444,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         step.record("Unexpected failure", "FAIL", "Step completes", sanitize_text(str(error)))
     step.conclude()
     report.render(run.console)
-    update_index(
-        args.output_dir / "index.md",
-        f"{datetime.now(UTC):%Y-%m-%d %H:%M} UTC - Step 1 ({args.mode}) - **{step.verdict}** - "
-        f"[{run.path.name}]({run.path.name}/{REPORT_NAME})",
-    )
+    index = args.output_dir / "index.md"
+    update_index(index, index_entry(index, STEP1.label(args.mode), step.verdict, run.path))
     return run.finish()
 
 

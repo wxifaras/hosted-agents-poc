@@ -5,6 +5,7 @@ Identities are compared only as salted fingerprints in memory and never written 
 """
 
 import json
+import os
 import re
 from collections.abc import Mapping
 from pathlib import Path
@@ -17,7 +18,7 @@ from app.services.orchestration import DelegateCommand, DelegationReport, Identi
 from pydantic import JsonValue
 
 from scripts.common.findings import Finding
-from scripts.common.reporting import Status
+from scripts.common.reporting import Status, StepSpec
 from scripts.deploy.grant_local_rbac import CliError, object_value
 from scripts.run_scenario.story1_data_analysis import (
     OUTPUT_FILES,
@@ -141,11 +142,8 @@ class Step3(Story4Step):
     """Research calls its MCP tool through a Foundry toolbox, invoked through the Supervisor."""
 
     number = 3
-    scenario = "story-4-step-3"
-    directory = "step-3-research-tool-call"
-    report_name = "03-research-tool-call.md"
+    spec = StepSpec(4, number, "research-tool-call")
     title = "Story 4 / Step 3 - Research Agent tool call and trust boundaries"
-    index_label = "Step 3 (research tool call)"
     task_label = f"{TASK_PREFIX} - 3 Demonstrate Research tool call"
     ac = (
         "Demonstrate a Research Agent tool call. Define the caller, target resource, required permissions, and "
@@ -271,11 +269,8 @@ class Step4(Story4Step):
     """Agent-owned, forwarded call context, and delegated-user paths to another agent and a service."""
 
     number = 4
-    scenario = "story-4-step-4"
-    directory = "step-4-identity-paths"
-    report_name = "04-identity-paths.md"
+    spec = StepSpec(4, number, "identity-paths")
     title = "Story 4 / Step 4 - Delegated-user/OBO and agent-owned access"
-    index_label = "Step 4 (identity paths)"
     task_label = f"{TASK_PREFIX} - 4 Evaluate identity paths"
     ac = (
         "Evaluate delegated-user/OBO and agent-owned access to another service or agent. Demonstrate available "
@@ -450,11 +445,8 @@ class Step5(Story4Step):
     """Trace identities and correlation across client, Supervisor, Research, and tool; allowed and denied cases."""
 
     number = 5
-    scenario = "story-4-step-5"
-    directory = "step-5-trace-and-access"
-    report_name = "05-trace-and-access.md"
+    spec = StepSpec(4, number, "trace-and-access")
     title = "Story 4 / Step 5 - Identity trace and allowed/denied access"
-    index_label = "Step 5 (trace and access)"
     task_label = f"{TASK_PREFIX} - 5 Trace identity and access"
     ac = (
         "Trace the original user, authenticated principal, and applied permissions across client, supervisor, "
@@ -761,11 +753,8 @@ class Step6(Story4Step):
     """Data Analysis with managed Code Interpreter through the Supervisor, reusing Story 1 inputs and oracle."""
 
     number = 6
-    scenario = "story-4-step-6"
-    directory = "step-6-data-analysis"
-    report_name = "06-data-analysis-code-interpreter.md"
+    spec = StepSpec(4, number, "data-analysis")
     title = "Story 4 / Step 6 - Data Analysis Agent with Code Interpreter (reusing Story 1)"
-    index_label = "Step 6 (data analysis)"
     task_label = f"{TASK_PREFIX} - 6 Demonstrate Data Analysis via Supervisor"
     ac = (
         "Demonstrate a Data Analysis Agent using Microsoft-managed Code Interpreter, reusing the analysis and "
@@ -781,7 +770,12 @@ class Step6(Story4Step):
         story1 = self.args.output_dir.parent / STORY1_DIR
         evidence = story1_evidence(story1 / "index.md")
         rows: list[list[object]] = [
-            [step, item["verdict"], item["when"], f"[{item['name']}](../../{STORY1_DIR}/{item['link']})"]
+            [
+                step,
+                item["verdict"],
+                item["when"],
+                f"[{item['name']}]({Path(os.path.relpath(story1 / item['link'], self.run.path)).as_posix()})",
+            ]
             for step, item in sorted(evidence.items())
         ]
         self.report.table(["Story 1 step", "Verdict", "UTC", "Report"], rows or [["-", "-", "-", "No index found"]])

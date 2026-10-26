@@ -592,16 +592,33 @@ subprocess fallback for analysis.
 
 #### Step 1 output files
 
-New run folders are under `artifacts\story-1\` and use
-`<YYYY-MM-DD>_<HH-MM-SS>Z-step-1-code-interpreter-<mode>-<8-character-id>`,
-for example `2026-10-23_12-04-08Z-step-1-code-interpreter-verify-a1b2c3d4`.
-The timestamp is UTC, the mode is `verify` or `enable-if-missing`, and the
-suffix distinguishes runs. Existing folders and index links are unchanged.
+Every Story 1 and Story 4 step uses the same naming convention:
+
+```text
+artifacts\story-<n>\
+  index.md                      one line per run: UTC time, step label, verdict, link
+  agents-baseline.json          written by Step 1; the reuse guard for later steps
+  step-<NN>-<slug>\             one folder per step; groups all reruns of that step
+    <YYYYMMDDTHHMMSSZ>-<id8>\   one folder per run; sorts chronologically
+      report.md
+      manifest.json
+      events.jsonl
+      results.jsonl
+      outputs\                  downloaded files, when the step has any
+```
+
+Step 1 runs are under `step-01-code-interpreter\`, for example
+`artifacts\story-1\step-01-code-interpreter\20261023T120408Z-a1b2c3d4\report.md`.
+The timestamp is the UTC start time and the suffix is the first eight
+characters of the run ID. The mode (`verify` or `enable-if-missing`) is
+recorded as `variant` in `manifest.json` and in the index label, for example
+`Step 1 (code interpreter, verify)`. Runs written before this convention keep
+their original folder names and index links.
 
 | File inside each run folder | Contents |
 |---|---|
-| `01-existing-agent-code-interpreter.md` | Main report: checks, expected/observed results, findings, and acceptance verdict |
-| `manifest.json` | Full run ID, start time, scenario/mode, platform, and Python/SDK versions |
+| `report.md` | Main report: checks, expected/observed results, findings, and acceptance verdict |
+| `manifest.json` | Full run ID, start time, scenario/mode, step folder, variant, platform, and Python/SDK versions |
 | `events.jsonl` | Incrementally written, sanitized check observations; one JSON record per line |
 | `results.jsonl` | The same check records as `events.jsonl`, for machine processing |
 
@@ -823,12 +840,12 @@ also makes the task exit with code 2, even when the verdict is `Met`.
 
 #### Step 2 output files
 
-Run folders use
-`<YYYY-MM-DD>_<HH-MM-SS>Z-step-2-analysis-and-outputs-<8-character-id>`.
+Run folders are under `step-02-analysis-and-outputs\` and follow the
+[Step 1 naming convention](#step-1-output-files).
 
 | File inside each run folder | Contents |
 |---|---|
-| `02-analysis-and-outputs.md` | Main report: summary, expected-versus-observed tables, file checks, chart, delivery paths, findings, and verdict |
+| `report.md` | Main report: summary, expected-versus-observed tables, file checks, chart, delivery paths, findings, and verdict |
 | `outputs\` | Downloaded `filtered.csv`, `by_category.csv`, and `revenue_by_category.png` |
 | `manifest.json`, `events.jsonl`, `results.jsonl` | Same evidence format as Step 1 |
 
@@ -901,12 +918,12 @@ Timings are observations, not an SLA, because none was agreed.
 
 #### Step 3 output files
 
-Run folders use
-`<YYYY-MM-DD>_<HH-MM-SS>Z-step-3-dataset-sizes-<8-character-id>`.
+Run folders are under `step-03-dataset-sizes\` and follow the
+[Step 1 naming convention](#step-1-output-files).
 
 | File inside each run folder | Contents |
 |---|---|
-| `03-capacity.md` | Main report: per-size checks, capacity summary, sandbox observations, findings, and verdict |
+| `report.md` | Main report: per-size checks, capacity summary, sandbox observations, findings, and verdict |
 | `outputs\<rows>\` | Downloaded `filtered.csv`, `by_category.csv`, `revenue_by_category.png`, and `story1-step3-result.json` for each completed size |
 | `manifest.json`, `events.jsonl`, `results.jsonl` | Same evidence format as Step 1 |
 
@@ -964,9 +981,12 @@ choose:
 7. Deletes only the sandbox containers its own direct probes created, checks
    the agents again, and writes the boundary matrix and verdict.
 
+Run folders are under `step-04-sandbox-boundaries\` and follow the
+[Step 1 naming convention](#step-1-output-files).
+
 | File inside each run folder | Contents |
 |---|---|
-| `04-sandbox-boundaries.md` | Configuration surface, probe results, per-call and toolbox-level options, lifetime, the boundary matrix, and the highlighted multi-tenant limitation |
+| `report.md` | Configuration surface, probe results, per-call and toolbox-level options, lifetime, the boundary matrix, and the highlighted multi-tenant limitation |
 | `outputs\hosted\` | The hosted probe's result file |
 | `manifest.json`, `events.jsonl`, `results.jsonl` | Same evidence format as Step 1 |
 
@@ -1016,9 +1036,12 @@ without it the Blob check is `BLOCKED` and no roles are granted.
    - The customer-network placement matrix for the sandbox, uploaded files,
      conversations, hosted workflow state, and the custom checkpoint.
 
+Run folders are under `step-05-state-continuity\` and follow the
+[Step 1 naming convention](#step-1-output-files).
+
 | File inside each run folder | Contents |
 |---|---|
-| `05-state-continuity.md` | Continuity, checkpoint, recreation, inventory, rehydration, placement matrix, findings, and verdict |
+| `report.md` | Continuity, checkpoint, recreation, inventory, rehydration, placement matrix, findings, and verdict |
 | `checkpoint.json` | The sealed checkpoint used for rehydration |
 | `outputs\r1\` ... `outputs\r4\` | The sandbox result file for each request |
 
@@ -1090,8 +1113,11 @@ when one does, `Not met` otherwise, `Not evaluated` when blocked.
 
 #### Story 4 output files
 
-Run folders are under `artifacts\story-4\` and use
-`<YYYY-MM-DD>_<HH-MM-SS>Z-step-<n>-<capability>-<8-character-id>`. Every
+Run folders are under `artifacts\story-4\step-<NN>-<slug>\` and follow the
+[Story 1 naming convention](#step-1-output-files): `step-01-supervisor-delegation`,
+`step-02-sync-async-and-failure`, `step-03-research-tool-call`,
+`step-04-identity-paths`, `step-05-trace-and-access`, `step-06-data-analysis`,
+and `step-07-direct-invocation`. Every
 report uses the [Story 1 report layout](#report-layout-all-story-1-steps):
 summary first, with findings classified by evidence (Tested, Observed,
 Documented, Unverified) and ownership (Foundry-managed, Agent Framework / SDK-
@@ -1101,11 +1127,11 @@ request, and a **Reproduction** section shows the exact command.
 
 | File | Contents |
 |---|---|
-| `01-supervisor-delegation.md` ... `07-direct-invocation.md` | Main report of each step |
+| `report.md` | Main report of each step |
 | `manifest.json`, `events.jsonl`, `results.jsonl` | Same evidence format as Story 1 |
 | `outputs\` (Step 6 only) | Downloaded `filtered.csv`, `by_category.csv`, and `revenue_by_category.png` |
-| `..\index.md` | Each run's link, UTC time, and verdict |
-| `..\agents-baseline.json` | Written by Step 1; the reuse guard for Steps 2-7 |
+| `..\..\index.md` | Each run's link, UTC time, and verdict |
+| `..\..\agents-baseline.json` | Written by Step 1; the reuse guard for Steps 2-7 |
 
 Identities never appear in evidence. Each hop returns presence flags and
 `sha256(correlation-id | identity)` fingerprints; the runner compares them in

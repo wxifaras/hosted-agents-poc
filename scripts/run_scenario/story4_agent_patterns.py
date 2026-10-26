@@ -13,7 +13,6 @@ import argparse
 import subprocess
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter
 from typing import Literal
@@ -33,7 +32,15 @@ from azure.core.exceptions import ResourceNotFoundError
 from pydantic import JsonValue
 
 from scripts.common.findings import Finding
-from scripts.common.reporting import MarkdownReport, ValidationRun, add_output_arguments, update_index
+from scripts.common.reporting import (
+    REPORT_FILE,
+    MarkdownReport,
+    StepSpec,
+    ValidationRun,
+    add_output_arguments,
+    index_entry,
+    update_index,
+)
 from scripts.deploy.grant_local_rbac import command_prefix, object_value
 from scripts.run_scenario.story1_data_analysis import (
     SNAPSHOT_HEADERS,
@@ -168,11 +175,8 @@ class Step1(Story4Step):
     """Prepare once, then demonstrate model-routed Supervisor delegation and result delivery."""
 
     number = 1
-    scenario = "story-4-step-1"
-    directory = "step-1-supervisor-delegation"
-    report_name = "01-supervisor-delegation.md"
+    spec = StepSpec(4, number, "supervisor-delegation")
     title = "Story 4 / Step 1 - User -> Supervisor -> sub-agent -> Supervisor result delivery"
-    index_label = "Step 1 (supervisor delegation)"
     task_label = f"{TASK_PREFIX} - 1 Demonstrate Supervisor delegation"
     ac = AC1
     scope_note = (
@@ -515,11 +519,8 @@ class Step2(Story4Step):
     """Synchronous and background delegation, each with a representative sub-agent failure."""
 
     number = 2
-    scenario = "story-4-step-2"
-    directory = "step-2-sync-async-failure"
-    report_name = "02-sync-async-and-failure.md"
+    spec = StepSpec(4, number, "sync-async-and-failure")
     title = "Story 4 / Step 2 - Synchronous/asynchronous delegation and sub-agent failure"
-    index_label = "Step 2 (sync/async and failure)"
     task_label = f"{TASK_PREFIX} - 2 Assess sync and async delegation"
     ac = AC2
     scope_note = (
@@ -713,11 +714,8 @@ class Step7(Story4Step):
     """The client calls Research directly in its own conversation; the Supervisor is never invoked."""
 
     number = 7
-    scenario = "story-4-step-7"
-    directory = "step-7-direct-invocation"
-    report_name = "07-direct-invocation.md"
+    spec = StepSpec(4, number, "direct-invocation")
     title = "Story 4 / Step 7 - Direct client invocation of Hosted Agent B (Research)"
-    index_label = "Step 7 (direct invocation)"
     task_label = f"{TASK_PREFIX} - 7 Invoke Research directly"
     ac = AC7
     scope_note = (
@@ -866,14 +864,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 def run_step(args: argparse.Namespace, step_class: type[Story4Step]) -> int:
     run = ValidationRun(
-        step_class.scenario,
+        step_class.spec.scenario,
         "hosted",
         args.output_dir,
         no_color=args.no_color,
         verbose=args.verbose,
-        directory_label=step_class.directory,
+        step=step_class.spec,
     )
-    report = MarkdownReport(run.path / step_class.report_name, step_class.title)
+    report = MarkdownReport(run.path / REPORT_FILE, step_class.title)
     step = step_class(args, run, report)
     try:
         step.execute()
@@ -883,12 +881,8 @@ def run_step(args: argparse.Namespace, step_class: type[Story4Step]) -> int:
         step.record("Unexpected failure", "FAIL", "Step completes", sanitize_text(str(error)))
     step.conclude()
     report.render(run.console)
-    update_index(
-        args.output_dir / "index.md",
-        f"{datetime.now(UTC):%Y-%m-%d %H:%M} UTC - {step_class.index_label} - **{step.verdict}** - "
-        f"[{run.path.name}]({run.path.name}/{step_class.report_name})",
-        title=INDEX_TITLE,
-    )
+    index = args.output_dir / "index.md"
+    update_index(index, index_entry(index, step_class.spec.label(), step.verdict, run.path), title=INDEX_TITLE)
     return run.finish()
 
 

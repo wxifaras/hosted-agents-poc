@@ -208,7 +208,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "2", "--environment", "${input:infraEnvironment}"],
-      "detail": "Read-only reuse of the Step 1 agents and toolbox. Paid: one Data Analysis request (model-written filter/group/summarize/chart on 1k rows) validated against a local oracle, downloads the CSVs and chart, and records the existing Supervisor POC_WORKFLOW path. Writes 02-analysis-and-outputs.md. Requires a Step 1 baseline.",
+      "detail": "Read-only reuse of the Step 1 agents and toolbox. Paid: one Data Analysis request (model-written filter/group/summarize/chart on 1k rows) validated against a local oracle, downloads the CSVs and chart, and records the existing Supervisor POC_WORKFLOW path. Writes a report under step-02-analysis-and-outputs\\. Requires a Step 1 baseline.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -217,7 +217,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "3", "--environment", "${input:infraEnvironment}"],
-      "detail": "Read-only reuse of the Step 1 agents and toolbox. Paid: one sequential hosted request per size (1k/10k/100k rows, 300 s client timeout, no retries); stops escalating at the first platform failure. Writes 03-capacity.md with sandbox measurements and a scoped viability verdict. Requires a Step 1 baseline.",
+      "detail": "Read-only reuse of the Step 1 agents and toolbox. Paid: one sequential hosted request per size (1k/10k/100k rows, 300 s client timeout, no retries); stops escalating at the first platform failure. Writes a report under step-03-dataset-sizes\\ with sandbox measurements and a scoped viability verdict. Requires a Step 1 baseline.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -226,7 +226,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "4", "--environment", "${input:infraEnvironment}", "--options-toolbox", "${input:story1OptionsToolbox}", "--idle-wait", "${input:story1IdleWait}"],
-      "detail": "Reuses the Step 1 agents and toolbox without changing them. Paid: benign direct sandbox probes (identity, filesystem, network, 90 s limit, per-call options), one hosted confirmation, and optionally a temporary probe-only toolbox that is deleted. Deletes only its own probe containers. Writes 04-sandbox-boundaries.md.",
+      "detail": "Reuses the Step 1 agents and toolbox without changing them. Paid: benign direct sandbox probes (identity, filesystem, network, 90 s limit, per-call options), one hosted confirmation, and optionally a temporary probe-only toolbox that is deleted. Deletes only its own probe containers. Writes a report under step-04-sandbox-boundaries\\.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -235,7 +235,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "5", "--environment", "${input:infraEnvironment}"],
-      "detail": "Reuses the Step 1 agents and toolbox without changing them. Paid: four hosted requests across three conversations, deletes one sandbox container to test recreation, and writes/reads/deletes one synthetic checkpoint in the existing Blob container. Writes 05-state-continuity.md.",
+      "detail": "Reuses the Step 1 agents and toolbox without changing them. Paid: four hosted requests across three conversations, deletes one sandbox container to test recreation, and writes/reads/deletes one synthetic checkpoint in the existing Blob container. Writes a report under step-05-state-continuity\\.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -244,7 +244,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "1", "--environment", "${input:infraEnvironment}", "--mode", "${input:story4Step1Mode}"],
-      "detail": "AC1. verify = no changes. prepare-if-missing = once, create the Research MCP toolbox story4-research-mcp, set RESEARCH_TOOLBOX_ENDPOINT, and azd deploy --all (same agents and identities). Paid: two model-routed Supervisor delegations (Research, Data Analysis). Writes 01-supervisor-delegation.md and the Story 4 baseline.",
+      "detail": "AC1. verify = no changes. prepare-if-missing = once, create the Research MCP toolbox story4-research-mcp, set RESEARCH_TOOLBOX_ENDPOINT, and azd deploy --all (same agents and identities). Paid: two model-routed Supervisor delegations (Research, Data Analysis). Writes a report under step-01-supervisor-delegation\\ and the Story 4 baseline.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -253,7 +253,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "2", "--environment", "${input:infraEnvironment}"],
-      "detail": "AC2. Read-only reuse of the Story 4 baseline. Paid: Supervisor -> Research synchronous and background delegation, each with a simulated sub-agent failure, plus one direct background request. No retries. Writes 02-sync-async-and-failure.md.",
+      "detail": "AC2. Read-only reuse of the Story 4 baseline. Paid: Supervisor -> Research synchronous and background delegation, each with a simulated sub-agent failure, plus one direct background request. No retries. Writes a report under step-02-sync-async-and-failure\\.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -262,7 +262,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "3", "--environment", "${input:infraEnvironment}"],
-      "detail": "AC3. Read-only reuse of the Story 4 baseline. Direct toolbox MCP probe plus one paid Supervisor -> Research request that calls the Microsoft Learn MCP search tool. Writes 03-research-tool-call.md with the trust-boundary table.",
+      "detail": "AC3. Read-only reuse of the Story 4 baseline. Direct toolbox MCP probe plus one paid Supervisor -> Research request that calls the Microsoft Learn MCP search tool. Writes a report under step-03-research-tool-call\\ with the trust-boundary table.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -271,7 +271,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "4", "--environment", "${input:infraEnvironment}"],
-      "detail": "AC4. Read-only reuse of the Story 4 baseline; reads (never grants) the Supervisor's impersonation permission. Paid: Supervisor -> Research in agent-owned, call-context, and delegated-user modes, plus agent-owned Research -> toolbox. Writes 04-identity-paths.md.",
+      "detail": "AC4. Read-only reuse of the Story 4 baseline; reads (never grants) the Supervisor's impersonation permission. Paid: Supervisor -> Research in agent-owned, call-context, and delegated-user modes, plus agent-owned Research -> toolbox. Writes a report under step-04-identity-paths\\.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -280,7 +280,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "5", "--environment", "${input:infraEnvironment}"],
-      "detail": "AC5. Read-only reuse of the Story 4 baseline; reads role assignments only. Paid: one traced client -> Supervisor -> Research -> tool request, then platform (impersonation, toolbox allowed_tools) and application (allow-list) denials. Writes 05-trace-and-access.md.",
+      "detail": "AC5. Read-only reuse of the Story 4 baseline; reads role assignments only. Paid: one traced client -> Supervisor -> Research -> tool request, then platform (impersonation, toolbox allowed_tools) and application (allow-list) denials. Writes a report under step-05-trace-and-access\\.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -289,7 +289,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "6", "--environment", "${input:infraEnvironment}"],
-      "detail": "AC6. Read-only reuse of the Story 4 baseline and the Story 1 toolbox, request, oracle, and evidence index. Paid: one Supervisor -> Data Analysis Code Interpreter analysis; downloads the CSVs and chart. Writes 06-data-analysis-code-interpreter.md.",
+      "detail": "AC6. Read-only reuse of the Story 4 baseline and the Story 1 toolbox, request, oracle, and evidence index. Paid: one Supervisor -> Data Analysis Code Interpreter analysis; downloads the CSVs and chart. Writes a report under step-06-data-analysis\\.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -298,7 +298,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "7", "--environment", "${input:infraEnvironment}"],
-      "detail": "AC7. Read-only reuse of the Story 4 baseline. Creates one conversation per agent, then two paid requests only to Research in its own conversation (no Supervisor). Writes 07-direct-invocation.md.",
+      "detail": "AC7. Read-only reuse of the Story 4 baseline. Creates one conversation per agent, then two paid requests only to Research in its own conversation (no Supervisor). Writes a report under step-07-direct-invocation\\.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },

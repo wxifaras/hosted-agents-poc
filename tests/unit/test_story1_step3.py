@@ -17,7 +17,7 @@ import httpx
 import openai
 import pytest
 
-from scripts.common.reporting import MarkdownReport, ValidationRun
+from scripts.common.reporting import REPORT_FILE, MarkdownReport, ValidationRun
 from scripts.common.synthetic_data import (
     COLUMNS,
     DATASET_SIZES,
@@ -154,7 +154,7 @@ def answer(result: bytes) -> str:
 def make_step(tmp_path: Path, timeout: float = 300) -> story.Step3:
     args = Namespace(environment="env", mode="verify", timeout=timeout, output_dir=tmp_path)
     run = ValidationRun("t", "hosted", tmp_path, no_color=True)
-    step = story.Step3(args, run, MarkdownReport(run.path / story.STEP3_REPORT, "t"))
+    step = story.Step3(args, run, MarkdownReport(run.path / REPORT_FILE, "t"))
     step.project_endpoint = PROJECT
     return step
 
@@ -416,14 +416,15 @@ def test_partial_report_is_written_when_the_run_stops(monkeypatch: pytest.Monkey
     monkeypatch.setattr(story.Step3, "execute", interrupted)
     assert story.main(["--step", "3", "--output-dir", str(tmp_path), "--no-color"]) == 1
     output = tmp_path / "story-1"
-    (directory,) = [path for path in output.iterdir() if path.is_dir()]
-    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}Z-step-3-dataset-sizes-[0-9a-f]{8}", directory.name)
-    report = (directory / story.STEP3_REPORT).read_text(encoding="utf-8")
+    (directory,) = [path for path in (output / "step-03-dataset-sizes").iterdir() if path.is_dir()]
+    assert re.fullmatch(r"\d{8}T\d{6}Z-[0-9a-f]{8}", directory.name)
+    report = (directory / REPORT_FILE).read_text(encoding="utf-8")
     assert "### 1,000 rows" in report and "Capacity summary" in report
     assert "SKIP (not run): the run stopped before this size" in report
     assert "Unexpected failure" in report and "Acceptance verdict: Partially met" in report
     index = (output / "index.md").read_text(encoding="utf-8")
-    assert f"Step 3 (dataset sizes) - **Partially met** - [{directory.name}]({directory.name}/03-capacity.md)" in index
+    link = f"step-03-dataset-sizes/{directory.name}"
+    assert f"Step 3 (dataset sizes) - **Partially met** - [{link}]({link}/report.md)" in index
     statuses = [json.loads(line)["status"] for line in (directory / "results.jsonl").read_text().splitlines()]
     assert statuses == ["PASS", "FAIL", "SKIP", "SKIP"]
 

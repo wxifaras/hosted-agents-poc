@@ -20,7 +20,7 @@ import openai
 import pytest
 from app.services.delegation import Report
 
-from scripts.common.reporting import MarkdownReport, ValidationRun
+from scripts.common.reporting import REPORT_FILE, MarkdownReport, ValidationRun
 from scripts.common.synthetic_data import (
     COLUMNS,
     build_dataset,
@@ -151,7 +151,7 @@ class FakeProject:
 def make_step(tmp_path: Path) -> story.Step2:
     args = Namespace(environment="env", mode="verify", timeout=300, output_dir=tmp_path)
     run = ValidationRun("t", "hosted", tmp_path, no_color=True)
-    step = story.Step2(args, run, MarkdownReport(run.path / story.STEP2_REPORT, "t"))
+    step = story.Step2(args, run, MarkdownReport(run.path / REPORT_FILE, "t"))
     step.project_endpoint = PROJECT
     return step
 
@@ -310,12 +310,13 @@ def test_blocked_run_still_writes_report_and_index(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(story.Step2, "execute", blocked)
     assert story.main(["--step", "2", "--output-dir", str(tmp_path), "--no-color"]) == 2
     output = tmp_path / "story-1"
-    (directory,) = [path for path in output.iterdir() if path.is_dir()]
-    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}Z-step-2-analysis-and-outputs-[0-9a-f]{8}", directory.name)
-    report = (directory / story.STEP2_REPORT).read_text(encoding="utf-8")
+    (directory,) = [path for path in (output / "step-02-analysis-and-outputs").iterdir() if path.is_dir()]
+    assert re.fullmatch(r"\d{8}T\d{6}Z-[0-9a-f]{8}", directory.name)
+    report = (directory / REPORT_FILE).read_text(encoding="utf-8")
     assert "Run Task 1" in report and "Acceptance verdict: Not evaluated" in report and "Delivery paths" in report
     index = (output / "index.md").read_text(encoding="utf-8")
-    assert f"Step 2 (analysis and outputs) - **Not evaluated** - [{directory.name}]({directory.name}/" in index
+    link = f"step-02-analysis-and-outputs/{directory.name}"
+    assert f"Step 2 (analysis and outputs) - **Not evaluated** - [{link}]({link}/report.md)" in index
     with pytest.raises(SystemExit):
         story.main(["--step", "2", "--mode", "enable-if-missing", "--output-dir", str(tmp_path)])
 

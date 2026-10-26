@@ -10,7 +10,7 @@ import pytest
 from app.core.redaction import sanitize, sanitize_text
 
 from scripts.common import validate_environment
-from scripts.common.reporting import ValidationRun
+from scripts.common.reporting import REPORT_FILE, StepSpec, ValidationRun, index_entry
 from scripts.run_scenario import run_scenarios, trigger_agent
 
 
@@ -47,6 +47,21 @@ def test_result_output_and_exit_code(tmp_path: Path, status: str, expected_code:
     assert event == result
     assert result["status"] == status
     assert result["observed"]["token"] == "[REDACTED]"
+
+
+def test_step_runs_use_one_naming_convention(tmp_path: Path) -> None:
+    spec = StepSpec(1, 3, "dataset-sizes")
+    assert (spec.scenario, spec.directory) == ("story-1-step-3", "step-03-dataset-sizes")
+    assert spec.label() == "Step 3 (dataset sizes)"
+    assert spec.label("verify") == "Step 3 (dataset sizes, verify)"
+    run = ValidationRun(spec.scenario, "hosted", tmp_path, no_color=True, step=spec, variant="verify")
+    assert run.path.parent == tmp_path / "step-03-dataset-sizes"
+    assert run.path.name.endswith(f"Z-{run.run_id[:8]}") and len(run.path.name) == len("20261026T135035Z-a0fc4eb1")
+    manifest = json.loads((run.path / "manifest.json").read_text(encoding="utf-8"))
+    assert (manifest["scenario"], manifest["step"], manifest["variant"]) == (spec.scenario, spec.directory, "verify")
+    entry = index_entry(tmp_path / "index.md", spec.label(), "Met", run.path)
+    link = f"step-03-dataset-sizes/{run.path.name}"
+    assert entry.endswith(f" UTC - Step 3 (dataset sizes) - **Met** - [{link}]({link}/{REPORT_FILE})")
 
 
 def test_empty_run_cannot_pass(tmp_path: Path) -> None:

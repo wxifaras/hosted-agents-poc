@@ -22,7 +22,7 @@ from openai import APIStatusError, OpenAIError
 from pydantic import JsonValue, ValidationError
 
 from scripts.common.findings import Finding, render_summary
-from scripts.common.reporting import MarkdownReport, Status, ValidationRun
+from scripts.common.reporting import MarkdownReport, Status, StepSpec, ValidationRun
 from scripts.deploy.grant_agent_rbac import IMPERSONATION_ACTION
 from scripts.deploy.grant_local_rbac import CliError, az, object_value
 from scripts.run_scenario.hosted_smoke import SERVICES
@@ -217,11 +217,8 @@ class Story4Step:
     """One acceptance criterion: shared configuration, reuse guard, hosted helpers, and summary."""
 
     number = 0
-    scenario = ""
-    directory = ""
-    report_name = ""
+    spec: StepSpec
     title = ""
-    index_label = ""
     task_label = ""
     ac = ""
     scope_note = ""

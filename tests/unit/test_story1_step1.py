@@ -18,7 +18,7 @@ from app.services.code_interpreter import container_ids, parse_artifacts, with_a
 from azure.identity import DefaultAzureCredential
 from pydantic import ValidationError
 
-from scripts.common.reporting import MarkdownReport, ValidationRun, markdown_cell, update_index
+from scripts.common.reporting import REPORT_FILE, MarkdownReport, ValidationRun, markdown_cell, update_index
 from scripts.common.synthetic_data import COLUMNS, build_dataset, expected_aggregates, generate_rows
 from scripts.run_scenario import story1_data_analysis as story
 
@@ -229,22 +229,22 @@ def test_story1_run_directories_are_descriptive_and_index_links_resolve(
     assert story.main(arguments) == 2
     assert story.main(arguments) == 2
     output = tmp_path / "story-1"
-    directories = [path for path in output.iterdir() if path.is_dir()]
+    directories = [path for path in (output / "step-01-code-interpreter").iterdir() if path.is_dir()]
     assert len(directories) == 2
     index = (output / "index.md").read_text(encoding="utf-8")
     run_ids = set()
     for directory in directories:
-        assert re.fullmatch(
-            rf"\d{{4}}-\d{{2}}-\d{{2}}_\d{{2}}-\d{{2}}-\d{{2}}Z-step-1-code-interpreter-{mode}-[0-9a-f]{{8}}",
-            directory.name,
-        )
+        assert re.fullmatch(r"\d{8}T\d{6}Z-[0-9a-f]{8}", directory.name)
         manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
         started_at = datetime.fromisoformat(manifest["started_at"])
-        assert directory.name.startswith(f"{started_at:%Y-%m-%d_%H-%M-%SZ}-")
+        assert directory.name.startswith(f"{started_at:%Y%m%dT%H%M%SZ}-")
         assert directory.name.endswith(manifest["run_id"][:8])
+        assert manifest["step"] == "step-01-code-interpreter" and manifest["variant"] == mode
         run_ids.add(manifest["run_id"])
-        assert (directory / story.REPORT_NAME).is_file()
-        assert f"]({directory.name}/{story.REPORT_NAME})" in index
+        assert (directory / REPORT_FILE).is_file()
+        link = f"step-01-code-interpreter/{directory.name}"
+        assert f"Step 1 (code interpreter, {mode}) - **" in index
+        assert f"[{link}]({link}/{REPORT_FILE})" in index
         for filename in ("events.jsonl", "results.jsonl"):
             event = json.loads((directory / filename).read_text(encoding="utf-8"))
             assert event["run_id"] == manifest["run_id"]

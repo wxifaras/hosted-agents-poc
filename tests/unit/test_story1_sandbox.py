@@ -12,7 +12,7 @@ import httpx
 import pytest
 from azure.core.exceptions import ResourceNotFoundError
 
-from scripts.common.reporting import MarkdownReport, ValidationRun
+from scripts.common.reporting import REPORT_FILE, MarkdownReport, ValidationRun
 from scripts.common.synthetic_data import build_dataset, expected_aggregates, generate_rows
 from scripts.run_scenario import story1_data_analysis as story
 from scripts.run_scenario import story1_sandbox as sb
@@ -45,7 +45,7 @@ def args(tmp_path: Path, **extra: object) -> Namespace:
 
 def step(cls: type[sb.SandboxStep], tmp_path: Path) -> Any:
     run = ValidationRun("t", "hosted", tmp_path, no_color=True)
-    instance = cls(args(tmp_path), run, MarkdownReport(run.path / cls.report_name, "t"))
+    instance = cls(args(tmp_path), run, MarkdownReport(run.path / REPORT_FILE, "t"))
     instance.project_endpoint = PROJECT
     instance.toolbox = TOOLBOX
     return instance
@@ -348,7 +348,7 @@ def test_step5_rehydration_refuses_a_tampered_checkpoint(tmp_path: Path) -> None
     assert s5.statuses["Rehydration"] == "FAIL"
 
 
-@pytest.mark.parametrize(("number", "name"), [(4, "step-4-sandbox-boundaries"), (5, "step-5-state-continuity")])
+@pytest.mark.parametrize(("number", "name"), [(4, "step-04-sandbox-boundaries"), (5, "step-05-state-continuity")])
 def test_blocked_runs_write_reports_and_index(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, number: int, name: str
 ) -> None:
@@ -359,12 +359,13 @@ def test_blocked_runs_write_reports_and_index(
 
     monkeypatch.setattr(cls, "execute", blocked)
     assert story.main(["--step", str(number), "--output-dir", str(tmp_path), "--no-color"]) == 2
-    (directory,) = [path for path in (tmp_path / "story-1").iterdir() if path.is_dir()]
-    assert re.fullmatch(rf"\d{{4}}-\d{{2}}-\d{{2}}_\d{{2}}-\d{{2}}-\d{{2}}Z-{name}-[0-9a-f]{{8}}", directory.name)
-    report = (directory / cls.report_name).read_text(encoding="utf-8")
+    (directory,) = [path for path in (tmp_path / "story-1" / name).iterdir() if path.is_dir()]
+    assert re.fullmatch(r"\d{8}T\d{6}Z-[0-9a-f]{8}", directory.name)
+    report = (directory / REPORT_FILE).read_text(encoding="utf-8")
     assert "Run Task 1" in report and "Acceptance verdict: Not evaluated" in report
     index = (tmp_path / "story-1" / "index.md").read_text(encoding="utf-8")
-    assert f"{cls.index_label} - **Not evaluated** - [{directory.name}]({directory.name}/{cls.report_name})" in index
+    link = f"{name}/{directory.name}"
+    assert f"{cls.spec.label()} - **Not evaluated** - [{link}]({link}/{REPORT_FILE})" in index
 
 
 def test_steps_4_and_5_never_change_agents_or_the_step1_toolbox() -> None:
