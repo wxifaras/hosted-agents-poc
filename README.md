@@ -69,6 +69,14 @@ the same task message, and join their answers; this is not model-driven planning
 alignment and end-to-end proof are pending; details belong in the
 [ADR](docs/adr/0001-hosted-agents-poc.md#authorization-contract-and-proposed-alignment).
 
+For Story #4, a separate stateless `POC_DELEGATE` command routes one task to one
+specialist: the Supervisor model chooses Research or Data Analysis through a
+function-tool call (or the client names an allow-listed target), and Supervisor
+code invokes that specialist's agent endpoint synchronously or in Responses
+background mode, with a selectable identity mode (`agent`, `call-context`, or
+`delegated-user`). It never touches the workflow registry, so the guard above is
+unchanged. See [Story 4 tasks](#story-4-representative-hosted-agent-patterns).
+
 ```mermaid
 flowchart LR
     accTitle: Supervisor workflow path
@@ -82,7 +90,10 @@ flowchart LR
 ### Research
 
 `POC_AGENT_NAME=research`. Answers from supplied context using Research-specific
-instructions. External search and retrieval tools are not connected yet.
+instructions. For Story #4, when `TOOLBOX_ENDPOINT` is set (from
+`RESEARCH_TOOLBOX_ENDPOINT`), Research gets the Foundry toolbox
+`story4-research-mcp`, which exposes only `microsoft_docs_search` from the public
+Microsoft Learn MCP server. No other external search or retrieval tools are connected.
 
 ```mermaid
 flowchart LR
@@ -137,6 +148,27 @@ container and writes, reads, and deletes one synthetic Blob checkpoint. See the
 [Step 4](docs/tasks-detailed.md#agents-story-1---4-assess-sandbox-boundaries),
 and [Step 5](docs/tasks-detailed.md#agents-story-1---5-assess-state-continuity)
 task guides.
+
+### Story 4: representative hosted agent patterns
+
+Story #4 validates Supervisor -> sub-agent delegation, sync/async and failure
+handling, a Research tool call, identity paths, identity/correlation tracing with
+allowed and denied access, Data Analysis through the Supervisor, and direct
+invocation of a sub-agent. Run the tasks in order:
+
+1. **Agents: Story 4 - 1 Demonstrate Supervisor delegation** with
+   `prepare-if-missing` once per environment. It creates the Research MCP toolbox,
+   sets `RESEARCH_TOOLBOX_ENDPOINT`, and runs `azd deploy --all` (same agents and
+   identities) only when the deployed code or wiring is missing, then writes the
+   Story 4 baseline. Use `verify` afterwards. Redeploying moves Data Analysis to a
+   new version, so rerun **Agents: Story 1 - 1** (`verify`) before Story 1 Steps 2-5.
+2. **Agents: Story 4 - 2** through **Agents: Story 4 - 7** reuse that baseline and
+   never deploy, grant roles, or change agents.
+
+Reports are written to `artifacts\story-4\<run folder>\` and linked from
+`artifacts\story-4\index.md`, in the same format as Story 1. See the
+[Story 4 task guides](docs/tasks-detailed.md#agents-story-4---1-demonstrate-supervisor-delegation)
+for each step's checks, outputs, and limitations.
 
 Data Analysis exports hosted request and Agent Framework traces to the
 Application Insights resource linked to the Foundry project when
@@ -357,6 +389,13 @@ for setup, execution boundaries, and debugger details.
 | **Agents: Story 1 - 3 Evaluate dataset sizes** | Read-only reuse of the Step 1 agents and toolbox. One sequential paid request per size (1k/10k/100k rows), no retries, and stops at the first platform failure. Writes `03-capacity.md` with sandbox measurements and a scoped viability verdict |
 | **Agents: Story 1 - 4 Assess sandbox boundaries** | Paid benign sandbox probes (identity, filesystem, network, execution limit, per-call and toolbox-level options), one hosted confirmation, and an optional ~21-minute idle-expiry wait. Can create and then delete a separate probe-only toolbox. Writes `04-sandbox-boundaries.md` |
 | **Agents: Story 1 - 5 Assess state continuity** | Four paid hosted requests across three conversations, one sandbox container deletion, and a synthetic checkpoint written to, read from, and deleted in the existing Blob container. Writes `05-state-continuity.md` |
+| **Agents: Story 4 - 1 Demonstrate Supervisor delegation** | AC1. `verify` changes nothing; `prepare-if-missing` creates the Research MCP toolbox and runs `azd deploy --all` once if needed. Two paid model-routed delegations. Writes `01-supervisor-delegation.md` and the Story 4 baseline |
+| **Agents: Story 4 - 2 Assess sync and async delegation** | AC2. Paid sync and background Supervisor -> Research delegation, each with a simulated sub-agent failure, plus one direct background request. Writes `02-sync-async-and-failure.md` |
+| **Agents: Story 4 - 3 Demonstrate Research tool call** | AC3. Direct toolbox probe plus a paid Supervisor -> Research MCP tool call; caller/target/permission/trust-boundary table. Writes `03-research-tool-call.md` |
+| **Agents: Story 4 - 4 Evaluate identity paths** | AC4. Reads (never grants) roles; paid agent-owned, call-context, and delegated-user calls. Writes `04-identity-paths.md` |
+| **Agents: Story 4 - 5 Trace identity and access** | AC5. Paid traced request and platform/application denials with the enforcing component. Writes `05-trace-and-access.md` |
+| **Agents: Story 4 - 6 Demonstrate Data Analysis via Supervisor** | AC6. Reuses the Story 1 toolbox, request, oracle, and evidence; one paid Code Interpreter analysis through the Supervisor. Writes `06-data-analysis-code-interpreter.md` |
+| **Agents: Story 4 - 7 Invoke Research directly** | AC7. Two paid requests only to Research in its own conversation; no Supervisor. Writes `07-direct-invocation.md` |
 | **Access: Preview hosted agent permissions** | Read-only actual-instance permission inspection |
 | **Access: Create isolated user auth profiles** | Prompt for UPNs and optional project-scoped Consumer RBAC; operator grants precede isolated Microsoft sign-in; no agent calls or administrative/impersonation grants |
 | **Access: Apply hosted agent permissions** | Explicit scoped grants; not proof of delegation |

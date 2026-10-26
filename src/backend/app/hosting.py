@@ -36,6 +36,14 @@ from app.services.delegation import (
 )
 from app.services.foundry_state import Caller, ContextPresence, open_store
 from app.services.identity_checks import IDENTITY_PREFIX, IdentityCommand, identity_experiment
+from app.services.orchestration import (
+    DELEGATE_PREFIX,
+    SUBTASK_PREFIX,
+    DelegateCommand,
+    SubTask,
+    delegate_turn,
+    subtask_turn,
+)
 from app.services.workflows import Child, Registry, WorkflowError
 
 
@@ -58,12 +66,12 @@ def _count(value: object) -> int:
 
 
 async def failed_response(
-    request: CreateResponse, context: ResponseContext, message: str
+    request: CreateResponse, context: ResponseContext, message: str, code: str = "invalid_prompt"
 ) -> AsyncIterator[ResponseStreamEvent]:
     """Expose an explicit protocol failure rather than a success-shaped error answer."""
     stream = ResponseEventStream(response_id=context.response_id, request=request)
     yield stream.emit_created()
-    yield stream.emit_failed(code="invalid_prompt", message=message)
+    yield stream.emit_failed(code=code, message=message)
 
 
 def history_messages(items: Sequence[object]) -> list[Message]:
@@ -202,6 +210,34 @@ def build_host(
         if cancellation.is_set():
             raise asyncio.CancelledError
         text = await context.get_input_text() or ""
+        if text.startswith(DELEGATE_PREFIX):
+            try:
+                if request.get("background") or context.is_recovery:
+                    raise WorkflowError(
+                        "Client-to-Supervisor delegation runs synchronously; background is not enabled."
+                    )
+                delegate = DelegateCommand.model_validate_json(text[len(DELEGATE_PREFIX) :])
+                result = await delegate_turn(name, settings, agent, delegate, context)
+            except WorkflowError as error:
+                Logger(name).error("Delegation rejected", agent=name, reason=str(error))
+                return failed_response(request, context, str(error))
+            except ValidationError:
+                Logger(name).error("Invalid delegation schema", agent=name)
+                return failed_response(request, context, "Invalid POC delegation command.")
+            return TextResponse(context, request, text=result)
+        if text.startswith(SUBTASK_PREFIX):
+            try:
+                if context.is_recovery:
+                    raise WorkflowError("Sub-task recovery is not enabled.")
+                subtask = SubTask.model_validate_json(text[len(SUBTASK_PREFIX) :])
+                result = await subtask_turn(name, agent, subtask, context)
+            except WorkflowError as error:
+                Logger(name).error("Sub-task failed", agent=name, reason=str(error))
+                return failed_response(request, context, str(error), code="server_error")
+            except ValidationError:
+                Logger(name).error("Invalid sub-task schema", agent=name)
+                return failed_response(request, context, "Invalid POC sub-task.")
+            return TextResponse(context, request, text=result)
         if text.startswith(IDENTITY_PREFIX):
             try:
                 if request.get("background") or context.is_recovery:

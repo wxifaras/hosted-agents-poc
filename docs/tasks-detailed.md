@@ -1027,6 +1027,186 @@ the Standard agent setup; this POC uses Basic), private-endpoint residency
 (the POC storage uses a network security perimeter), or process-loss
 recovery (#7).
 
+### Agents: Story 4 - 1 Demonstrate Supervisor delegation
+
+**Use case:** Story #4 AC1. Demonstrates user -> Supervisor -> sub-agent ->
+Supervisor -> user result delivery and identifies the routing decision,
+invocation mechanism, and component controlling delegation. Reuses the three
+existing agents; it never creates an agent.
+
+**Inputs:** environment and mode.
+
+- `verify` (default): changes nothing. Reports `BLOCKED` if the Story 4 code or
+  the Research toolbox wiring is missing.
+- `prepare-if-missing`: only when missing, creates the Foundry toolbox
+  `story4-research-mcp` (one MCP tool: the public Microsoft Learn MCP server,
+  `allowed_tools: [microsoft_docs_search]`, `require_approval: never`), sets
+  `RESEARCH_TOOLBOX_ENDPOINT` in the azd environment, and runs
+  `azd deploy --all`. All three agents share one image, so the new protocol
+  needs all three. Identities are preserved and checked; Data Analysis keeps
+  its Story 1 toolbox. Afterwards, rerun **Agents: Story 1 - 1** in `verify`
+  mode before Story 1 Steps 2-5, because Data Analysis has a new version.
+
+**Steps:** [story4_agent_patterns.py](../scripts/run_scenario/story4_agent_patterns.py) `--step 1`
+
+1. Snapshots the three agents and reuses or (in `prepare-if-missing`) creates
+   the Research toolbox, matched by its metadata.
+2. Probes protocol support without model calls: a `POC_DELEGATE` to an
+   unlisted target must be denied by the Supervisor allow-list, and a
+   `POC_SUBTASK` with `simulate_failure` must fail on Research and Data
+   Analysis before any model call. Older code answers these as plain chat.
+3. Deploys only if needed, then re-probes and confirms identities are unchanged.
+4. Sends two tasks to the Supervisor with `target: auto`: a research question
+   and a calculation. The Supervisor model chooses `delegate_to_research` or
+   `delegate_to_data_analysis` (MAF function tools); Supervisor code calls the
+   chosen specialist's agent endpoint with a `POC_SUBTASK`. Each task carries a
+   run-unique token, which must appear in the sub-agent answer (delivered to
+   the Supervisor) and in the Supervisor's final answer (delivered to the user).
+   The calculation answer must also contain `2870`.
+5. Writes the delegation-flow and "who controls delegation" tables, re-checks
+   the agents, and writes `artifacts\story-4\agents-baseline.json` when
+   preparation succeeded and the agents are unchanged.
+
+```mermaid
+sequenceDiagram
+    accTitle: Story 4 Step 1 model-routed delegation
+    accDescr: The client sends a task to the Supervisor. The Supervisor model calls one delegation tool; Supervisor code invokes the chosen specialist's agent endpoint and returns the specialist result and a final answer.
+    participant C as Client
+    participant S as Supervisor
+    participant M as Supervisor model
+    participant R as Selected specialist
+    C->>S: POC_DELEGATE target auto with token
+    S->>M: Routing prompt and two delegation tools
+    M-->>S: Tool call delegate_to_research or delegate_to_data_analysis
+    S->>R: POC_SUBTASK via agent endpoint (Responses)
+    R-->>S: poc-subtask-v1 report with answer and token
+    S->>M: Tool result
+    M-->>S: Final answer keeping the token
+    S-->>C: poc-delegation-v1 report
+```
+
+**Verdict:** `Met` when both routing cases pass every check, `Partially met`
+when one does, `Not met` otherwise, `Not evaluated` when blocked.
+
+#### Story 4 output files
+
+Run folders are under `artifacts\story-4\` and use
+`<YYYY-MM-DD>_<HH-MM-SS>Z-step-<n>-<capability>-<8-character-id>`. Every
+report uses the [Story 1 report layout](#report-layout-all-story-1-steps):
+summary first, with findings classified by evidence (Tested, Observed,
+Documented, Unverified) and ownership (Foundry-managed, Agent Framework / SDK-
+managed, Custom implementation (Dev Team), or Not supported), with verified
+Microsoft documentation links. A **Requests sent** table lists every hosted
+request, and a **Reproduction** section shows the exact command.
+
+| File | Contents |
+|---|---|
+| `01-supervisor-delegation.md` ... `07-direct-invocation.md` | Main report of each step |
+| `manifest.json`, `events.jsonl`, `results.jsonl` | Same evidence format as Story 1 |
+| `outputs\` (Step 6 only) | Downloaded `filtered.csv`, `by_category.csv`, and `revenue_by_category.png` |
+| `..\index.md` | Each run's link, UTC time, and verdict |
+| `..\agents-baseline.json` | Written by Step 1; the reuse guard for Steps 2-7 |
+
+Identities never appear in evidence. Each hop returns presence flags and
+`sha256(correlation-id | identity)` fingerprints; the runner compares them in
+memory with candidates derived from the operator's token claims and the
+Supervisor's instance identity.
+
+### Agents: Story 4 - 2 Assess sync and async delegation
+
+**Use case:** Story #4 AC2. Read-only reuse of the Step 1 baseline.
+
+1. Supervisor -> Research synchronously: success, then a simulated sub-agent
+   failure (`simulate_failure`, no model call).
+2. The same two cases with `invocation: background`: the Supervisor calls
+   `responses.create(background=True, store=True)` and polls
+   `responses.retrieve` until a terminal status. The first status must be
+   `queued` or `in_progress`.
+3. A direct client background request to Research (no Supervisor), polled to
+   completion, and a client background `POC_DELEGATE`, which the Supervisor
+   application rejects (a recorded application restriction).
+4. Writes the ownership table (task creation, status, completion, failure
+   handling, result retrieval), restrictions, and untested alternatives.
+
+The Supervisor never retries; a failure becomes a `sub_agent_failed` report
+with the failure's stage, code, and message. **Verdict:** `Met` when both
+modes pass success and failure; `Partially met` when one mode does.
+
+### Agents: Story 4 - 3 Demonstrate Research tool call
+
+**Use case:** Story #4 AC3. Reads the toolbox definition, probes the toolbox
+MCP endpoint directly as the operator (`tools/list`, one search), then sends a
+research task through the Supervisor. Research must call
+`microsoft_docs_search` successfully, cite a `learn.microsoft.com` URL, and the
+Supervisor must deliver the token. Writes the caller, target resource,
+required permissions, and trust boundary for agent-to-agent, agent-to-service,
+and MCP tool calls.
+
+**Boundary:** the MCP server is public and unauthenticated; authenticated MCP
+servers and user-delegated MCP access are not configured.
+
+### Agents: Story 4 - 4 Evaluate identity paths
+
+**Use case:** Story #4 AC4. Reads (never grants) whether the Supervisor holds
+the exact `UserIdentityImpersonation` data action; Microsoft documents that
+`Microsoft.CognitiveServices/*` no longer grants it. Then calls Research
+through the Supervisor in each identity mode:
+
+| Mode | Headers the Supervisor sends | Expected |
+|---|---|---|
+| `agent` | Correlation header only | Allowed (Supervisor agent identity) |
+| `call-context` | `x-agent-foundry-call-id` | Allowed |
+| `delegated-user` | `x-ms-user-identity` (label derived from the verified user) | Allowed if impersonation is granted; otherwise HTTP 403 |
+
+It also runs one agent-owned Research -> toolbox tool call and writes the
+combination matrix (agent or service target x agent-owned, forwarded call
+context, delegated user, OAuth/on-behalf-of). Untested combinations are listed
+with the documented option and why it was not configured. No final identity
+architecture is selected.
+
+### Agents: Story 4 - 5 Trace identity and access
+
+**Use case:** Story #4 AC5. One traced request (client -> Supervisor ->
+Research -> toolbox -> Microsoft Learn MCP) with a client-generated
+correlation ID in the body and the `x-client-correlation-id` header (the
+platform forwards `x-client-*` headers). The trace table shows, per hop, the
+authenticated caller, the user context the target sees, call-context
+forwarding, correlation, project roles (read-only), enforcing component, and
+outcome. Then exercises:
+
+| Case | Enforcing component |
+|---|---|
+| Allowed traced request | Foundry agent endpoint and toolbox (Entra + RBAC) |
+| `x-ms-user-identity` without impersonation | Foundry agent endpoint (expected HTTP 403) |
+| Unlisted target `billing-agent` | Supervisor application allow-list (no outbound call) |
+| `microsoft_docs_fetch` on the toolbox | Foundry toolbox `allowed_tools` |
+| User B reads user A's state/history | Foundry; see **Agents: Test native Entra user isolation** |
+
+### Agents: Story 4 - 6 Demonstrate Data Analysis via Supervisor
+
+**Use case:** Story #4 AC6. Links the latest Story 1 Step 1-5 reports from
+`artifacts\story-1\index.md` (`BLOCKED` if Step 1 and Step 2 are not `Met`),
+checks that Data Analysis is wired to the Story 1 Code Interpreter toolbox,
+then sends the Story 1 Step 2 analysis request through the Supervisor
+(`target: data_analysis`). The printed SHA-256, filtered rows, and aggregates
+must match the Story 1 local oracle; the three output files are downloaded with
+the operator's identity and validated.
+
+**Verdict:** `Met` when the live checks pass and Story 1 evidence is found;
+`Partially met` when the live checks pass without Story 1 evidence.
+
+### Agents: Story 4 - 7 Invoke Research directly
+
+**Use case:** Story #4 AC7. Creates one conversation on the Supervisor's
+endpoint (A, no model call) and one on Research's endpoint (B), then sends two
+requests only to Research in conversation B: store a code word, then recall it.
+Checks that the conversations differ, the reply completes, history continues,
+and the Supervisor received no request.
+
+**Does not prove (Steps 1-7):** two-user isolation of the stateless path,
+A2A, crash recovery, W3C trace propagation, or user-delegated downstream
+access.
+
 ## Deployment
 
 ### Infrastructure: Apply changes (azd)

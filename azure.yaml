@@ -34,7 +34,7 @@ services:
     host: azure.ai.agent
     kind: hosted
     name: research-agent
-    description: Independent MAF Research smoke host; external research tools are not connected.
+    description: MAF Research host; Story 4 Microsoft Learn MCP search via a Foundry toolbox when TOOLBOX_ENDPOINT is set.
     sessionConfiguration:
       idleTimeoutSeconds: 120
     project: .
@@ -51,6 +51,7 @@ services:
       ENVIRONMENT: hosted
       POC_AGENT_NAME: research
       POC_ENABLE_IDENTITY_TESTS: 'true'
+      TOOLBOX_ENDPOINT: ${RESEARCH_TOOLBOX_ENDPOINT}
     container:
       resources:
         cpu: '0.5'

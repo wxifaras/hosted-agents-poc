@@ -240,6 +240,69 @@
       "problemMatcher": []
     },
     {
+      "label": "Agents: Story 4 - 1 Demonstrate Supervisor delegation",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "1", "--environment", "${input:infraEnvironment}", "--mode", "${input:story4Step1Mode}"],
+      "detail": "AC1. verify = no changes. prepare-if-missing = once, create the Research MCP toolbox story4-research-mcp, set RESEARCH_TOOLBOX_ENDPOINT, and azd deploy --all (same agents and identities). Paid: two model-routed Supervisor delegations (Research, Data Analysis). Writes 01-supervisor-delegation.md and the Story 4 baseline.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 4 - 2 Assess sync and async delegation",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "2", "--environment", "${input:infraEnvironment}"],
+      "detail": "AC2. Read-only reuse of the Story 4 baseline. Paid: Supervisor -> Research synchronous and background delegation, each with a simulated sub-agent failure, plus one direct background request. No retries. Writes 02-sync-async-and-failure.md.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 4 - 3 Demonstrate Research tool call",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "3", "--environment", "${input:infraEnvironment}"],
+      "detail": "AC3. Read-only reuse of the Story 4 baseline. Direct toolbox MCP probe plus one paid Supervisor -> Research request that calls the Microsoft Learn MCP search tool. Writes 03-research-tool-call.md with the trust-boundary table.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 4 - 4 Evaluate identity paths",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "4", "--environment", "${input:infraEnvironment}"],
+      "detail": "AC4. Read-only reuse of the Story 4 baseline; reads (never grants) the Supervisor's impersonation permission. Paid: Supervisor -> Research in agent-owned, call-context, and delegated-user modes, plus agent-owned Research -> toolbox. Writes 04-identity-paths.md.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 4 - 5 Trace identity and access",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "5", "--environment", "${input:infraEnvironment}"],
+      "detail": "AC5. Read-only reuse of the Story 4 baseline; reads role assignments only. Paid: one traced client -> Supervisor -> Research -> tool request, then platform (impersonation, toolbox allowed_tools) and application (allow-list) denials. Writes 05-trace-and-access.md.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 4 - 6 Demonstrate Data Analysis via Supervisor",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "6", "--environment", "${input:infraEnvironment}"],
+      "detail": "AC6. Read-only reuse of the Story 4 baseline and the Story 1 toolbox, request, oracle, and evidence index. Paid: one Supervisor -> Data Analysis Code Interpreter analysis; downloads the CSVs and chart. Writes 06-data-analysis-code-interpreter.md.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 4 - 7 Invoke Research directly",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "7", "--environment", "${input:infraEnvironment}"],
+      "detail": "AC7. Read-only reuse of the Story 4 baseline. Creates one conversation per agent, then two paid requests only to Research in its own conversation (no Supervisor). Writes 07-direct-invocation.md.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
       "label": "Infrastructure: Compile Bicep",
       "type": "process",
       "command": "az",
@@ -382,6 +445,13 @@
       "description": "skip = record the container expiry policy only; wait = idle about 21 minutes and check that the container expired",
       "options": ["skip", "wait"],
       "default": "skip"
+    },
+    {
+      "id": "story4Step1Mode",
+      "type": "pickString",
+      "description": "verify = no changes; prepare-if-missing = create the Story 4 Research MCP toolbox and azd deploy --all the EXISTING agents once if not already done",
+      "options": ["verify", "prepare-if-missing"],
+      "default": "verify"
     },
     {
       "id": "nativeIsolationVerbosity",
