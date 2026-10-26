@@ -335,7 +335,17 @@ def test_step5_end_to_end_offline(monkeypatch: pytest.MonkeyPatch, tmp_path: Pat
     assert report.startswith("# t\n\n## Summary") and "**Acceptance verdict: Met.**" in report
     for row in (line for line in report.splitlines() if "| Not supported |" in line):
         assert "](https://learn.microsoft.com/" in row, row
+    assert "| ✅ PASS | Conversation history continues within a conversation" in report
+    assert "| ⚠️ LIMITATION | Sandbox variables and files between requests | Lost on every request" in report
+    assert "| 🚫 NOT SUPPORTED | Automatic restore of sandbox memory or files" in report
+    assert "| ✅ PASS | Rehydration from a small, sealed checkpoint" in report
+    assert "| ✅ PASS | Keep custom checkpoints in customer storage | Written, read back" in report
     assert (s5.run.path / "checkpoint.json").is_file()
+    # Outcomes follow the measurements: a missed recall and a leak across conversations fail the history finding.
+    s5.write_summary("not-the-nonce", s5.nonce, {}, {})
+    again = s5.report.path.read_text(encoding="utf-8").rsplit("## Summary", 1)[-1]
+    assert "| ❌ FAIL | Conversation history continues within a conversation" in again
+    assert "R2 did not recall R1's nonce; R3 leaked it" in again
 
 
 def test_step5_rehydration_refuses_a_tampered_checkpoint(tmp_path: Path) -> None:

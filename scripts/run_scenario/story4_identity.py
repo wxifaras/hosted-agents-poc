@@ -226,31 +226,39 @@ class Step3(Story4Step):
         findings = [
             Finding(
                 "Research calls an MCP tool through a Foundry toolbox with its own agent identity",
-                "Succeeded" if self.statuses.get("Research tool call") == "PASS" else "See checks",
+                "Research called the Microsoft Learn search tool through its toolbox"
+                if self.statuses.get("Research tool call") == "PASS"
+                else "See 'Research tool call' in the detailed evidence",
                 "Tested",
                 f"{FOUNDRY} (toolbox, MCP proxy); {SDK} (FoundryToolbox client)",
                 ("toolbox_auth", "agent_identity"),
+                outcome=self.status_outcome("Research tool call"),
             ),
             Finding(
                 "The toolbox `allowed_tools` filter limits which remote MCP tools are exposed",
-                "Applied" if self.statuses.get("tools/list") == "PASS" else "See checks",
+                "tools/list exposed the allow-listed tool; Step 5 checks that a non-listed tool is blocked"
+                if self.statuses.get("tools/list") == "PASS"
+                else "See 'tools/list' in the detailed evidence",
                 "Tested",
                 FOUNDRY,
                 ("mcp_tool",),
+                outcome=self.status_outcome("tools/list"),
             ),
             Finding(
                 "Remote MCP server reached anonymously; the public Microsoft Learn server needs no authentication",
-                "Observed",
+                "The toolbox reached the public server without credentials, so this run can't show user-level access",
                 "Tested",
                 FOUNDRY,
                 ("learn_mcp",),
+                outcome=self.status_outcome("Toolbox reaches the MCP server"),
             ),
             Finding(
                 "Agent-to-agent calls authenticate the calling agent, not the end user",
-                "See Step 4 and Step 5",
+                "Microsoft documents this; Story 4 Steps 4 and 5 test it",
                 "Documented",
                 FOUNDRY,
                 ("agent_identity",),
+                outcome="DOCUMENTED",
             ),
         ]
         gaps = [
@@ -374,42 +382,50 @@ class Step4(Story4Step):
 
     def summary(self) -> tuple[str, list[str], list[Finding], list[str]]:
         results = [f"{mode}: {seen}" for mode, seen in self.paths.items()]
+        delegated_expected = self.expected("delegated-user")
         findings = [
             Finding(
                 "Agent-owned access: Supervisor -> Research and Research -> toolbox with each agent's own identity",
-                self.paths.get("agent", "not run"),
+                f"Supervisor -> Research: {self.paths.get('agent', 'not run')}; Research -> toolbox: "
+                f"{self.paths.get('service', 'not run')}",
                 "Tested",
                 FOUNDRY,
                 ("agent_identity", "foundry_rbac"),
+                outcome=self.status_outcome("Supervisor -> Research (agent)", "Research -> toolbox (agent-owned)"),
             ),
             Finding(
                 "Forwarded original call context (`x-agent-foundry-call-id`)",
-                self.paths.get("call-context", "not run"),
+                f"Supervisor -> Research with the forwarded call ID: {self.paths.get('call-context', 'not run')}",
                 "Tested",
                 f"{FOUNDRY} (validation); {CUSTOM} (forwarding)",
                 ("hosted_contract",),
+                outcome=self.status_outcome("Supervisor -> Research (call-context)"),
             ),
             Finding(
                 "Delegated user (`x-ms-user-identity`) requires UserIdentityImpersonation for the calling agent",
-                self.paths.get("delegated-user", "not run"),
+                f"Observed: {self.paths.get('delegated-user', 'not run')}; expected: "
+                f"{delegated_expected or 'unknown (the impersonation grant could not be read)'}",
                 "Tested",
                 FOUNDRY,
                 ("impersonation",),
+                outcome=self.status_outcome("Supervisor -> Research (delegated-user)"),
             ),
             Finding(
                 "Agent acting on behalf of the user to another agent (A2A `AgentOnBehalfOfUser`, preview)",
-                "Not configured; A2A is not used in this POC",
+                "Documented for A2A targets. Not configured: this POC calls Responses endpoints, not A2A",
                 "Documented",
                 FOUNDRY,
                 ("a2a_identity",),
+                outcome="DOCUMENTED",
             ),
             Finding(
                 "User-delegated access to a downstream service through an MCP tool (Entra client user delegation or "
                 "OAuth identity passthrough)",
-                "Not configured; the public Learn MCP server needs no user context",
+                "Documented. Not configured: the public Learn MCP server needs no user context",
                 "Documented",
                 FOUNDRY,
                 ("mcp_auth_obo", "mcp_auth_passthrough"),
+                outcome="DOCUMENTED",
             ),
         ]
         gaps = [
@@ -658,7 +674,7 @@ class Step5(Story4Step):
                 "Second Entra user",
                 "Research",
                 "denied",
-                "See Agents: Test native Entra user isolation (#3)",
+                "See Agents: Test native Entra user isolation (GitHub issue #3)",
                 "Foundry State Store / Responses",
                 FOUNDRY,
             ]
@@ -679,40 +695,72 @@ class Step5(Story4Step):
 
     def summary(self) -> tuple[str, list[str], list[Finding], list[str]]:
         results = [f"{name}: {'yes' if ok else 'no'}" for name, ok in self.cases.items()]
+
+        def case_text(name: str, passed: str, failed: str) -> str:
+            value = self.cases.get(name)
+            return "Not run; see the checks below" if value is None else (passed if value else failed)
+
         findings = [
             Finding(
                 "The original user is visible to the Supervisor; the downstream hop authenticates the Supervisor",
-                "Observed (see trace table)",
+                case_text(
+                    "Trace complete",
+                    "The Supervisor saw the original user; Research saw the Supervisor's agent identity (see the "
+                    "trace table)",
+                    "The trace was incomplete; see the trace table",
+                ),
                 "Tested",
                 FOUNDRY,
                 ("hosted_contract", "hosted_user_header", "agent_identity"),
+                outcome=self.observed_outcome(self.cases.get("Trace complete")),
             ),
             Finding(
                 "Correlation across hops uses a client-generated ID in the body and `x-client-correlation-id`",
-                "Propagated" if self.cases.get("Trace complete") else "See checks",
+                case_text(
+                    "Trace complete",
+                    "The same correlation ID reached every hop",
+                    "The correlation ID did not reach every hop",
+                ),
                 "Tested",
                 CUSTOM,
                 ("client_headers",),
+                outcome=self.observed_outcome(self.cases.get("Trace complete")),
             ),
             Finding(
                 "Unlisted targets are denied by the Supervisor before any outbound call",
-                "Denied" if self.cases.get("Application denial") else "See checks",
+                case_text(
+                    "Application denial",
+                    "Denied by the Supervisor's allow-list; no request left the Supervisor. This is this repository's "
+                    "code, so no Microsoft page applies",
+                    "The unlisted target was not denied as expected",
+                ),
                 "Tested",
                 CUSTOM,
+                outcome=self.observed_outcome(self.cases.get("Application denial")),
             ),
             Finding(
                 "Delegated-user header without UserIdentityImpersonation is rejected by Foundry",
-                "Denied" if self.cases.get("Platform denial") else "See checks",
+                case_text(
+                    "Platform denial",
+                    "Foundry rejected the request, as documented",
+                    "Foundry accepted the header without the permission, contrary to the documented 403 (see gaps)",
+                ),
                 "Tested",
                 FOUNDRY,
                 ("impersonation",),
+                outcome=self.observed_outcome(self.cases.get("Platform denial")),
             ),
             Finding(
                 "Toolbox `allowed_tools` blocks a non-listed MCP tool",
-                "Denied" if self.cases.get("Tool denial") else "See checks",
+                case_text(
+                    "Tool denial",
+                    "The non-listed tool was not callable",
+                    "The non-listed tool was callable",
+                ),
                 "Tested",
                 FOUNDRY,
                 ("mcp_tool",),
+                outcome=self.observed_outcome(self.cases.get("Tool denial")),
             ),
         ]
         gaps = [
@@ -887,25 +935,33 @@ class Step6(Story4Step):
         findings = [
             Finding(
                 "Data Analysis runs model-written Python in Microsoft-managed Code Interpreter via a Foundry toolbox",
-                "Executed" if self.statuses.get("Code Interpreter executed") == "PASS" else "See checks",
+                "Data Analysis executed model-written Python in the managed sandbox"
+                if self.statuses.get("Code Interpreter executed") == "PASS"
+                else "See 'Code Interpreter executed' in the detailed evidence",
                 "Tested",
                 FOUNDRY,
                 ("ci_overview",),
+                outcome=self.status_outcome("Code Interpreter executed"),
             ),
             Finding(
                 "Analysis requested through the Supervisor returns results and container references to the user",
-                "Delivered" if self.statuses.get("Outputs delivered to the user") == "PASS" else "See checks",
+                "The results matched the Story 1 oracle, and the CSVs and chart were downloaded from the forwarded "
+                "container"
+                if self.statuses.get("Outputs delivered to the user") == "PASS"
+                else "See 'Analysis matches the Story 1 oracle' and 'Outputs delivered to the user' below",
                 "Tested",
                 f"{CUSTOM} (delegation report); {FOUNDRY} (container files API)",
                 ("ci_files",),
+                outcome=self.status_outcome("Analysis matches the Story 1 oracle", "Outputs delivered to the user"),
             ),
             Finding(
                 "Code Interpreter through a toolbox in a hosted agent has no per-user isolation",
-                "Limitation carried over from Story 1. Untested options that may provide it: "
-                f"{isolation_options_link(self.report.path.parent)}",
+                "Carried over from Story 1: all users of the project share the sandbox container context. Untested "
+                f"options that may provide it: {isolation_options_link(self.report.path.parent)}",
                 "Documented",
                 NOT_SUPPORTED,
                 ("ci_isolation",),
+                outcome="NOT SUPPORTED",
             ),
         ]
         gaps = [

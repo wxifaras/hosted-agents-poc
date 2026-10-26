@@ -21,7 +21,7 @@ from azure.identity import AzureCliCredential
 from openai import APIStatusError, OpenAIError
 from pydantic import JsonValue, ValidationError
 
-from scripts.common.findings import Finding, render_summary
+from scripts.common.findings import Finding, Outcome, checks_outcome, render_summary
 from scripts.common.reporting import MarkdownReport, Status, StepSpec, ValidationRun
 from scripts.deploy.grant_agent_rbac import IMPERSONATION_ACTION
 from scripts.deploy.grant_local_rbac import CliError, az, object_value
@@ -267,7 +267,7 @@ class Story4Step:
         return record
 
     def execute(self) -> None:
-        self.report.paragraph(f"**AC{self.number} (verbatim from {ISSUE}):** {self.ac}")
+        self.report.paragraph(f"**AC{self.number} (verbatim from GitHub issue {ISSUE}):** {self.ac}")
         if self.scope_note:
             self.report.paragraph(self.scope_note)
         self.report.table(
@@ -441,6 +441,22 @@ class Story4Step:
         if self.statuses.get("Unexpected failure") == "FAIL":
             return "Not met"
         return None
+
+    def observed_outcome(self, *values: bool | None) -> Outcome:
+        """PASS/PARTIAL/FAIL from observed results; BLOCKED or NOT RUN when the step never got that far."""
+        seen = [value for value in values if value is not None]
+        if not seen:
+            return "BLOCKED" if self.verdict == "Not evaluated" else "NOT RUN"
+        if all(seen):
+            return "PASS"
+        return "PARTIAL" if any(seen) else "FAIL"
+
+    def status_outcome(self, *names: str) -> Outcome:
+        """Outcome from named check statuses; BLOCKED when the whole step was blocked before them."""
+        statuses = [self.statuses.get(name) for name in names]
+        if all(status is None for status in statuses) and self.verdict == "Not evaluated":
+            return "BLOCKED"
+        return checks_outcome(*statuses)
 
 
 def load_baseline(path: Path, environment: str) -> dict[str, AgentSnapshot]:

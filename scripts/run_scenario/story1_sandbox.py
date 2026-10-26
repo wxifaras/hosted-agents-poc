@@ -36,7 +36,7 @@ from azure.identity import AzureCliCredential
 from openai import OpenAIError
 from pydantic import JsonValue
 
-from scripts.common.findings import Finding, doc_cell, isolation_options_link, render_summary
+from scripts.common.findings import Finding, Outcome, checks_outcome, doc_cell, isolation_options_link, render_summary
 from scripts.common.reporting import MarkdownReport, Status, StepSpec, ValidationRun
 from scripts.common.synthetic_data import (
     FILTER_REGION,
@@ -564,7 +564,7 @@ class SandboxStep(ReusingStep):
     """Shared hosted-call plumbing for Steps 4 and 5."""
 
     def header(self, criterion: str, label: str, task: str, rows: Sequence[list[object]]) -> None:
-        self.report.paragraph(f"**{label} (verbatim from #1):** {criterion}")
+        self.report.paragraph(f"**{label} (verbatim from GitHub issue #1):** {criterion}")
         self.report.table(
             ["Field", "Value"],
             [
@@ -1013,6 +1013,12 @@ class Step4(SandboxStep):
                     f"{OTHER_HOST}: {outcome(result, 'https_other')}"
                 )
                 effects[label] = effect
+                if label == "memory_limit 4g" and not call.error:
+                    self.obs["toolbox_memory_applied"] = (
+                        memory_applied(result.get("cgroup_memory_max"), "4g") == "applied"
+                    )
+                if label.startswith("network_policy allowlist"):
+                    self.obs["allowlist_applied"] = not call.error and outcome(result, "https_allowed") in OPEN_OUTCOMES
                 rows.append([label, version, accepted, effect])
                 self.observe(
                     f"Toolbox option {label}",
@@ -1155,68 +1161,116 @@ class Step4(SandboxStep):
             f"{options.get('memory_limit 4g', 'not run')}.",
             f"Network allowlist at toolbox level: {allowlist or 'not run'}.",
         ]
+        memory_seen = [value for value in (per_call.get("memory_limit 4g"), options.get("memory_limit 4g")) if value]
+        memory_ok = per_call.get("memory_limit 4g") == "applied" or o.get("toolbox_memory_applied") is True
+        same_container = nested(o.get("cross_call"), "same_container")
+        operator_read = self.statuses.get("Operator reads the agent's sandbox outputs") == "PASS"
+        idle_status = self.statuses.get("Idle expiry")
+        timeout_outcome = timeout.get("outcome")
+        runtime_outcomes: dict[str, Outcome] = {
+            "completed": "LIMITATION",
+            "stopped": "LIMITATION",
+            "inconclusive": "FAIL",
+        }
         findings = [
             Finding(
                 "The sandbox is an Azure Container Apps dynamic session isolated by a Hyper-V boundary",
-                "Not directly inspectable; observed platform variable names "
-                f"{nested(a, 'platform_hint_env_names')} are consistent",
+                "Microsoft documents this; it can't be inspected directly. The platform variable names seen in the "
+                f"sandbox ({nested(a, 'platform_hint_env_names')}) are consistent with it",
                 "Documented",
                 "Foundry-managed",
                 ("ci_sandbox", "aca_isolation"),
+                outcome="DOCUMENTED",
             ),
             Finding(
                 "Code runs unprivileged with a read-only root filesystem",
-                f"Non-root user, capabilities {nested(privileges, 'cap_eff')}, NoNewPrivs "
-                f"{nested(privileges, 'no_new_privs')}",
+                f"User `{nested(identity, 'user')}`, capabilities {nested(privileges, 'cap_eff')}, NoNewPrivs "
+                f"{nested(privileges, 'no_new_privs')}; only /tmp and /mnt/data are writable",
                 "Tested",
                 "Foundry-managed",
                 ("ci_sandbox",),
+                outcome=checks_outcome(self.statuses.get("Direct probe A")),
             ),
             Finding(
-                "No outbound network access: public internet, raw IP, or customer storage",
-                "Blocked" if not o.get("network_open") else f"Open: {o.get('network_open')}",
+                "Outbound network access from the sandbox is blocked (public internet, raw IP, customer storage)",
+                "All outbound attempts were blocked" if not o.get("network_open") else f"Open: {o.get('network_open')}",
                 "Tested",
                 "Foundry-managed",
                 ("ci_network", "toolbox_network"),
+                outcome=checks_outcome(self.statuses.get("Outbound network blocked")),
             ),
             Finding(
                 "Network allowlist (network_policy) to enable selected egress",
-                f"Not supported in this project: {allowlist}" if allowlist else "Not tested (document mode)",
+                (
+                    f"Applied: the allowlisted host was reachable ({allowlist})"
+                    if o.get("allowlist_applied")
+                    else f"Not available in this project: {allowlist}. An organization policy may block it; confirm "
+                    "with your administrator or Microsoft"
+                )
+                if allowlist
+                else "Not run (--options-toolbox document)",
                 "Tested" if allowlist else "Documented",
-                "Not supported",
+                "Foundry-managed" if o.get("allowlist_applied") else "Not supported",
                 ("sdk_network", "ci_network"),
+                outcome=("PASS" if o.get("allowlist_applied") else "NOT SUPPORTED") if allowlist else "NOT RUN",
             ),
             Finding(
-                "Larger sandbox memory (memory_limit)",
-                f"Not applied: the sandbox stayed at {memory} per call and at toolbox level; no Microsoft page "
-                "explains this",
+                "Larger sandbox memory (memory_limit 4g)",
+                (
+                    f"Applied: per call {per_call.get('memory_limit 4g', 'not run')}; toolbox level "
+                    f"{options.get('memory_limit 4g', 'not run')}"
+                    if memory_ok
+                    else f"Not applied: the sandbox stayed at {memory} per call and at toolbox level. No Microsoft "
+                    "page explains this"
+                )
+                if memory_seen
+                else "Not run",
                 "Tested",
-                "Not supported",
+                "Foundry-managed" if memory_ok else "Not supported",
                 ("sdk_memory",),
+                outcome=("PASS" if memory_ok else "NOT SUPPORTED") if memory_seen else "NOT RUN",
             ),
             Finding(
                 "Each tool call runs in a new container; container reuse is ignored",
-                "New container per call, even within one conversation; the page describes separate sessions per "
-                "conversation",
+                (
+                    "Every tool call got a new container, even within one conversation, and files from one call were "
+                    "not visible in the next. Microsoft describes separate sessions per conversation"
+                    if same_container is False
+                    else "Calls reused the same container"
+                )
+                if same_container is not None
+                else "Not measured",
                 "Tested",
                 "Foundry-managed",
                 ("ci_sessions",),
+                outcome=("LIMITATION" if same_container is False else "PASS")
+                if same_container is not None
+                else "NOT RUN",
             ),
             Finding(
                 "Per-user isolation of sandbox files",
-                "Not supported: another principal read the agent's sandbox output. Untested options that may "
-                f"provide it: {isolation_options_link(self.report.path.parent)}",
-                "Tested",
+                (
+                    "Another principal (the operator) downloaded the agent's sandbox output through the containers API"
+                    if operator_read
+                    else "Not confirmed in this run; Microsoft documents that all project users share the container "
+                    "context"
+                )
+                + f". Untested options that may provide it: {isolation_options_link(self.report.path.parent)}",
+                "Tested" if operator_read else "Documented",
                 "Not supported",
                 ("ci_isolation",),
+                outcome="NOT SUPPORTED",
             ),
             Finding(
                 "Idle container expiry",
-                f"{minutes}-minute policy; {o.get('idle')}. Matches the Responses API container docs (20 min), "
-                "not the Code Interpreter page (30 min idle)",
-                "Tested" if self.args.idle_wait == "wait" else "Observed",
+                (
+                    f"The container reports a {minutes}-minute policy; idle test: {o.get('idle')}. This matches the "
+                    "Responses API container docs (20 min), not the Code Interpreter page (30 min idle)"
+                ),
+                "Tested" if idle_status else "Observed",
                 "Foundry-managed",
                 ("responses_containers", "ci_lifetime"),
+                outcome="FAIL" if idle_status == "FAIL" else ("LIMITATION" if minutes else "NOT RUN"),
             ),
             Finding(
                 "Per-execution runtime limit",
@@ -1224,20 +1278,25 @@ class Step4(SandboxStep):
                 "Tested" if timeout.get("outcome") in ("completed", "stopped") else "Documented",
                 "Foundry-managed",
                 ("aca_runtime",),
+                outcome=runtime_outcomes.get(str(timeout_outcome), "NOT RUN"),
             ),
             Finding(
                 "Hosted agent resources and session idle timeout are configured separately from the sandbox",
-                "0.5 vCPU / 1 GiB and 120 s idle timeout in azure.yaml",
+                "Set in azure.yaml: 0.5 vCPU / 1 GiB and a 120 s session idle timeout. They don't change the "
+                "sandbox limits",
                 "Documented",
                 "Custom implementation (Dev Team)",
                 ("hosted_sizes", "hosted_sessions"),
+                outcome="DOCUMENTED",
             ),
             Finding(
                 "Alternative when isolation, network, or larger limits are required",
-                "Custom code interpreter on your own Azure Container Apps session pool (not provisioned)",
+                "A custom code interpreter on your own Azure Container Apps session pool (preview; not provisioned "
+                f"here). See {isolation_options_link(self.report.path.parent)}",
                 "Documented",
                 "Custom implementation (Dev Team)",
                 ("custom_ci",),
+                outcome="DOCUMENTED",
             ),
         ]
         gaps = [
@@ -1908,63 +1967,111 @@ class Step5(SandboxStep):
             ),
             f"From the sandbox, customer storage DNS: {outcome(storage, 'dns')}, HTTPS: {outcome(storage, 'https')}.",
         ]
+        measured = [
+            (name, reply) for name, reply in (("R2", r2), ("R3", r3)) if reply is not None and reply.result is not None
+        ]
+        if r2 is not None and r2.result is not None and r3 is not None and r3.result is not None:
+            isolated = recall3 in (None, "unknown")
+            history: Outcome = "PASS" if recall2 == self.nonce and isolated else "FAIL"
+            history_text = (
+                "The agent recalled R1's nonce in R2" if recall2 == self.nonce else "R2 did not recall R1's nonce"
+            ) + ("; R3 in a new conversation could not see it" if isolated else f"; R3 leaked it ({recall3})")
+        else:
+            history = checks_outcome(
+                self.statuses.get("R2 same conversation"), self.statuses.get("R3 new conversation")
+            )
+            history_text = "Not measured; see 'R2 same conversation' and 'R3 new conversation' in the detailed evidence"
+        kept = [
+            name
+            for name, reply in measured
+            if "present"
+            in (presence((reply.result or {}).get("variable")), presence((reply.result or {}).get("marker")))
+        ]
+        recreation_status = self.statuses.get("Sandbox recreation")
         findings = [
             Finding(
                 "Conversation history continues within a conversation and is isolated across conversations",
-                "PASS: recalled in R2, not available in R3",
+                history_text,
                 "Tested",
                 "Foundry-managed",
                 ("hosted_conversations",),
+                outcome=history,
             ),
             Finding(
-                "Sandbox variables and files do not carry over between requests",
-                "Lost on every request: each request ran in a new container, even in the same conversation",
+                "Sandbox variables and files between requests",
+                (
+                    f"Kept in: {', '.join(kept)}"
+                    if kept
+                    else "Lost on every request: each request ran in a new container, even in the same conversation"
+                )
+                if measured
+                else "Not measured",
                 "Tested",
                 "Foundry-managed",
                 ("ci_sessions",),
+                outcome=("PASS" if kept else "LIMITATION") if measured else "NOT RUN",
             ),
             Finding(
                 "Automatic restore of sandbox memory or files after the container ends",
-                "Not supported: deleted or expired containers and their files are gone",
+                "Not available: after R1's container was deleted, the container and its files were gone"
+                if recreation_status == "PASS"
+                else "Not measured; see 'Sandbox recreation' in the detailed evidence",
                 "Tested",
                 "Not supported",
                 ("responses_containers", "ci_lifetime"),
+                outcome="NOT SUPPORTED" if recreation_status == "PASS" else checks_outcome(recreation_status),
             ),
             Finding(
                 "Rehydration from a small, sealed checkpoint and the re-mounted input",
-                "PASS: exact rebuild in a new sandbox" if rehydrated else "Not completed",
+                "A new sandbox rebuilt the checkpointed state exactly"
+                if rehydrated
+                else "Not completed; see 'Rehydration' in the detailed evidence",
                 "Tested",
                 "Custom implementation (Dev Team)",
                 ("state_store",),
+                outcome=checks_outcome(self.statuses.get("Rehydration")),
             ),
             Finding(
                 "Place the Code Interpreter sandbox in the customer's network",
-                "Not supported: the sandbox does not inherit the agent's network and has no outbound access",
+                "The sandbox doesn't inherit the agent's network and has no outbound access; it could not reach "
+                f"customer storage (DNS {outcome(storage, 'dns')}, HTTPS {outcome(storage, 'https')})",
                 "Tested",
                 "Not supported",
                 ("ci_network", "toolbox_network"),
+                outcome="NOT SUPPORTED",
             ),
             Finding(
                 "Keep uploaded files and conversation history in customer-owned resources",
-                "Possible with the Standard agent setup (bring-your-own Storage and Cosmos DB); this POC uses Basic",
+                "Possible with the Standard agent setup (bring-your-own Storage and Cosmos DB). This POC uses the "
+                "Basic setup, so it was not tested",
                 "Documented",
                 "Foundry-managed (customer-owned resources)",
                 ("standard_files", "standard_threads"),
+                outcome="DOCUMENTED",
             ),
             Finding(
                 "Keep hosted workflow state in customer-owned storage",
-                "Not supported: the hosted agent state store is Foundry-managed",
+                "The hosted agent state store is provided and managed by Foundry; it can't be placed in your own "
+                "storage",
                 "Documented",
                 "Not supported",
                 ("state_store",),
+                outcome="NOT SUPPORTED",
             ),
             Finding(
                 "Keep custom checkpoints in customer storage",
-                f"{blob or 'Not run'}: written, read back, used for rehydration, and deleted"
-                + (" (network security perimeter; private endpoint not tested)" if blob == "PASS" else ""),
+                "Written, read back, used for rehydration, and deleted (behind a network security perimeter; private "
+                "endpoints were not tested)"
+                if blob == "PASS"
+                else (
+                    "Not run (--blob-checkpoint skip)"
+                    if blob is None
+                    else "See 'Checkpoint in customer Blob' in the detailed evidence"
+                ),
                 "Tested" if blob == "PASS" else "Architectural assessment",
                 "Custom implementation (Dev Team)",
                 ("blob_rbac", "nsp", "storage_private_endpoints"),
+                outcome=checks_outcome(blob),
             ),
         ]
         gaps = [
@@ -1974,7 +2081,7 @@ class Step5(SandboxStep):
             "the Basic setup.",
             "The POC storage account uses a network security perimeter, not a private endpoint, so private residency "
             "is an architectural assessment.",
-            "Process-loss recovery and artifact rehydration boundaries are covered separately in #7.",
+            "Process-loss recovery and artifact rehydration boundaries are covered separately in GitHub issue #7.",
         ]
         conclusion = (
             "Continuity and rehydration have tested results, and every state layer has a scoped placement assessment."

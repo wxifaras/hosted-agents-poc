@@ -42,7 +42,7 @@ from azure.identity import AzureCliCredential
 from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAIError, RateLimitError
 from pydantic import JsonValue, ValidationError
 
-from scripts.common.findings import Finding, isolation_options_link, render_summary
+from scripts.common.findings import Finding, checks_outcome, isolation_options_link, render_summary
 from scripts.common.reporting import (
     REPORT_FILE,
     MarkdownReport,
@@ -385,7 +385,7 @@ class Step1:
         self.report.table(["Check", "Status", "Expected", "Observed"], [[step, status, expected, observed]])
 
     def execute(self) -> None:
-        self.report.paragraph(f"**AC1 (verbatim from #1):** {AC1}")
+        self.report.paragraph(f"**AC1 (verbatim from GitHub issue #1):** {AC1}")
         self.report.paragraph(
             "This step **reuses the already-deployed agents**. It enables Code Interpreter on the existing "
             f"`{DATA_ANALYSIS}` and never creates an agent. Supervisor and Research are not changed."
@@ -722,45 +722,60 @@ class Step1:
             f"A sandbox-generated PNG ({self.obs.get('png_bytes', '-')} bytes) was downloaded through the "
             "authenticated containers API.",
         ]
+        delivered = checks_outcome(
+            self.statuses.get("Generated-file delivery"), self.statuses.get("Agent returns sandbox container reference")
+        )
         findings = [
             Finding(
                 "The hosted Data Analysis agent runs Python in Microsoft-managed Code Interpreter through a toolbox",
-                "PASS: sandbox-computed checksums returned by the existing agent" if ok else "Not proven in this run",
+                "The existing agent answered with checksums that only the sandbox could compute"
+                if ok
+                else "Not shown in this run; see 'Hosted execution proof' in the detailed evidence",
                 "Tested",
                 "Foundry-managed",
                 ("ci_overview", "toolbox_overview"),
+                outcome="PASS" if ok else ("BLOCKED" if self.verdict == "Not evaluated" else "FAIL"),
             ),
             Finding(
                 "The Code Interpreter sandbox uses Azure Container Apps dynamic sessions, each isolated by a Hyper-V "
                 "boundary",
-                "Stated by Microsoft. Not directly inspectable: the sessions are Microsoft-managed and no Container "
-                "Apps resource exists in this subscription. Step 4 observed consistent platform variable names.",
+                "Microsoft documents this. It can't be inspected directly: the sessions are Microsoft-managed and no "
+                "Container Apps resource exists in this subscription. Step 4 saw consistent platform variable names.",
                 "Documented",
                 "Foundry-managed",
                 ("ci_sandbox", "aca_isolation"),
+                outcome="DOCUMENTED",
             ),
             Finding(
                 "Synthetic inputs are uploaded with purpose=assistants and mounted through toolbox file_ids",
-                "PASS: three CSVs mounted under /mnt/data",
+                "All three CSVs were mounted under /mnt/data and their checksums matched"
+                if self.statuses.get("Sandbox reads mounted inputs") == "PASS"
+                else "See 'Sandbox reads mounted inputs' in the detailed evidence",
                 "Tested",
                 "Custom implementation (Dev Team)",
                 ("files_upload",),
+                outcome=checks_outcome(self.statuses.get("Sandbox reads mounted inputs")),
             ),
             Finding(
                 "Generated files are retrieved by container ID and file ID",
-                "PASS: the runner downloads files with its own identity; the agent returns a poc-artifacts-v1 "
-                "container reference",
+                "The runner downloaded a sandbox-generated PNG with its own identity; the agent returned a "
+                "poc-artifacts-v1 container reference"
+                if delivered == "PASS"
+                else "See 'Generated-file delivery' and 'Agent returns sandbox container reference' below",
                 "Tested",
                 "Custom implementation (Dev Team)",
                 ("ci_files",),
+                outcome=delivered,
             ),
             Finding(
                 "Per-user sandbox isolation when Code Interpreter is used through a toolbox in a hosted agent",
-                "Not supported: all users in the project share the container context (tested in Step 4). "
-                f"Untested options that may provide it: {isolation_options_link(self.report.path.parent)}",
+                "All users of the project share the sandbox container context (Microsoft documents it; Step 4 "
+                "confirmed another principal could read sandbox output). Untested options that may provide it: "
+                f"{isolation_options_link(self.report.path.parent)}",
                 "Documented",
                 "Not supported",
                 ("ci_isolation",),
+                outcome="NOT SUPPORTED",
             ),
         ]
         gaps = [
@@ -1339,7 +1354,7 @@ class Step3(ReusingStep):
         self.conclusion = ""
 
     def execute(self) -> None:
-        self.report.paragraph(f"**AC3 (verbatim from #1):** {AC3}")
+        self.report.paragraph(f"**AC3 (verbatim from GitHub issue #1):** {AC3}")
         self.report.paragraph(
             "This step **reuses the existing agents and the Step 1 toolbox read-only**. It never deploys, uploads, "
             "creates a toolbox, or changes an agent. Each size is one request in a fresh conversation, sent "
@@ -1721,6 +1736,11 @@ class Step3(ReusingStep):
                 f"{cgroup_cpu_text(sandbox_value(largest, 'cgroup_cpu_max'))}; the sandbox reports "
                 f"{sandbox_value(largest, 'cpu_count')} CPUs to Python."
             )
+        timings = [
+            value
+            for value in (sandbox_seconds(r, "total") for r in passed)
+            if isinstance(value, int | float) and not isinstance(value, bool)
+        ]
         findings = [
             Finding(
                 "Filter, group, summarize, and chart run in the managed sandbox as data size grows",
@@ -1729,40 +1749,52 @@ class Step3(ReusingStep):
                 "Tested",
                 "Foundry-managed",
                 ("ci_overview",),
+                outcome=checks_outcome(*(r.status for r in self.results)),
             ),
             Finding(
                 "The sandbox enforces its own memory and CPU limits, separate from the hosted agent container",
                 (
-                    f"Sandbox: {cgroup_memory_text(sandbox_value(largest, 'cgroup_memory_max'))} memory and "
-                    f"{cgroup_cpu_text(sandbox_value(largest, 'cgroup_cpu_max'))} enforced"
+                    f"Sandbox limit: {cgroup_memory_text(sandbox_value(largest, 'cgroup_memory_max'))} memory and "
+                    f"{cgroup_cpu_text(sandbox_value(largest, 'cgroup_cpu_max'))}"
                     if largest
-                    else "Sandbox limits not measured"
+                    else "Sandbox limits were not measured because no size completed"
                 )
-                + ". Host: 0.5 vCPU / 1 GiB (azure.yaml). The analysis never runs in the host",
+                + ". The host container has its own 0.5 vCPU / 1 GiB (azure.yaml); the analysis never runs there",
                 "Observed",
                 "Foundry-managed",
                 ("hosted_sizes", "ci_sandbox"),
+                outcome="LIMITATION" if largest else "NOT RUN",
             ),
             Finding(
                 "Larger sandbox memory (memory_limit 1g/4g/16g/64g) is a documented option",
-                "Not tested here: the default limit was used; Step 4 found that 4g was not applied in this project",
+                "Microsoft lists these sizes. Not tested in this step (the default was used); Step 4 found that 4g "
+                "was not applied in this project",
                 "Documented",
                 "Foundry-managed",
                 ("sdk_memory",),
+                outcome="DOCUMENTED",
             ),
             Finding(
                 "Input data is mounted as files and never passes through the model prompt",
-                "Prompt length is the same for every size; token usage is not reported by the hosted response",
+                "The prompt was the same length for every size; only the mounted file changed. Token usage is not "
+                "reported by the hosted response",
                 "Tested",
                 "Custom implementation (Dev Team)",
                 ("files_upload", "toolbox_overview"),
+                outcome="PASS" if passed else "NOT RUN",
             ),
             Finding(
                 "A single code execution has a documented maximum runtime",
-                "Every size finished in under 2 s of sandbox time; the documented maximum is 220 s (tested in Step 4)",
+                (
+                    f"The slowest size used {max(timings):.2f} s of sandbox time"
+                    if timings
+                    else "No sandbox timings were measured"
+                )
+                + "; Microsoft documents a 220 s maximum per execution (Step 4 tests it)",
                 "Documented",
                 "Foundry-managed",
                 ("aca_runtime",),
+                outcome="LIMITATION",
             ),
         ]
         gaps = [
@@ -1839,6 +1871,7 @@ USER_PATH_CHECKS = (
     "Container reference returned",
     *OUTPUT_FILES,
 )
+ANALYSIS_CHECKS = ("Sandbox read the exact input", "Filter", "Group and summarize")
 
 
 def analysis_prompt(dataset: Dataset) -> str:
@@ -1964,7 +1997,7 @@ class Step2(ReusingStep):
         self.obs: dict[str, Any] = {}
 
     def execute(self) -> None:
-        self.report.paragraph(f"**AC2 (verbatim from #1):** {AC2}")
+        self.report.paragraph(f"**AC2 (verbatim from GitHub issue #1):** {AC2}")
         self.report.paragraph(
             "This step **reuses the existing agents and the Step 1 toolbox read-only**. It never deploys, uploads, "
             "creates a toolbox, or changes an agent."
@@ -2318,16 +2351,19 @@ class Step2(ReusingStep):
         self.write_summary(supervisor)
 
     def write_summary(self, supervisor: str) -> None:
-        user_path = all(self.statuses.get(name) == "PASS" for name in USER_PATH_CHECKS)
         files = self.obs.get("files") or {}
         forward = self.statuses.get(FORWARD_CHECK, "SKIP")
         forward_result, forward_basis = {
             "PASS": (
-                "PASS: the Supervisor's workflow report carried the Data Analysis container IDs; the caller "
-                "downloaded every file with its own identity and validated it by content",
+                "The Supervisor's workflow report carried the Data Analysis container IDs; the caller downloaded "
+                "every file with its own identity and validated it by content",
                 "Tested",
             ),
-            "FAIL": ("FAIL: see the forwarded-files checks in the Supervisor section", "Tested"),
+            "FAIL": (
+                "Container IDs were missing or the forwarded files did not validate; see 'Files and chart forwarded "
+                "through the Supervisor' in the detailed evidence",
+                "Tested",
+            ),
         }.get(
             forward,
             (
@@ -2359,43 +2395,65 @@ class Step2(ReusingStep):
         ]
         if self.obs.get("summary"):
             results.append(f'Agent summary: "{self.obs["summary"]}"')
+        analysis = checks_outcome(*(self.statuses.get(name) for name in ANALYSIS_CHECKS))
+        files_outcome = checks_outcome(
+            *(self.statuses.get(name) for name in ("Container reference returned", *OUTPUT_FILES))
+        )
+        supervisor_text = {
+            "PASS": "The Supervisor completed the workflow through Research and Data Analysis for the verified user",
+            "BLOCKED": "The nested Research call arrived without a verified user ID, so the workflow guard stopped it "
+            "(the guard is left unchanged). Microsoft documents x-ms-user-identity for your own users, but not its "
+            "propagation across nested agent calls",
+            "FAIL": "The Supervisor workflow failed; see 'Supervisor delivery path' in the detailed evidence",
+        }.get(supervisor, "Not run in this execution")
         findings = [
             Finding(
                 "Filter, group, summarize, and chart with model-written code in the managed sandbox",
-                "PASS: exact integer-cent match with an independent local calculation" if user_path else "See checks",
+                "The sandbox read the exact input, and every printed total matched an independent local calculation "
+                "to the cent"
+                if analysis == "PASS"
+                else "See 'Sandbox read the exact input', 'Filter', and 'Group and summarize' in the detailed evidence",
                 "Tested",
                 "Foundry-managed",
                 ("ci_overview",),
+                outcome=analysis,
             ),
             Finding(
                 "Summary text and printed totals return to the user in the agent's answer",
-                f"{self.statuses.get('Group and summarize', 'Not run')}: summary quoted and totals parsed",
+                "The plain-language summary is quoted below and the printed totals were parsed and compared",
                 "Tested",
                 "Agent Framework / SDK-managed",
                 ("hosted_conversations",),
+                outcome=checks_outcome(
+                    self.statuses.get("Hosted analysis request"), self.statuses.get("Group and summarize")
+                ),
             ),
             Finding(
                 "Generated CSVs and the chart reach the user by container ID and file ID",
-                "PASS: downloaded and validated by content" if user_path else "See file checks",
+                "All three files were downloaded with the caller's identity and validated by content"
+                if files_outcome == "PASS"
+                else "See 'Files and chart delivered to the user' in the detailed evidence",
                 "Tested",
                 "Custom implementation (Dev Team)",
                 ("ci_files",),
+                outcome=files_outcome,
             ),
             Finding(
                 "Generated files are temporary",
-                "Containers report expiry 20 minutes after last activity (Step 4 confirmed expiry after 21.5 min). "
-                "Durable delivery needs a copy to customer storage",
-                "Observed",
+                "Microsoft documents a 20-minute idle expiry for sandbox containers (Step 4 measures it). Copy files "
+                "to customer storage if they must outlive the sandbox",
+                "Documented",
                 "Foundry-managed",
                 ("responses_containers", "ci_lifetime"),
+                outcome="LIMITATION",
             ),
             Finding(
                 "Supervisor delegates the task to Data Analysis on the user's behalf",
-                f"{supervisor}: the nested Research call arrives without a verified user ID. Microsoft documents "
-                "x-ms-user-identity for your own users but no nested agent-to-agent propagation",
+                supervisor_text,
                 "Tested",
                 "Custom implementation (Dev Team)",
                 ("isolate_sessions",),
+                outcome=checks_outcome(supervisor),
             ),
             Finding(
                 FORWARD_CHECK,
@@ -2403,14 +2461,17 @@ class Step2(ReusingStep):
                 forward_basis,
                 "Custom implementation (Dev Team)",
                 ("ci_files",),
+                outcome=checks_outcome(forward),
             ),
             Finding(
                 "Per-user isolation of sandbox files",
-                "Not supported: any principal with project access can read sandbox files (tested in Step 4). "
-                f"Untested options that may provide it: {isolation_options_link(self.report.path.parent)}",
+                "Any principal with access to the project can read sandbox files (Microsoft documents it; Step 4 "
+                "confirmed it). Untested options that may provide it: "
+                f"{isolation_options_link(self.report.path.parent)}",
                 "Documented",
                 "Not supported",
                 ("ci_isolation",),
+                outcome="NOT SUPPORTED",
             ),
         ]
         gaps = [
@@ -2418,7 +2479,8 @@ class Step2(ReusingStep):
                 []
                 if forward == "PASS"
                 else [
-                    "Supervisor path: align the nested caller guard with the platform contract (#3, #4) without "
+                    "Supervisor path: align the nested caller guard with the platform contract (GitHub issues #3 and "
+                    "#4) without "
                     "weakening it, then rerun this step to demonstrate container forwarding end to end."
                 ]
             ),

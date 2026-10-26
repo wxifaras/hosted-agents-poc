@@ -59,7 +59,6 @@ from scripts.run_scenario.story4_common import (
     INDEX_TITLE,
     LEARN_MCP_URL,
     MCP_SERVER_LABEL,
-    NOT_SUPPORTED,
     RESEARCH,
     RESEARCH_TOOLBOX,
     RESEARCH_TOOLBOX_ENV,
@@ -412,34 +411,44 @@ class Step1(Story4Step):
             "specialist result to the Supervisor and on to the user.",
             f"Agents {'were updated by azd deploy --all' if self.deployed else 'were reused unchanged'}.",
         ]
+        passed = sum(self.cases.values())
         findings = [
             Finding(
                 "Routing decision: the Supervisor model selects the specialist by calling one of two function tools",
-                "Selected the expected specialist" if all(self.cases.values()) and self.cases else "See checks",
+                f"The model chose the expected specialist in {passed} of {len(ROUTING_CASES)} cases"
+                if self.cases
+                else "No routing case ran; see the checks below",
                 "Tested",
                 f"{SDK} (MAF function calling); {CUSTOM} (tool definitions)",
                 ("maf_function_tools",),
+                outcome=self.observed_outcome(*self.cases.values()),
             ),
             Finding(
                 "Invocation mechanism: Responses API on the specialist's agent-bound endpoint, one synchronous call",
-                "Completed" if any(self.cases.values()) else "Not observed",
+                "The Supervisor called the specialist's own endpoint with one synchronous Responses request"
+                if any(self.cases.values())
+                else "No delegation completed; see the checks below",
                 "Tested",
                 f"{FOUNDRY} (endpoint, auth); {CUSTOM} (client code)",
                 ("hosted_invoke",),
+                outcome=self.observed_outcome(any(self.cases.values()) if self.cases else None),
             ),
             Finding(
                 "Component controlling delegation: Supervisor application code (allow-list, one call, no retry)",
-                "Enforced",
+                "Supervisor code checks the allow-list, makes exactly one call, and never retries. This is this "
+                "repository's design, so no Microsoft page applies",
                 "Tested",
                 CUSTOM,
+                outcome=self.observed_outcome(any(self.cases.values()) if self.cases else None),
             ),
             Finding(
                 "Foundry-managed agent-to-agent delegation through the A2A protocol/tool, and MAF orchestration "
                 "patterns (handoff, magentic)",
-                "Documented alternatives; not tested in this POC",
+                "Documented alternatives to this POC's custom delegation; not tested here",
                 "Documented",
                 f"{FOUNDRY} (A2A); {SDK} (MAF orchestrations)",
                 ("a2a_protocol", "a2a", "maf_orchestration"),
+                outcome="DOCUMENTED",
             ),
         ]
         gaps = [
@@ -626,33 +635,53 @@ class Step2(Story4Step):
             f"{word(('background', True))}.",
             f"Client-to-agent background request {'completed' if self.obs.get('client_background') else 'failed'}.",
         ]
+
+        def flow_text(mode: str) -> str:
+            ok, failure = self.flows.get((mode, False)), self.flows.get((mode, True))
+            if ok is None and failure is None:
+                return "Not run; see the checks below"
+            return (
+                f"Delegation {'succeeded' if ok else 'did not succeed'}; a simulated sub-agent failure "
+                f"{'was reported to the client without a retry' if failure else 'was not handled as expected'}"
+            )
+
         findings = [
             Finding(
                 "Synchronous Responses call from Supervisor to sub-agent, with failure surfaced and not retried",
-                "Supported" if self.flows.get(("sync", True)) else "See checks",
+                flow_text("sync"),
                 "Tested",
                 f"{FOUNDRY} (protocol); {CUSTOM} (failure handling)",
                 ("hosted_invoke",),
+                outcome=self.observed_outcome(self.flows.get(("sync", False)), self.flows.get(("sync", True))),
             ),
             Finding(
                 "Asynchronous delegation using Responses background mode, polled with responses.retrieve",
-                "Supported" if self.flows.get(("background", False)) else "See checks",
+                flow_text("background"),
                 "Tested",
                 f"{FOUNDRY} (stored response status); {SDK} (agentserver background handling); {CUSTOM} (polling)",
                 ("responses_background",),
+                outcome=self.observed_outcome(
+                    self.flows.get(("background", False)), self.flows.get(("background", True))
+                ),
             ),
             Finding(
                 "Background responses surviving a host restart (resilient background)",
-                "Not enabled in this POC",
+                "Requires an explicit opt-in (preview). Not enabled in this POC, so not tested",
                 "Documented",
                 f"{SDK} (opt-in)",
                 ("resilience",),
+                outcome="DOCUMENTED",
             ),
             Finding(
                 "Completion push/callback to the Supervisor instead of polling",
-                "Not observed; completion is discovered by polling",
-                "Unverified",
-                NOT_SUPPORTED + " (not observed)",
+                "No push or callback was observed; the Supervisor learns of completion by polling, which matches the "
+                "platform-managed polling Microsoft describes"
+                if ("background", False) in self.flows
+                else "Not observed: the background flow did not run",
+                "Observed",
+                FOUNDRY,
+                ("responses_background",),
+                outcome="LIMITATION" if ("background", False) in self.flows else self.observed_outcome(None),
             ),
         ]
         gaps = [
@@ -796,28 +825,37 @@ class Step7(Story4Step):
             f"Direct Research response: {self.statuses.get('Direct response from Research', 'not run')}.",
             f"Conversation continuity: {self.statuses.get('Conversation continuity on Research', 'not run')}.",
         ]
+        direct = self.statuses.get("Direct response from Research")
         findings = [
             Finding(
                 "A client can invoke a hosted sub-agent directly through its own Responses endpoint",
-                "Supported" if self.verdict == "Met" else "See checks",
+                "Research answered the client directly on its own endpoint"
+                if direct == "PASS"
+                else "See 'Direct response from Research' in the detailed evidence",
                 "Tested",
                 FOUNDRY,
                 ("hosted_invoke",),
+                outcome=self.status_outcome("Direct response from Research"),
             ),
             Finding(
                 "Each hosted agent keeps its own conversation; history continues within conversation B",
-                "Observed" if self.statuses.get("Conversation continuity on Research") == "PASS" else "See checks",
+                "Research kept its own conversation and recalled the earlier message in it"
+                if self.statuses.get("Conversation continuity on Research") == "PASS"
+                else "See 'Separate conversation IDs' and 'Conversation continuity on Research' below",
                 "Tested",
                 FOUNDRY,
                 ("hosted_conversations",),
+                outcome=self.status_outcome("Separate conversation IDs", "Conversation continuity on Research"),
             ),
             Finding(
                 "Direct calls bypass Supervisor routing, allow-list, and correlation; access is governed only by "
                 "Foundry RBAC on Research",
-                "By design",
+                "By design: anyone with the Foundry User role can call Research directly. Restricting that needs "
+                "separate RBAC design",
                 "Tested",
                 f"{FOUNDRY}; any extra policy is {CUSTOM}",
                 ("foundry_rbac",),
+                outcome="LIMITATION" if direct == "PASS" else self.status_outcome("Direct response from Research"),
             ),
         ]
         gaps = [

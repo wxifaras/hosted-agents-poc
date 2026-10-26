@@ -633,28 +633,53 @@ index entry. Start with [the index](../artifacts/story-1/index.md), open a
 linked report, and press `Ctrl+Shift+V` for Markdown Preview. The report is
 also rendered in the task terminal.
 
-#### Report layout (all Story 1 steps)
+#### Report layout (all Story 1 and Story 4 steps)
 
-Every Story 1 report opens with a **Summary**, directly under the title. It
-contains:
+Every Story 1 and Story 4 report opens with a **Summary**, directly under the
+title. It contains:
 
-1. The acceptance verdict and a one-line conclusion.
+1. **Acceptance verdict** and a one-line conclusion: `Met`, `Met, with ...`
+   (satisfied with a stated caveat), `Partially met`, `Not met`, or
+   `Not evaluated` (blocked before evidence existed).
 2. **Key results:** plain-language measurements from the run.
-3. **Findings:** what was found and the result for each finding. Each one has
-   an evidence label (Tested, Observed, Documented, or Unverified), an
-   ownership classification, and links to the official Microsoft documentation
-   that supports it. Capabilities classified as *Not supported* always link to
-   the Microsoft page that states or implies the limitation. Where Microsoft
-   doesn't document a behavior, the report says "No official Microsoft
-   documentation found" instead of linking a page that doesn't support it.
-4. **Gaps and follow-ups.**
-5. **Microsoft documentation referenced:** each linked page with the short
-   verbatim excerpt that supports the finding.
+3. **Findings:** an outcome count line, then one row per finding with:
+   - **Outcome**, one of:
 
-Detailed check tables and raw evidence follow below the summary. The
-documentation sources live in
-[findings.py](../scripts/common/findings.py); each was checked against the
-live page.
+     | Outcome | Meaning |
+     |---|---|
+     | ✅ PASS | Tested in this run and worked as expected |
+     | ❌ FAIL | Tested in this run and did not work as expected |
+     | 🟡 PARTIAL | Some parts worked and some did not |
+     | ⛔ BLOCKED | A prerequisite or guard stopped the test; the finding says why |
+     | 🚫 NOT SUPPORTED | The platform doesn't provide it (documented by Microsoft, confirmed by the run, or both) |
+     | ⚠️ LIMITATION | Works, with a platform constraint to design around |
+     | 📄 DOCUMENTED | Stated by Microsoft, not tested in this run |
+     | ⏭️ NOT RUN | Testable, but not run this time |
+
+     Outcomes that depend on the run come from the actual check results, not
+     from fixed text.
+   - **What was found**, in plain language.
+   - **Evidence** (Tested, Observed, Documented, or Unverified), and **Owner**
+     (Foundry-managed, Agent Framework / SDK-managed, Custom implementation
+     (Dev Team), or Not supported).
+   - **Microsoft documentation** links. *Not supported* findings always link to
+     the Microsoft page that states the limitation. Where Microsoft doesn't
+     document a behavior (for example, this repository's own allow-list), the
+     report says "No official Microsoft documentation found" instead of
+     linking a page that doesn't support it.
+4. **Gaps and follow-ups.** References to GitHub issues are written as
+   "GitHub issue #N" so they aren't confused with finding numbers.
+5. **Microsoft documentation referenced:** for each quote, the linked page, the
+   verbatim excerpt, what it means for this POC, and the numbers of the
+   findings it supports.
+6. **How to read this report:** a legend for verdicts, outcomes, check
+   statuses, evidence, and ownership.
+
+Detailed check tables and raw evidence follow below the summary. Each check is
+`PASS`, `FAIL`, `BLOCKED` (a prerequisite was missing; nothing was bypassed),
+or `SKIP` (not run). The documentation sources live in
+[findings.py](../scripts/common/findings.py). Every link, section anchor, and
+quote was last checked against the live page on 2026-10-26.
 
 **Remote files, not local output files:**
 
@@ -1132,12 +1157,12 @@ Run folders are under `artifacts\story-4\step-<NN>-<slug>\` and follow the
 `step-02-sync-async-and-failure`, `step-03-research-tool-call`,
 `step-04-identity-paths`, `step-05-trace-and-access`, `step-06-data-analysis`,
 and `step-07-direct-invocation`. Every
-report uses the [Story 1 report layout](#report-layout-all-story-1-steps):
-summary first, with findings classified by evidence (Tested, Observed,
-Documented, Unverified) and ownership (Foundry-managed, Agent Framework / SDK-
-managed, Custom implementation (Dev Team), or Not supported), with verified
-Microsoft documentation links. A **Requests sent** table lists every hosted
-request, and a **Reproduction** section shows the exact command.
+report uses the [shared report layout](#report-layout-all-story-1-and-story-4-steps):
+summary first, with each finding's outcome (PASS, FAIL, PARTIAL, BLOCKED, NOT
+SUPPORTED, LIMITATION, DOCUMENTED, or NOT RUN), evidence, ownership, and
+verified Microsoft documentation links with plain-language explanations. A
+**Requests sent** table lists every hosted request, and a **Reproduction**
+section shows the exact command.
 
 | File | Contents |
 |---|---|
