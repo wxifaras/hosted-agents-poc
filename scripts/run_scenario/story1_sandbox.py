@@ -36,7 +36,7 @@ from azure.identity import AzureCliCredential
 from openai import OpenAIError
 from pydantic import JsonValue
 
-from scripts.common.findings import Finding, doc_cell, render_summary
+from scripts.common.findings import Finding, doc_cell, isolation_options_link, render_summary
 from scripts.common.reporting import MarkdownReport, Status, StepSpec, ValidationRun
 from scripts.common.synthetic_data import (
     FILTER_REGION,
@@ -1204,7 +1204,8 @@ class Step4(SandboxStep):
             ),
             Finding(
                 "Per-user isolation of sandbox files",
-                "Not supported: another principal read the agent's sandbox output",
+                "Not supported: another principal read the agent's sandbox output. Untested options that may "
+                f"provide it: {isolation_options_link(self.report.path.parent)}",
                 "Tested",
                 "Not supported",
                 ("ci_isolation",),
@@ -1244,7 +1245,7 @@ class Step4(SandboxStep):
             "why memory_limit above 2 GiB is not applied, and which organization policy blocks network allowlists.",
             "Executions longer than the documented 220 s maximum were not tested.",
             "With a toolbox in a hosted agent there is no per-user sandbox isolation; sensitive multi-tenant data "
-            "needs a custom design such as a custom code interpreter on your own session pool.",
+            f"needs a custom design. See {isolation_options_link(self.report.path.parent)}.",
         ]
         conclusion = (
             "Every area (security boundary, session lifetime, network, configuration) has tested or documented "

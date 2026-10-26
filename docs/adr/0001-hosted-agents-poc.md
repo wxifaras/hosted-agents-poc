@@ -227,7 +227,7 @@ proof. Analysis tools and automatic recovery are not implemented.
 | Separate forwarding/state/history experiments | Implemented, opt-in | Hosted nested delegated B denial failed; direct native-user Research isolation subsequently passed |
 | Direct native-Entra-user control | Passed for Research 6 in both directions | Two distinct authenticated users, no delegated headers, state/history denial and final owner continuation; not nested propagation proof |
 | Direct delegated-user control | Passed with temporary approved operator permission | Platform user visible, A continuity and B denial verified; temporary grants removed; nested flow still fails |
-| CSV/XLSX analysis and dataset generation | Partial (Story 1) | Managed Code Interpreter on the existing Data Analysis agent (v6 in `hosted-agents-poc-dev`) verified 2026-10-24 with a sandbox-computed SHA-256 and container reference; filter/group/visualize with summary, aggregates, CSVs, and chart delivered to the user (Story 1 Step 2, AC2) Met on 2026-10-24, Supervisor path blocked at the nested caller guard and file forwarding through it not built; Story 1 Step 3 (AC3) on 2026-10-24: exact results and all outputs at 1k/10k/100k rows (up to 5.4 MiB) in one sandbox execution each, peak RSS 162 MiB of a 2 GiB / 1 CPU enforced sandbox limit; viable for the tested sizes only; Story 1 Step 4 (AC4) on 2026-10-24: sandbox runs as non-root `sandbox` with no capabilities and a read-only root, has no DNS or egress, gives every tool call a new container, and lets other project principals read sandbox outputs; per-call and toolbox-level `memory_limit` 4g did not change the enforced 2 GiB, network allowlists are rejected by organization policy, a 100 s execution completed beyond the tool's self-described 90 s limit (consistent with the documented 220 s maximum), and containers follow a 20 min idle-expiry policy (expired after 21.5 min idle) versus the documented 30 min; Story 1 Step 5 (AC5) on 2026-10-24: conversation history continues and is isolated per conversation, sandbox variables and files never carry over, a deleted container's files are gone, and state was rebuilt exactly from a sealed checkpoint stored in customer Blob |
+| CSV/XLSX analysis and dataset generation | Partial (Story 1) | Managed Code Interpreter on the existing Data Analysis agent (v6 in `hosted-agents-poc-dev`) verified 2026-10-24 with a sandbox-computed SHA-256 and container reference; filter/group/visualize with summary, aggregates, CSVs, and chart delivered to the user (Story 1 Step 2, AC2) Met on 2026-10-24, Supervisor path blocked at the nested caller guard; workflow reports now forward Data Analysis container IDs through the Supervisor (`containers`, unit-tested 2026-10-26, pending redeploy and the nested caller guard for an end-to-end demonstration); Story 1 Step 3 (AC3) on 2026-10-24: exact results and all outputs at 1k/10k/100k rows (up to 5.4 MiB) in one sandbox execution each, peak RSS 162 MiB of a 2 GiB / 1 CPU enforced sandbox limit; viable for the tested sizes only; Story 1 Step 4 (AC4) on 2026-10-24: sandbox runs as non-root `sandbox` with no capabilities and a read-only root, has no DNS or egress, gives every tool call a new container, and lets other project principals read sandbox outputs; per-call and toolbox-level `memory_limit` 4g did not change the enforced 2 GiB, network allowlists are rejected by organization policy, a 100 s execution completed beyond the tool's self-described 90 s limit (consistent with the documented 220 s maximum), and containers follow a 20 min idle-expiry policy (expired after 21.5 min idle) versus the documented 30 min; Story 1 Step 5 (AC5) on 2026-10-24: conversation history continues and is isolated per conversation, sandbox variables and files never carry over, a deleted container's files are gone, and state was rebuilt exactly from a sealed checkpoint stored in customer Blob |
 | Story 4 representative patterns (stateless `POC_DELEGATE`) | Implemented 2026-10-26 | In `hosted-agents-poc-dev-001` (Supervisor 2, Research 2, Data Analysis 3): AC1 model-routed delegation Met; AC2 sync and background delegation with simulated sub-agent failure Met; AC3 Research Microsoft Learn MCP tool call Met; AC4/AC5 Partially met (delegated-user header accepted without impersonation, see Story 4 findings); AC6 Data Analysis Code Interpreter through the Supervisor Met; AC7 direct Research invocation Met. The stateful `POC_WORKFLOW` guard is unchanged |
 | ArtifactStore/Blob references | Not implemented | Storage exists; application I/O, checksums, and authorization still required |
 | Capacity harness | Not implemented | Measure progressive workloads at 0.5/1, 1/2, and 2/4 vCPU/GiB; no measured boundary yet |
@@ -283,6 +283,62 @@ not automatically added because a release announcement mentions them.
 5. Complete cross-user/session/specialist denial tests, Research tools, and
    trace-backed findings. Keep A2A, semantic memory, HITL, advanced steering,
    and optional Insights/evaluation work outside the initial success gate.
+
+### Per-user Code Interpreter isolation: options to investigate
+
+Researched on Microsoft Learn on 2026-10-26. **None of these options has been
+tested here**; each row is a lead, not a finding.
+
+**Current state.** Data Analysis runs managed Code Interpreter through the
+toolbox `story1-data-analysis-ci`. Microsoft documents that
+["when Code Interpreter is used through a toolbox in a hosted agent, user
+isolation isn't supported. All users in the same project share the same
+container context."][ci-isolation] Story 1 Step 4 confirmed it: another project
+principal read the agent's sandbox output. That statement covers only *a toolbox
+in a hosted agent* within *one project*. The other configurations below aren't
+covered by it either way, which is why they're worth testing.
+
+| # | Option | What Microsoft documents | Why it may give per-user isolation | Open questions and risks |
+|---|---|---|---|---|
+| 1 | **Custom code interpreter on your own Azure Container Apps session pool** (preview) | A [custom code interpreter][custom-ci] exposes an MCP server backed by ACA dynamic sessions and gives "full control over the runtime environment". Each request carries a [session `identifier`][aca-identifiers]: "If you're building a web application, you can use the user's ID as the session identifier". Each session is [Hyper-V isolated][aca-sessions]. Pool access needs the *Azure ContainerApps Session Executor* role. | You choose the isolation key. One session per verified user (or user + conversation) gives a separate Hyper-V sandbox each. It would also address Step 4's other limits: memory, network egress, and packages. | The custom-CI page doesn't say how the Foundry MCP path sets `identifier` (per agent, per conversation, or per caller); test it first. If it can't be controlled, Data Analysis could call the pool management API itself, with an identifier derived from the verified platform user. ACA warns that ["your application needs to ensure each user or tenant only has access to their own sessions"][aca-security]. Needs preview feature registration (`SessionPoolsSupportMCP`), Standard agent setup, and a paid ACA environment. |
+| 2 | **The hosted-agent session sandbox as the execution boundary** | Hosted agents run in ["per-session VM-isolated sandboxes"][hosted-isolation] with a private `$HOME`. ["Each caller gets their own session by default"][isolate-sessions], scoped to the Entra identity or to `x-ms-user-identity`. | The platform already enforces a per-user boundary around the agent's own sandbox. | Model-written code would run next to the agent identity and with network egress, so it could get tokens or call Azure. This record forbids a local `exec` fallback, so a hardened executor (no network, no credentials, resource limits) needs its own design review. Microsoft doesn't document this as a code-execution sandbox. With delegation, the platform doesn't fence delegated users from each other unless each gets its own session. The Supervisor -> Data Analysis path also needs the verified per-user identity, which is the current nested-guard blocker. |
+| 3 | **Code Interpreter as a direct Responses API tool, not through a toolbox** | The [Responses API][responses-ci] `code_interpreter` tool with `container: {"type": "auto"}` "automatically creates a new container or reuses an active one from a previous code_interpreter_call in the model's context". Conversations are private per user ([isolate sessions][isolate-sessions]). | The "not supported" statement is limited to toolboxes. Per-conversation containers combined with per-user conversations might separate users in practice. | Containers are project resources. Step 4 read another principal's container through the containers files API, so file access is probably still not per user; test it. Explicitly created per-user containers aren't documented for Foundry (Unverified). It's also unverified whether a hosted Agent Framework agent can use the built-in tool outside a toolbox. |
+| 4 | **Pass the end user's Entra token to the toolbox** | The Code Interpreter page creates a remote-tool connection with `--auth-type user-entra-token` "so the caller's identity is passed through". The [toolbox overview][toolbox-overview] describes "OAuth identity passthrough". Toolbox file uploads carry an `owner_id` that the toolbox container verifies. | If containers and files were owned by the end user instead of the agent identity, the platform might deny other users. | The same page still says toolbox use in a hosted agent has no user isolation. Whether passthrough changes container ownership is undocumented. Our hosted agent calls the toolbox with its own identity (`FoundryToolbox`), and getting an end-user token there needs OBO/delegation, which is unresolved. It's cheap to probe with the Step 4 cross-principal read. |
+| 5 | **One Foundry project per tenant** | The isolation statement is scoped to "all users in the same project". | Separate projects don't share container context, so this gives tenant-level isolation, not per-user. | Agents, toolboxes, RBAC, and cost are duplicated per project. It fits a small number of tenants or customers, not per-end-user isolation. |
+
+**Mitigations that reduce exposure without providing isolation**
+
+- Delete each sandbox container as soon as its outputs are copied. Steps 4 and 5 already delete the containers they create.
+- Copy outputs to Blob under a per-user prefix with ABAC conditions.
+- Keep Foundry User on the project to the smallest set of principals, since any of them can read sandbox files.
+- Never send real or sensitive data to managed Code Interpreter while option 1 or 4 is unproven.
+
+**How to test.** Reuse the Story 1 Step 4 cross-principal probe ("Isolation
+between principals") as the acceptance test. Use two genuine Entra users from
+**Access: Create isolated user auth profiles**. User B must fail to list, read,
+or reuse user A's sandbox files, and must not see A's state in a sandbox
+created for B. Suggested order:
+
+1. Option 4, as a cheap probe on the existing toolbox.
+2. Option 1, the most likely to work.
+3. Option 3.
+4. Option 2, only after a security design review.
+
+**Questions for Microsoft**
+
+- Is per-user isolation for toolbox Code Interpreter on the roadmap?
+- Does the limitation also apply to prompt agents that use a toolbox?
+- How does the custom code interpreter's MCP path assign ACA session identifiers?
+
+[ci-isolation]: https://learn.microsoft.com/azure/foundry/agents/how-to/tools/code-interpreter#use-code-interpreter-in-a-toolbox
+[custom-ci]: https://learn.microsoft.com/azure/foundry/agents/how-to/tools/custom-code-interpreter
+[aca-sessions]: https://learn.microsoft.com/azure/container-apps/sessions
+[aca-identifiers]: https://learn.microsoft.com/azure/container-apps/sessions-usage#identifiers
+[aca-security]: https://learn.microsoft.com/azure/container-apps/sessions-usage
+[hosted-isolation]: https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#isolation-model
+[isolate-sessions]: https://learn.microsoft.com/azure/foundry/agents/how-to/isolate-sessions-per-user
+[responses-ci]: https://learn.microsoft.com/azure/foundry/openai/how-to/responses
+[toolbox-overview]: https://learn.microsoft.com/azure/foundry/agents/concepts/toolbox-overview
 
 ### Planned delegation tests
 

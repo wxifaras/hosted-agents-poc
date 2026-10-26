@@ -828,7 +828,14 @@ the existing Supervisor, which writes that command's normal workflow state.
 5. Sends the same task through the Supervisor's existing `POC_WORKFLOW create`
    path, unchanged. The nested caller guard (ADR-0001) currently stops it at
    the Research hop; that is recorded as `BLOCKED` and is never bypassed.
-6. Re-snapshots the agents, then writes the delivery paths, findings,
+6. When the Supervisor path completes, reads the `containers` field of the
+   Supervisor's `poc-workflow-v1` report. Data Analysis fills it from its own
+   tool results only, and the Supervisor forwards it from its child reports.
+   The task downloads the three files from that container with the operator's
+   own identity, saves them under `outputs\supervisor\`, and validates them
+   with the same content checks as step 4. While the Supervisor path is
+   `BLOCKED`, this check is `BLOCKED` too and no download is attempted.
+7. Re-snapshots the agents, then writes the delivery paths, findings,
    limitations, and verdict.
 
 **Verdict:** AC2 accepts delivery to the supervisor **or** the user, so the
@@ -847,11 +854,18 @@ Run folders are under `step-02-analysis-and-outputs\` and follow the
 |---|---|
 | `report.md` | Main report: summary, expected-versus-observed tables, file checks, chart, delivery paths, findings, and verdict |
 | `outputs\` | Downloaded `filtered.csv`, `by_category.csv`, and `revenue_by_category.png` |
+| `outputs\supervisor\` | The same three files, downloaded from the container IDs the Supervisor forwarded (only when the Supervisor path completes) |
 | `manifest.json`, `events.jsonl`, `results.jsonl` | Same evidence format as Step 1 |
 
-**Does not prove:** forwarding files or charts through the Supervisor (not
-built), durable file storage (sandbox files expire), per-user file isolation
-(documented as not supported), or larger inputs (Step 3).
+Container forwarding through the Supervisor needs agent code that is newer than
+the agents deployed before 2026-10-26. Redeploy all three agents together, because
+`poc-workflow-v1` reports reject unknown fields. Then rerun
+**Agents: Story 1 - 1** (`verify`) to refresh the baseline before this task.
+
+**Does not prove:** durable file storage (forwarded container IDs expire with
+the sandbox), per-user file isolation (documented as not supported), or larger
+inputs (Step 3). Forwarding through the Supervisor is demonstrated only once
+the nested caller guard lets the Supervisor path complete.
 
 ### Agents: Story 1 - 3 Evaluate dataset sizes
 

@@ -9,6 +9,7 @@ from pydantic import UUID4, BaseModel, ConfigDict, Field
 
 from app.core.redaction import sanitize_text
 from app.core.settings import AgentName
+from app.services.code_interpreter import ContainerId
 from app.services.foundry_state import Caller, ContextPresence
 from app.services.workflows import Child, Workflow, WorkflowError
 
@@ -70,6 +71,8 @@ class Report(BaseModel):
     caller_propagation_verified: bool | None = None
     answer: str
     children: dict[str, Child]
+    # Sandbox container IDs from this turn's tool results (Data Analysis) or forwarded from children (Supervisor).
+    containers: list[ContainerId] = Field(default_factory=list)
 
     @classmethod
     def from_workflow(cls, workflow: Workflow, caller: Caller, caller_matches: bool | None) -> Report:
@@ -85,6 +88,7 @@ class Report(BaseModel):
             caller_propagation_verified=caller_matches,
             answer=workflow.last_answer,
             children=workflow.children,
+            containers=workflow.last_containers,
         )
 
 
@@ -175,6 +179,7 @@ class SpecialistClient:
                     "owner_id": report.owner_id,
                     "session_id": report.session_id,
                     "response_id": response.id,
+                    "containers": report.containers,
                 }
             ),
             report.answer,

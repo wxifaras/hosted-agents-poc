@@ -15,6 +15,8 @@ from app.services.foundry_state import Caller, FoundryStore, open_store
 from app.services.workflows import Child, Item, MissingMapping, Registry, StateConflict, WorkflowError
 from pydantic import ValidationError
 
+CONTAINER = "cntr_6adb9c2984d08190bc2c7098eb62cbf409e9166058601c2c"
+
 
 class MemoryStore:
     """A separate fake instance represents one platform-user partition."""
@@ -333,6 +335,7 @@ async def test_specialist_uses_real_binding_and_verified_delegated_headers() -> 
         caller_propagation_verified=True,
         answer="ALPHA",
         children={},
+        containers=[CONTAINER],
     )
     client = AsyncMock()
     client.__aenter__.return_value = client
@@ -344,6 +347,7 @@ async def test_specialist_uses_real_binding_and_verified_delegated_headers() -> 
     updated, answer = await delegate.invoke(child, "What token?", create=False)
     assert answer == "ALPHA"
     assert updated.response_id == "actual-child-response"
+    assert updated.containers == [CONTAINER]
     request = client.responses.create.call_args.kwargs
     assert request["conversation"] == child.conversation_id
     assert request["extra_body"] == {"agent_session_id": child.platform_session_id}
@@ -356,3 +360,93 @@ async def test_specialist_uses_real_binding_and_verified_delegated_headers() -> 
     client.responses.create.return_value.output_text = report.model_dump_json()
     with pytest.raises(WorkflowError, match="caller propagation"):
         await delegate.invoke(child, "What token?", create=False)
+
+
+def store_patches(monkeypatch: pytest.MonkeyPatch, store: MemoryStore) -> None:
+    from contextlib import asynccontextmanager
+
+    import app.hosting as hosting
+
+    @asynccontextmanager
+    async def fake_open(*_args: object, **_kwargs: object):
+        yield store
+
+    monkeypatch.setattr(hosting, "open_store", fake_open)
+    monkeypatch.setattr(Caller, "current", lambda: Caller("call", "user", "session"))
+
+
+def tool_result(text: str) -> SimpleNamespace:
+    return SimpleNamespace(contents=[SimpleNamespace(type="function_result", result=text)])
+
+
+async def test_data_analysis_workflow_report_carries_tool_result_containers_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = MemoryStore()
+    store_patches(monkeypatch, store)
+    context = SimpleNamespace(
+        conversation_id="conversation", client_headers={}, get_history=AsyncMock(return_value=[]), is_recovery=False
+    )
+    model_text = "Done. See cntr_modelWrittenNotTrusted01."
+    agent = SimpleNamespace(
+        run=AsyncMock(
+            return_value=SimpleNamespace(
+                text=model_text, messages=[tool_result(f"saved /mnt/data/a.png in {CONTAINER}")]
+            )
+        )
+    )
+    workflow_id = uuid4()
+    result = await workflow_turn(
+        "data_analysis", Settings(), agent, Command(operation="create", workflow_id=workflow_id, message="go"), context
+    )
+    report = Report.model_validate_json(result)
+    assert report.answer == model_text
+    assert report.containers == [CONTAINER]
+    inspected = await workflow_turn(
+        "data_analysis", Settings(), agent, Command(operation="inspect", workflow_id=workflow_id), context
+    )
+    assert Report.model_validate_json(inspected).containers == [CONTAINER]
+    agent.run.assert_awaited_once()
+
+
+async def test_supervisor_forwards_child_containers_in_its_report(monkeypatch: pytest.MonkeyPatch) -> None:
+    from contextlib import asynccontextmanager
+
+    import app.hosting as hosting
+
+    store = MemoryStore()
+    store_patches(monkeypatch, store)
+
+    @asynccontextmanager
+    async def fake_project(**_kwargs: object):
+        yield object()
+
+    class FakeSpecialists:
+        def __init__(self, *_args: object, **_kwargs: object) -> None:
+            pass
+
+        async def create_conversation(self, agent: str) -> str:
+            return f"conversation-{agent}"
+
+        async def invoke(self, child: Child, message: str, *, create: bool) -> tuple[Child, str]:
+            containers = [CONTAINER] if child.agent == "data_analysis" else []
+            return child.model_copy(update={"containers": containers}), f"{child.agent} answer"
+
+    monkeypatch.setattr(hosting, "AIProjectClient", fake_project)
+    monkeypatch.setattr(hosting, "SpecialistClient", FakeSpecialists)
+    context = SimpleNamespace(
+        conversation_id="root", client_headers={}, get_history=AsyncMock(return_value=[]), is_recovery=False
+    )
+    result = await workflow_turn(
+        "supervisor", Settings(), MagicMock(), Command(operation="create", workflow_id=uuid4(), message="go"), context
+    )
+    report = Report.model_validate_json(result)
+    assert report.containers == [CONTAINER]
+    assert report.children["data_analysis"].containers == [CONTAINER]
+    assert report.children["research"].containers == []
+    assert report.answer == "research: research answer\n\ndata_analysis: data_analysis answer"
+
+
+def test_reports_reject_values_that_are_not_container_ids() -> None:
+    with pytest.raises(ValidationError):
+        Child(agent="data_analysis", workflow_id=uuid4(), conversation_id="c", containers=["https://evil.example"])

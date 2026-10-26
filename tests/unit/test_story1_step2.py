@@ -275,7 +275,54 @@ def test_supervisor_outcomes_keep_the_nested_guard() -> None:
         children={},
     )
     status, observed = story.supervisor_outcome(completed(report.model_dump_json()).payload, EXPECTED)  # type: ignore[arg-type]
-    assert status == "PASS" and observed["files_forwarded"] is False
+    assert status == "PASS" and observed["files_forwarded"] is False and observed["containers"] == []
+    forwarded = report.model_copy(update={"containers": [CONTAINER]})
+    status, observed = story.supervisor_outcome(completed(forwarded.model_dump_json()).payload, EXPECTED)  # type: ignore[arg-type]
+    assert status == "PASS" and observed["files_forwarded"] is True and observed["containers"] == [CONTAINER]
+
+
+def supervisor_report(containers: list[str]) -> str:
+    return Report(
+        agent="supervisor",
+        workflow_id=uuid4(),
+        owner_id=uuid4(),
+        session_id=uuid4(),
+        conversation_id="conv_1",
+        platform_session_id="s",
+        progress="ready",
+        answer="research: ok\n\ndata_analysis: " + answer(printed(), containers=False),
+        children={},
+        containers=containers,
+    ).model_dump_json()
+
+
+def test_forwarded_container_files_are_downloaded_and_validated(
+    tmp_path: Path, fake_files: Callable[[dict[str, bytes]], None]
+) -> None:
+    files = outputs()
+    fake_files(files)
+    step = make_step(tmp_path)
+    project = FakeProject({story.SUPERVISOR: lambda _: completed(supervisor_report([CONTAINER]))})
+    step.supervisor(project, lambda: "t")  # type: ignore[arg-type]
+    assert step.statuses[story.SUPERVISOR_CHECK] == "PASS"
+    assert step.statuses[story.FORWARD_CHECK] == "PASS"
+    for name, content in files.items():
+        assert (step.run.path / "outputs" / "supervisor" / name).read_bytes() == content
+    assert "[filtered.csv](outputs/supervisor/filtered.csv)" in step.report.path.read_text(encoding="utf-8")
+
+
+def test_forwarding_fails_without_containers_or_with_tampered_files(
+    tmp_path: Path, fake_files: Callable[[dict[str, bytes]], None]
+) -> None:
+    step = make_step(tmp_path)
+    step.supervisor(FakeProject({story.SUPERVISOR: lambda _: completed(supervisor_report([]))}), lambda: "t")  # type: ignore[arg-type]
+    assert step.statuses[story.FORWARD_CHECK] == "FAIL"
+    files = outputs()
+    files["by_category.csv"] = files["by_category.csv"].replace(b"Training,28", b"Training,27")
+    fake_files(files)
+    step = make_step(tmp_path)
+    step.supervisor(FakeProject({story.SUPERVISOR: lambda _: completed(supervisor_report([CONTAINER]))}), lambda: "t")  # type: ignore[arg-type]
+    assert step.statuses[story.FORWARD_CHECK] == "FAIL"
 
 
 def test_supervisor_path_sends_the_existing_workflow_command(tmp_path: Path) -> None:
@@ -286,9 +333,14 @@ def test_supervisor_path_sends_the_existing_workflow_command(tmp_path: Path) -> 
         sent.append(text)
         return failed(GUARD_ERROR)
 
+    def no_token() -> str:
+        raise AssertionError("No download is attempted when the Supervisor path is blocked")
+
     project = FakeProject({story.SUPERVISOR: reply})
-    step.supervisor(project)  # type: ignore[arg-type]
+    step.supervisor(project, no_token)  # type: ignore[arg-type]
     assert step.statuses[story.SUPERVISOR_CHECK] == "BLOCKED"
+    assert step.statuses[story.FORWARD_CHECK] == "BLOCKED"
+    assert "at the research hop, before Data Analysis ran" in step.obs["forward_blocked"]
     assert project.calls == [(story.SUPERVISOR, {"timeout": 300, "max_retries": 0})]
     command = json.loads(sent[0].removeprefix("POC_WORKFLOW "))
     assert command["operation"] == "create" and command["message"] == story.analysis_prompt(DATASET)

@@ -42,7 +42,7 @@ from azure.identity import AzureCliCredential
 from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAIError, RateLimitError
 from pydantic import JsonValue, ValidationError
 
-from scripts.common.findings import Finding, render_summary
+from scripts.common.findings import Finding, isolation_options_link, render_summary
 from scripts.common.reporting import (
     REPORT_FILE,
     MarkdownReport,
@@ -756,7 +756,8 @@ class Step1:
             ),
             Finding(
                 "Per-user sandbox isolation when Code Interpreter is used through a toolbox in a hosted agent",
-                "Not supported: all users in the project share the container context (tested in Step 4)",
+                "Not supported: all users in the project share the container context (tested in Step 4). "
+                f"Untested options that may provide it: {isolation_options_link(self.report.path.parent)}",
                 "Documented",
                 "Not supported",
                 ("ci_isolation",),
@@ -1819,11 +1820,17 @@ AC2 = (
 SUPERVISOR = SERVICES["supervisor"]
 SUPERVISOR_CHECK = "Supervisor -> Research -> Data Analysis (POC_WORKFLOW create)"
 SUPERVISOR_EXPECTED = (
-    "Reaches Data Analysis; BLOCKED is the known nested-user-ID guard (ADR-0001), which is left unchanged"
+    "Supervisor calls Research, then Data Analysis; BLOCKED means the known nested-user-ID guard (ADR-0001) "
+    "stopped a hop, and it is left unchanged"
 )
 # The missing-user-ID check of the nested caller guard (ADR-0001); hitting it is a known blocker, not a failure.
 NESTED_GUARD_MARKER = "user_id_present"
 FILE_EXPECTED = "Authenticated download validates against the local oracle"
+FORWARD_CHECK = "Files and chart forwarded through the Supervisor"
+FORWARD_EXPECTED = (
+    "The Supervisor's poc-workflow-v1 report carries the Data Analysis container IDs; every output file downloads "
+    "with the caller's identity and validates against the local oracle"
+)
 USER_PATH_CHECKS = (
     "Hosted analysis request",
     "Sandbox read the exact input",
@@ -1917,12 +1924,15 @@ def supervisor_outcome(
         return "FAIL", {"status": status, "error": "Completed response is not a poc-workflow-v1 report"}
     printed = fenced_json(report.answer)
     matches = isinstance(printed, dict) and aggregates_match(printed.get("by_category"), expected)
+    child = report.children.get("data_analysis")
     return ("PASS" if matches else "FAIL"), {
         "status": status,
         "workflow_id": str(report.workflow_id),
         "children": sorted(report.children),
         "aggregates_match": matches,
-        "files_forwarded": False,
+        "containers": list(report.containers),
+        "data_analysis_containers": list(child.containers) if child else [],
+        "files_forwarded": bool(report.containers),
     }
 
 
@@ -1986,7 +1996,7 @@ class Step2(ReusingStep):
             text = self.analyze(project)
             if text is not None:
                 self.deliver(text, credential.get_token(DATA_SCOPE).token)
-            self.supervisor(project)
+            self.supervisor(project, lambda: credential.get_token(DATA_SCOPE).token)
             self.guard_end(read, before)
 
     def reproduction(self) -> None:
@@ -2136,7 +2146,8 @@ class Step2(ReusingStep):
             rows,
         )
 
-    def validate_files(self, container: str, downloaded: Mapping[str, tuple[bytes, str | None]]) -> None:
+    def file_checks(self, downloaded: Mapping[str, tuple[bytes, str | None]]) -> dict[str, tuple[bool, object]]:
+        """Content-based checks of each output file against the local oracle; never trusts names or types."""
         filtered_bytes = downloaded.get("filtered.csv", (b"", None))[0]
         by_category_bytes = downloaded.get("by_category.csv", (b"", None))[0]
         png_bytes = downloaded.get("revenue_by_category.png", (b"", None))[0]
@@ -2147,9 +2158,7 @@ class Step2(ReusingStep):
         filtered_ok = filtered_ok and filtered["revenue_cents"] == self.total.revenue_cents
         groups_ok = bool(by_category_bytes) and check_by_category_csv(by_category_bytes, self.expected)
         dimensions = png_dimensions(png_bytes)
-        self.obs["files"] = {name: len(data) for name, (data, _) in downloaded.items()}
-        self.obs["png"] = f"{dimensions[0]}x{dimensions[1]} PNG" if dimensions else None
-        checks: dict[str, tuple[bool, object]] = {
+        return {
             "filtered.csv": (filtered_ok, filtered),
             "by_category.csv": (groups_ok, {"groups_match": groups_ok}),
             "revenue_by_category.png": (
@@ -2157,6 +2166,14 @@ class Step2(ReusingStep):
                 {"png": f"{dimensions[0]}x{dimensions[1]}" if dimensions else "invalid"},
             ),
         }
+
+    def validate_files(self, container: str, downloaded: Mapping[str, tuple[bytes, str | None]]) -> None:
+        filtered_bytes = downloaded.get("filtered.csv", (b"", None))[0]
+        by_category_bytes = downloaded.get("by_category.csv", (b"", None))[0]
+        dimensions = png_dimensions(downloaded.get("revenue_by_category.png", (b"", None))[0])
+        self.obs["files"] = {name: len(data) for name, (data, _) in downloaded.items()}
+        self.obs["png"] = f"{dimensions[0]}x{dimensions[1]} PNG" if dimensions else None
+        checks = self.file_checks(downloaded)
         self.report.heading("by_category.csv vs. local oracle", level=3)
         observed_rows = by_category_rows(by_category_bytes)
         self.comparison_table({name: list(values) for name, values in observed_rows.items()}, None)
@@ -2184,13 +2201,14 @@ class Step2(ReusingStep):
             self.report.heading("Chart", level=3)
             self.report.paragraph("![Revenue by category](outputs/revenue_by_category.png)")
 
-    def supervisor(self, project: AIProjectClient) -> None:
+    def supervisor(self, project: AIProjectClient, token: Callable[[], str]) -> None:
         """Send the same task through the existing Supervisor workflow, unchanged; never weaken its guard."""
         self.report.heading("Supervisor delivery path (existing supervisor-agent)")
         command = Command(operation="create", workflow_id=uuid4(), message=analysis_prompt(self.dataset))
         number = self.run.start_request(SUPERVISOR, "hosted", f"POC_WORKFLOW create ({self.dataset.filename})")
         started = perf_counter()
         status: Status = "FAIL"
+        observed: dict[str, object] = {}
         try:
             try:
                 with project.get_openai_client(
@@ -2206,6 +2224,62 @@ class Step2(ReusingStep):
             self.record(SUPERVISOR_CHECK, status, SUPERVISOR_EXPECTED, observed)
         finally:
             self.run.end_request(number, SUPERVISOR, status, (perf_counter() - started) * 1000)
+        self.forwarded(status, observed, token)
+
+    def forwarded(self, supervisor: Status, observed: Mapping[str, object], token: Callable[[], str]) -> None:
+        """Download the files from the container IDs the Supervisor forwarded, with the caller's own identity."""
+        self.report.heading("Files and chart forwarded through the Supervisor", level=3)
+        if supervisor != "PASS":
+            hop = observed.get("failed_hop")
+            where = f" at the {hop} hop" if hop else ""
+            before = ", before Data Analysis ran, so no container IDs existed to forward" if hop == "research" else ""
+            self.obs["forward_blocked"] = f"the Supervisor workflow ended {supervisor}{where}{before}"
+            self.record(
+                FORWARD_CHECK,
+                "BLOCKED" if supervisor == "BLOCKED" else "SKIP",
+                FORWARD_EXPECTED,
+                f"Not reached: {self.obs['forward_blocked']}",
+            )
+            return
+        raw = observed.get("containers")
+        containers = [str(item) for item in raw] if isinstance(raw, list) else []
+        if not containers:
+            self.record(
+                FORWARD_CHECK,
+                "FAIL",
+                FORWARD_EXPECTED,
+                "The Supervisor report carries no container IDs (agents not redeployed with container forwarding?)",
+            )
+            return
+        local = self.run.path / "outputs" / "supervisor"
+        with httpx.Client(timeout=120, trust_env=False) as client:
+            bearer_token = token()
+            selected = select_container(client, self.project_endpoint, bearer_token, containers, OUTPUT_FILES)
+            container, files = selected if selected else (containers[-1], {})
+            downloaded = download_files(
+                client, self.project_endpoint, bearer_token, container, files, OUTPUT_FILES, local
+            )
+        checks = self.file_checks(downloaded)
+        rows: list[list[object]] = []
+        for name, (ok, details) in checks.items():
+            present = name in downloaded
+            rows.append(
+                [
+                    f"[{name}](outputs/supervisor/{name})" if present else name,
+                    "PASS" if present and ok else "FAIL",
+                    len(downloaded[name][0]) if present else "-",
+                    details if present else "Not in the forwarded container",
+                ]
+            )
+        self.report.table(["File (local copy)", "Status", "Bytes", "Checks"], rows)
+        passed = all(name in downloaded and ok for name, (ok, _) in checks.items())
+        self.obs["forwarded_files"] = {name: len(data) for name, (data, _) in downloaded.items()}
+        self.record(
+            FORWARD_CHECK,
+            "PASS" if passed else "FAIL",
+            FORWARD_EXPECTED,
+            {"containers": containers, "container": container, "files": self.obs["forwarded_files"]},
+        )
 
     def conclude(self) -> None:
         self.verdict = step2_verdict(self.statuses)
@@ -2236,8 +2310,8 @@ class Step2(ReusingStep):
                 ["Supervisor -> Data Analysis", supervisor, "Existing POC_WORKFLOW create; see the Supervisor section"],
                 [
                     "Files and chart -> Supervisor",
-                    "Not supported (as built)",
-                    "Architectural assessment: the Data Analysis workflow path returns answer text only",
+                    self.statuses.get(FORWARD_CHECK, "SKIP"),
+                    "Supervisor report `containers` -> authenticated container files API -> `outputs/supervisor/`",
                 ],
             ],
         )
@@ -2246,6 +2320,25 @@ class Step2(ReusingStep):
     def write_summary(self, supervisor: str) -> None:
         user_path = all(self.statuses.get(name) == "PASS" for name in USER_PATH_CHECKS)
         files = self.obs.get("files") or {}
+        forward = self.statuses.get(FORWARD_CHECK, "SKIP")
+        forward_result, forward_basis = {
+            "PASS": (
+                "PASS: the Supervisor's workflow report carried the Data Analysis container IDs; the caller "
+                "downloaded every file with its own identity and validated it by content",
+                "Tested",
+            ),
+            "FAIL": ("FAIL: see the forwarded-files checks in the Supervisor section", "Tested"),
+        }.get(
+            forward,
+            (
+                "Built, not yet demonstrated: workflow reports carry sandbox container IDs from Data "
+                "Analysis through the Supervisor (`containers`), but "
+                + str(self.obs.get("forward_blocked") or f"the Supervisor path ended {supervisor}")
+                + ". Story 4 Step 6 demonstrates container forwarding through the Supervisor on the stateless "
+                "POC_DELEGATE path",
+                "Unit-tested; not reached end to end",
+            ),
+        )
         results = [
             f"Analysis request completed in {self.obs.get('seconds', '-')} s; the agent wrote and ran its own "
             "pandas/matplotlib code in the managed sandbox.",
@@ -2261,7 +2354,8 @@ class Step2(ReusingStep):
             + (f"; chart {self.obs['png']}" if self.obs.get("png") else "")
             + ".",
             f"Supervisor -> Research -> Data Analysis: {supervisor}"
-            + (" at the nested-user-ID guard, which is left unchanged." if supervisor == "BLOCKED" else "."),
+            + (" at the nested-user-ID guard, which is left unchanged." if supervisor == "BLOCKED" else ".")
+            + f" Files and chart forwarded through the Supervisor: {forward}.",
         ]
         if self.obs.get("summary"):
             results.append(f'Agent summary: "{self.obs["summary"]}"')
@@ -2304,28 +2398,42 @@ class Step2(ReusingStep):
                 ("isolate_sessions",),
             ),
             Finding(
-                "Files and chart forwarded through the Supervisor",
-                "Not built: the workflow report carries answer text only; needs a code change and redeploy",
-                "Architectural assessment",
+                FORWARD_CHECK,
+                forward_result,
+                forward_basis,
                 "Custom implementation (Dev Team)",
+                ("ci_files",),
             ),
             Finding(
                 "Per-user isolation of sandbox files",
-                "Not supported: any principal with project access can read sandbox files (tested in Step 4)",
+                "Not supported: any principal with project access can read sandbox files (tested in Step 4). "
+                f"Untested options that may provide it: {isolation_options_link(self.report.path.parent)}",
                 "Documented",
                 "Not supported",
                 ("ci_isolation",),
             ),
         ]
         gaps = [
-            "Supervisor path: align the nested caller guard with the platform contract (#3, #4) without weakening "
-            "it, then add container references to the Data Analysis workflow report and redeploy.",
-            "Copy generated files to customer storage for durable delivery.",
+            *(
+                []
+                if forward == "PASS"
+                else [
+                    "Supervisor path: align the nested caller guard with the platform contract (#3, #4) without "
+                    "weakening it, then rerun this step to demonstrate container forwarding end to end."
+                ]
+            ),
+            "Forwarded container IDs expire with the sandbox; copy generated files to customer storage for durable "
+            "delivery.",
             "One synthetic 1k-row dataset and one request; dataset sizes are covered in Step 3.",
         ]
         conclusion = (
             "AC2 accepts delivery to the supervisor **or** the user. The summary, totals, CSVs, and chart all reach "
-            "the user and are validated exactly; the Supervisor path is a recorded limitation."
+            "the user and are validated exactly; "
+            + (
+                "the same files also reach the caller through the Supervisor by forwarded container IDs."
+                if forward == "PASS"
+                else "the Supervisor path is a recorded limitation."
+            )
             if self.verdict == "Met"
             else "See the checks below."
         )

@@ -2,16 +2,21 @@
 
 Generated files stay in the Microsoft-managed sandbox. The answer carries only the
 container IDs; an authenticated client lists and downloads the files it is allowed to.
+Workflow reports carry the same IDs in a structured ``containers`` field, so they are
+forwarded through the Supervisor without relying on model-written text.
 """
 
 import json
 import re
 from collections.abc import Iterable
+from typing import Annotated
 
 from agent_framework import Message
+from pydantic import StringConstraints
 
 ARTIFACTS_FENCE = "poc-artifacts-v1"
 _CONTAINER_ID = re.compile(r"\bcntr_[A-Za-z0-9]{8,}\b")
+ContainerId = Annotated[str, StringConstraints(pattern=r"^cntr_[A-Za-z0-9]{8,}$")]
 
 
 def container_ids(messages: Iterable[Message]) -> list[str]:

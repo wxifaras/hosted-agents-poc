@@ -17,7 +17,7 @@ from app.core.redaction import sanitize_text
 from app.services.orchestration import DelegateCommand, DelegationReport, IdentityMode
 from pydantic import JsonValue
 
-from scripts.common.findings import Finding
+from scripts.common.findings import Finding, isolation_options_link
 from scripts.common.reporting import Status, StepSpec
 from scripts.deploy.grant_local_rbac import CliError, object_value
 from scripts.run_scenario.story1_data_analysis import (
@@ -901,7 +901,8 @@ class Step6(Story4Step):
             ),
             Finding(
                 "Code Interpreter through a toolbox in a hosted agent has no per-user isolation",
-                "Limitation carried over from Story 1",
+                "Limitation carried over from Story 1. Untested options that may provide it: "
+                f"{isolation_options_link(self.report.path.parent)}",
                 "Documented",
                 NOT_SUPPORTED,
                 ("ci_isolation",),

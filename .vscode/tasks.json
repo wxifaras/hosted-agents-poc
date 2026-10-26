@@ -208,7 +208,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "2", "--environment", "${input:infraEnvironment}"],
-      "detail": "Read-only reuse of the Step 1 agents and toolbox. Paid: one Data Analysis request (model-written filter/group/summarize/chart on 1k rows) validated against a local oracle, downloads the CSVs and chart, and records the existing Supervisor POC_WORKFLOW path. Writes a report under step-02-analysis-and-outputs\\. Requires a Step 1 baseline.",
+      "detail": "Read-only reuse of the Step 1 agents and toolbox. Paid: one Data Analysis request (model-written filter/group/summarize/chart on 1k rows) validated against a local oracle, downloads the CSVs and chart, and records the existing Supervisor POC_WORKFLOW path, including the files forwarded by container ID through the Supervisor when that path completes. Writes a report under step-02-analysis-and-outputs\\. Requires a Step 1 baseline.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },

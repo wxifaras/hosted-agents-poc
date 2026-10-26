@@ -6,6 +6,8 @@ official page says so explicitly instead of pointing at a page that does not sup
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from os.path import relpath
+from pathlib import Path
 
 from scripts.common.reporting import markdown_cell
 
@@ -308,6 +310,20 @@ def doc_cell(keys: Sequence[str]) -> str:
     """One link per page, even when several quotes from the same page support the finding."""
     links = list(dict.fromkeys(DOCS[key].link() for key in keys))
     return "; ".join(links) if links else NO_DOC
+
+
+ADR_FILE = Path(__file__).resolve().parents[2] / "docs" / "adr" / "0001-hosted-agents-poc.md"
+ISOLATION_OPTIONS_ANCHOR = "per-user-code-interpreter-isolation-options-to-investigate"
+
+
+def isolation_options_link(report_dir: Path) -> str:
+    """Link from a report's folder to the ADR section listing untested per-user isolation options."""
+    try:
+        target = Path(relpath(ADR_FILE, report_dir)).as_posix()
+    except ValueError:
+        # Reports on another drive cannot use a relative path.
+        target = ADR_FILE.as_posix()
+    return f"[ADR-0001: per-user isolation options to investigate]({target}#{ISOLATION_OPTIONS_ANCHOR})"
 
 
 def _table(headers: Sequence[str], rows: Sequence[Sequence[object]]) -> str:

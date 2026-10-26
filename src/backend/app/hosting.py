@@ -134,6 +134,7 @@ async def workflow_turn(
         if command.operation == "continue" and binding.workflow.progress != "ready":
             raise WorkflowError("Only a completed workflow turn can be continued.")
         binding = await registry.begin_turn(binding)
+        containers: list[str] = []
         if name == "supervisor":
             answers: list[str] = []
             async with AIProjectClient(
@@ -157,13 +158,15 @@ async def workflow_turn(
                     )
                     binding = await registry.save_child(binding, updated)
                     answers.append(f"{specialist}: {answer}")
+                    containers.extend(item for item in updated.containers if item not in containers)
             answer = "\n\n".join(answers)
         else:
             response = await agent.run(messages=[*history, Message("user", [command.message])], stream=False)
             answer = response.text
             if not answer.strip():
                 raise WorkflowError("Specialist model returned no visible answer.")
-        binding = await registry.finish_turn(binding, answer)
+            containers = container_ids(response.messages)
+        binding = await registry.finish_turn(binding, answer, containers)
         return Report.from_workflow(binding.workflow, caller, caller_matches).model_dump_json()
 
 

@@ -4,12 +4,33 @@ import re
 from argparse import Namespace
 from pathlib import Path
 
-from scripts.common.findings import DOCS, NO_DOC, Finding, render_summary
+from scripts.common.findings import (
+    ADR_FILE,
+    DOCS,
+    ISOLATION_OPTIONS_ANCHOR,
+    NO_DOC,
+    Finding,
+    isolation_options_link,
+    render_summary,
+)
 from scripts.common.reporting import SUMMARY_SLOT, MarkdownReport, ValidationRun
 from scripts.run_scenario import story1_data_analysis as story
 from scripts.run_scenario import story1_sandbox as sb
 
 LEARN = "](https://learn.microsoft.com/"
+
+
+def test_isolation_options_link_resolves_to_the_adr_section_from_a_report_folder() -> None:
+    root = ADR_FILE.parents[2]
+    report_dir = root / "artifacts" / "story-1" / "step-01-code-interpreter" / "20261026T161436Z-f959ae7e"
+    link = isolation_options_link(report_dir)
+    target = re.fullmatch(r"\[[^\]]+\]\(([^)#]+)#([^)]+)\)", link)
+    assert target, link
+    assert target.group(1) == "../../../../docs/adr/0001-hosted-agents-poc.md"
+    assert (report_dir / target.group(1)).resolve() == ADR_FILE.resolve()
+    heading = "### Per-user Code Interpreter isolation: options to investigate"
+    assert heading in ADR_FILE.read_text(encoding="utf-8")
+    assert target.group(2) == ISOLATION_OPTIONS_ANCHOR
 
 
 def not_supported_rows_have_docs(text: str) -> None:

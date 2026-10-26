@@ -1,5 +1,6 @@
 """Opaque scope mappings and conversation bindings; IDs never grant access."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from hashlib import sha256
 from typing import Literal, Protocol
@@ -8,6 +9,7 @@ from uuid import uuid4
 from pydantic import UUID4, BaseModel, ConfigDict, Field
 
 from app.core.settings import AgentName
+from app.services.code_interpreter import ContainerId
 
 
 class WorkflowError(ValueError):
@@ -71,6 +73,7 @@ class Child(Record):
     owner_id: UUID4 | None = None
     session_id: UUID4 | None = None
     response_id: str | None = None
+    containers: list[ContainerId] = Field(default_factory=list)
 
 
 class Workflow(Session):
@@ -81,6 +84,7 @@ class Workflow(Session):
     children: dict[str, Child] = Field(default_factory=dict)
     progress: Literal["new", "running", "ready"] = "new"
     last_answer: str = ""
+    last_containers: list[ContainerId] = Field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -205,10 +209,13 @@ class Registry:
             raise WorkflowError("Workflow has an unfinished turn; automatic replay/recovery is not enabled.")
         return await self._save(binding, binding.workflow.model_copy(update={"progress": "running"}))
 
-    async def finish_turn(self, binding: Binding, answer: str) -> Binding:
+    async def finish_turn(self, binding: Binding, answer: str, containers: Sequence[str] = ()) -> Binding:
         """Publish completion only after required child references have committed."""
         return await self._save(
-            binding, binding.workflow.model_copy(update={"progress": "ready", "last_answer": answer})
+            binding,
+            binding.workflow.model_copy(
+                update={"progress": "ready", "last_answer": answer, "last_containers": list(containers)}
+            ),
         )
 
     async def _save(self, binding: Binding, updated: Workflow) -> Binding:
