@@ -26,6 +26,10 @@ NO_DOC = "No official Microsoft documentation found"
 
 CI = "https://learn.microsoft.com/azure/foundry/agents/how-to/tools/code-interpreter"
 CI_TITLE = "Use Code Interpreter with Microsoft Foundry agents"
+HOSTED = "https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents"
+CONTRACT = "https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agent-contract"
+AGENT_IDENTITY = "https://learn.microsoft.com/azure/foundry/agents/concepts/agent-identity"
+MCP_AUTH = "https://learn.microsoft.com/azure/foundry/agents/how-to/mcp-authentication"
 
 # Verified on learn.microsoft.com on 2026-10-24; quotes are verbatim excerpts (tables are summarized as noted).
 DOCS: dict[str, Doc] = {
@@ -173,6 +177,118 @@ DOCS: dict[str, Doc] = {
         "Assign an Azure role for access to blob data",
         "https://learn.microsoft.com/azure/storage/blobs/assign-azure-role-data-access",
         "The following example assigns the Storage Blob Data Contributor role to a user.",
+    ),
+    # Story 4 entries, verified on learn.microsoft.com on 2026-10-26.
+    "hosted_invoke": Doc(
+        "Hosted agents in Foundry Agent Service: Agent identity and endpoint",
+        f"{HOSTED}#agent-identity-and-endpoint",
+        "Every Hosted agent deployed to a Foundry project gets its own dedicated Microsoft Entra ID (agent identity) "
+        "and dedicated endpoint—both created automatically at deploy time.",
+    ),
+    "responses_background": Doc(
+        "Hosted agents in Foundry Agent Service: Protocols",
+        f"{HOSTED}#protocols-responses-invocations-and-invocations-websocket",
+        "background: true with platform-managed polling and cancellation. Opt in separately when the handler must "
+        "recover after a process interruption. (protocol table, Background / async processing row)",
+    ),
+    "a2a_protocol": Doc(
+        "Hosted agents in Foundry Agent Service: Protocols",
+        f"{HOSTED}#protocols-responses-invocations-and-invocations-websocket",
+        "The A2A protocol supports agent-to-agent delegation.",
+    ),
+    "resilience": Doc(
+        "Resilience for long-running Microsoft Foundry hosted agents (preview)",
+        "https://learn.microsoft.com/azure/foundry/agents/concepts/long-running-agent-resilience"
+        "#background-execution-and-resilience",
+        "For the Responses protocol, full crash recovery applies only to stored background responses when the server "
+        "opts in to resilient background execution.",
+    ),
+    "a2a": Doc(
+        "Connect to an A2A agent endpoint from Foundry Agent Service",
+        "https://learn.microsoft.com/azure/foundry/agents/how-to/tools/agent-to-agent",
+        "The A2A tool enables agent-to-agent communication through a standardized protocol, allowing your Foundry "
+        "agent to exchange context and collaborate with external agents.",
+    ),
+    "hosted_contract": Doc(
+        "Hosted agent runtime contract: Platform request headers",
+        f"{CONTRACT}#platform-request-headers-container-protocol-200",
+        "Forward it unchanged on outbound calls to Foundry services (Storage, Toolbox, and other agents); the "
+        "platform resolves the caller's identity from it. (x-agent-foundry-call-id)",
+    ),
+    "hosted_user_header": Doc(
+        "Hosted agent runtime contract: Platform request headers",
+        f"{CONTRACT}#platform-request-headers-container-protocol-200",
+        "Use it as the primary partition key for per-user data your container stores; it's for your container's own "
+        "use and isn't forwarded outbound. (x-agent-user-id)",
+    ),
+    "client_headers": Doc(
+        "Hosted agent runtime contract: Forward custom request headers to your container",
+        f"{CONTRACT}#forward-custom-request-headers-to-your-container",
+        "The platform forwards every header that starts with x-client- unchanged, so you can send values like a "
+        "tenant ID or a feature flag without changing the request body ...",
+    ),
+    "impersonation": Doc(
+        "Isolate hosted agent sessions per user: Isolate sessions for your own users",
+        "https://learn.microsoft.com/azure/foundry/agents/how-to/isolate-sessions-per-user"
+        "#isolate-sessions-for-your-own-users",
+        "This permission is not included in any built-in role. It was previously covered by the "
+        "Microsoft.CognitiveServices/* data action, but that action no longer grants it. ... A caller without it "
+        "receives a 403.",
+    ),
+    "agent_identity": Doc(
+        "Agent identity concepts in Microsoft Foundry",
+        AGENT_IDENTITY,
+        "For hosted agents, the token service lets your code obtain tokens for the current agent instance's identity "
+        "by default.",
+    ),
+    "a2a_identity": Doc(
+        "Agent identity concepts in Microsoft Foundry: Supported tools",
+        f"{AGENT_IDENTITY}#supported-tools",
+        "Application-only access with the calling agent's identity, or delegated access when the target supports it. "
+        "(Agent-to-agent (A2A) row)",
+    ),
+    "mcp_tool": Doc(
+        "Connect agents to MCP server endpoints",
+        "https://learn.microsoft.com/azure/foundry/agents/how-to/tools/model-context-protocol",
+        "Use an allow list of tools by using allowed_tools.",
+    ),
+    "mcp_auth_obo": Doc(
+        "Set up MCP server authentication: Supported authentication methods",
+        f"{MCP_AUTH}#supported-authentication-methods",
+        "Use UserEntraToken or AgentOnBehalfOfUser with a supported MCP tool to access a downstream resource in the "
+        "incoming user's context. (Microsoft Entra client user delegation row)",
+    ),
+    "mcp_auth_passthrough": Doc(
+        "Set up MCP server authentication: OAuth identity passthrough",
+        f"{MCP_AUTH}#oauth-identity-passthrough",
+        "When you use OAuth identity passthrough, Agent Service generates a consent link the first time a particular "
+        "user needs to authorize access.",
+    ),
+    "learn_mcp": Doc(
+        "Microsoft Learn MCP Server overview",
+        "https://learn.microsoft.com/training/support/mcp",
+        "There's no authentication required to access the Microsoft Learn MCP Server.",
+    ),
+    "toolbox_auth": Doc(
+        "What is Toolbox in Microsoft Foundry?",
+        "https://learn.microsoft.com/azure/foundry/agents/concepts/toolbox-overview",
+        "The toolbox handles credential injection, token refresh, and policy enforcement at runtime by using "
+        "Microsoft Entra ID and OAuth identity passthrough, so consuming agents don't manage per-tool credentials.",
+    ),
+    "foundry_rbac": Doc(
+        "Hosted agent permissions reference: Roles in this article",
+        "https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agent-permissions#roles-in-this-article",
+        "Foundry User: Create agents, perform model inference, and interact with agents. (roles table)",
+    ),
+    "maf_function_tools": Doc(
+        "Using function tools with an agent (Microsoft Agent Framework)",
+        "https://learn.microsoft.com/agent-framework/agents/tools/function-tools",
+        "Function tools are just custom code that you want the agent to be able to call when needed.",
+    ),
+    "maf_orchestration": Doc(
+        "Workflow orchestrations in Agent Framework",
+        "https://learn.microsoft.com/agent-framework/workflows/orchestrations/",
+        "Magentic: A manager agent dynamically coordinates specialized agents. (patterns table)",
     ),
 }
 

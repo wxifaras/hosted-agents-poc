@@ -162,6 +162,7 @@ same environment and subscription at every prompt.
 | 3 | *(Optional, CLI)* `azd env set APPLICATIONINSIGHTS_CONNECTION_STRING (az monitor app-insights component show --ids (azd env get-value AZURE_APPLICATION_INSIGHTS_ID) --query connectionString -o tsv)` | Data Analysis trace export; must precede step 4 |
 | 4 | **Agents: Deploy and smoke test all hosted agents** | Deploys all three agents, then runs **Access: Apply hosted agent permissions** (agent Foundry User, Data Analysis Monitoring Metrics Publisher, project Monitoring Reader) and the hosted smoke test |
 | 5 | **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent**, mode `enable-if-missing` | Uploads Story 1 data, creates the toolbox, sets `DATA_ANALYSIS_TOOLBOX_ENDPOINT`, redeploys only Data Analysis, writes `agents-baseline.json` |
+| 6 | *(Story 4)* **Agents: Story 4 - 1 Demonstrate Supervisor delegation**, mode `prepare-if-missing` | Creates the Research MCP toolbox `story4-research-mcp`, sets `RESEARCH_TOOLBOX_ENDPOINT`, runs `azd deploy --all` only if the Story 4 code or wiring is missing, writes `artifacts\story-4\agents-baseline.json`. Then rerun step 5 in `verify` mode to refresh the Story 1 baseline |
 
 The project identity's Foundry User, AcrPull, and Monitoring Reader roles come
 from Bicep. Run **Access: Preview/Apply hosted agent permissions** alone only

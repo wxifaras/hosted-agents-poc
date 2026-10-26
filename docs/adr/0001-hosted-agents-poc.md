@@ -228,6 +228,7 @@ proof. Analysis tools and automatic recovery are not implemented.
 | Direct native-Entra-user control | Passed for Research 6 in both directions | Two distinct authenticated users, no delegated headers, state/history denial and final owner continuation; not nested propagation proof |
 | Direct delegated-user control | Passed with temporary approved operator permission | Platform user visible, A continuity and B denial verified; temporary grants removed; nested flow still fails |
 | CSV/XLSX analysis and dataset generation | Partial (Story 1) | Managed Code Interpreter on the existing Data Analysis agent (v6 in `hosted-agents-poc-dev`) verified 2026-10-24 with a sandbox-computed SHA-256 and container reference; filter/group/visualize with summary, aggregates, CSVs, and chart delivered to the user (Story 1 Step 2, AC2) Met on 2026-10-24, Supervisor path blocked at the nested caller guard and file forwarding through it not built; Story 1 Step 3 (AC3) on 2026-10-24: exact results and all outputs at 1k/10k/100k rows (up to 5.4 MiB) in one sandbox execution each, peak RSS 162 MiB of a 2 GiB / 1 CPU enforced sandbox limit; viable for the tested sizes only; Story 1 Step 4 (AC4) on 2026-10-24: sandbox runs as non-root `sandbox` with no capabilities and a read-only root, has no DNS or egress, gives every tool call a new container, and lets other project principals read sandbox outputs; per-call and toolbox-level `memory_limit` 4g did not change the enforced 2 GiB, network allowlists are rejected by organization policy, a 100 s execution completed beyond the tool's self-described 90 s limit (consistent with the documented 220 s maximum), and containers follow a 20 min idle-expiry policy (expired after 21.5 min idle) versus the documented 30 min; Story 1 Step 5 (AC5) on 2026-10-24: conversation history continues and is isolated per conversation, sandbox variables and files never carry over, a deleted container's files are gone, and state was rebuilt exactly from a sealed checkpoint stored in customer Blob |
+| Story 4 representative patterns (stateless `POC_DELEGATE`) | Implemented 2026-10-26 | In `hosted-agents-poc-dev-001` (Supervisor 2, Research 2, Data Analysis 3): AC1 model-routed delegation Met; AC2 sync and background delegation with simulated sub-agent failure Met; AC3 Research Microsoft Learn MCP tool call Met; AC4/AC5 Partially met (delegated-user header accepted without impersonation, see Story 4 findings); AC6 Data Analysis Code Interpreter through the Supervisor Met; AC7 direct Research invocation Met. The stateful `POC_WORKFLOW` guard is unchanged |
 | ArtifactStore/Blob references | Not implemented | Storage exists; application I/O, checksums, and authorization still required |
 | Capacity harness | Not implemented | Measure progressive workloads at 0.5/1, 1/2, and 2/4 vCPU/GiB; no measured boundary yet |
 | Session filesystem idle/resume | Not validated | Upload, derive, idle/resume same session, verify hashes, continue analysis |
@@ -253,7 +254,7 @@ regional availability, pinned-SDK compatibility, implementation, or test success
 | [State Store (preview)][state-store] | Core durable state | Partial hosted mapping proof, not full checkpoint/isolation proof |
 | Session filesystem and conversation history | Core lifecycle experiment | Interfaces in use; lifecycle and private-history boundaries unverified |
 | Dedicated agent identities and model deployment | Core | In use; actual principals and scoped model access checked |
-| Hosted-agent Toolboxes (GA) + Tool Search (GA) | Story 1 Data Analysis (Code Interpreter); planned Research experiment | Toolbox `story1-data-analysis-ci` with `code_interpreter` is in use by the existing Data Analysis agent; Research is not connected |
+| Hosted-agent Toolboxes (GA) + Tool Search (GA) | Story 1 Data Analysis (Code Interpreter); Story 4 Research (MCP) | Toolbox `story1-data-analysis-ci` with `code_interpreter` is in use by Data Analysis; toolbox `story4-research-mcp` (public Microsoft Learn MCP server, `allowed_tools: [microsoft_docs_search]`) is in use by Research |
 | [Long-running hosted-agent resilience (public preview)][resilience] | Planned core recovery experiment | Not enabled; meaningful checkpoints and opt-in failure tests required |
 | Insights (public preview) | Optional after repeatable traces | Not used; findings require human review, not automatic changes |
 | A2A (GA) | Optional interoperability experiment | Not used; Responses delegation is not A2A interoperability proof |
@@ -656,6 +657,32 @@ Do not silently fall back to empty history, accept any exception as isolation
 success, or retry model requests until the test happens to pass. Record expected
 versus actual outcomes. Only the full behavior test can complete the delegation
 validation milestone; a diagnostic flag or successful HTTP transport cannot.
+
+**Story 4 representative patterns, 2026-10-26:** the owner authorized a
+Research MCP toolbox, `azd deploy --all` of the existing agents in
+`hosted-agents-poc-dev-001`, and paid validation runs. A new stateless
+`POC_DELEGATE`/`POC_SUBTASK` protocol ([orchestration.py](../../src/backend/app/services/orchestration.py))
+lets the Supervisor route one task, by its model's function-tool call or an
+allow-listed explicit target, to a specialist's agent-bound Responses endpoint
+synchronously or in background mode. It never touches the workflow registry;
+the `POC_WORKFLOW` guard is unchanged. Agent identities were preserved.
+
+| Observation | Result |
+|---|---|
+| Model routing to Research and to Data Analysis, result delivered to Supervisor and user | Passed (both cases) |
+| Sync and background delegation; simulated sub-agent failure surfaced, not retried | Passed; background polled `in_progress -> completed/failed` |
+| Research `microsoft_docs_search` call through the toolbox; `allowed_tools` blocks `microsoft_docs_fetch` | Passed |
+| Supervisor sees the original user (salted fingerprint matches the operator's identity) | Observed |
+| Research sees a user context in `agent`, `call-context`, or `delegated-user` modes | **Absent in all three** |
+| `x-ms-user-identity` from a Supervisor holding only Foundry User | **Accepted (HTTP 200), not the documented 403**; reproduced twice |
+| Unlisted target denied by the Supervisor allow-list before any outbound call | Passed |
+| Direct client -> Research in its own conversation, history continuity | Passed |
+
+The impersonation discrepancy matches the earlier nested-path delegated-label
+findings: on the hosted-agent-origin path the header neither takes effect nor
+is rejected. Do not rely on either behavior; reproduce it for Foundry support.
+Story 4 Steps 4 and 5 therefore remain Partially met. Details and evidence are
+produced by the **Agents: Story 4 - 1** to **7** tasks.
 
 Review this record when authorization semantics, runtime/protocol, state ownership,
 or POC scope changes. Update dated findings without rewriting decision history;

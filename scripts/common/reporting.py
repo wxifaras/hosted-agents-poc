@@ -213,10 +213,10 @@ class MarkdownReport:
         console.print(f"Markdown report: {self.path}  (open it and press Ctrl+Shift+V for VS Code Preview)")
 
 
-def update_index(index: Path, entry: str) -> None:
+def update_index(index: Path, entry: str, title: str = "Story 1 evidence index") -> None:
     """Append one linked report entry; earlier runs are never overwritten."""
     index.parent.mkdir(parents=True, exist_ok=True)
     if not index.exists():
-        index.write_text("# Story 1 evidence index\n\n", encoding="utf-8")
+        index.write_text(f"# {title}\n\n", encoding="utf-8")
     with index.open("a", encoding="utf-8") as stream:
         stream.write(f"- {sanitize_text(entry)}\n")

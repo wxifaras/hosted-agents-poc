@@ -37,6 +37,13 @@ _CODE_INTERPRETER_INSTRUCTIONS = (
     "Never invent numbers or claim files you did not save. Answer simple non-data questions directly."
 )
 
+_RESEARCH_TOOL_INSTRUCTIONS = (
+    "You are the Research specialist in a Hosted Agents runtime POC. "
+    "You have a Microsoft Learn documentation search tool reached through a Foundry toolbox (MCP). "
+    "When a task asks you to search or cite documentation, call the tool and cite only URLs it returned. "
+    "Never invent sources or claim a search you did not run. Answer other questions from the supplied context."
+)
+
 
 def data_analysis_tools(
     name: AgentName, settings: Settings, credential: TokenCredential
@@ -48,6 +55,13 @@ def data_analysis_tools(
     return [FoundryToolbox(credential, url=settings.toolbox_endpoint, tool_result_content="both")]
 
 
+def research_tools(name: AgentName, settings: Settings, credential: TokenCredential) -> list[MCPStreamableHTTPTool]:
+    """Story 4: Research gets its own MCP toolbox (Microsoft Learn search), only when configured."""
+    if name != "research" or settings.toolbox_endpoint is None:
+        return []
+    return [FoundryToolbox(credential, url=settings.toolbox_endpoint)]
+
+
 def build_agent(name: AgentName, settings: Settings, credential: TokenCredential) -> Agent[FoundryChatOptions]:
     """Create the model-backed agent using verified current MAF APIs."""
     settings.require_model()
@@ -56,12 +70,15 @@ def build_agent(name: AgentName, settings: Settings, credential: TokenCredential
         model=settings.azure_ai_model_deployment_name,
         credential=credential,
     )
-    tools = data_analysis_tools(name, settings, credential)
+    tools = data_analysis_tools(name, settings, credential) or research_tools(name, settings, credential)
+    instructions = _INSTRUCTIONS[name]
+    if tools:
+        instructions = _CODE_INTERPRETER_INSTRUCTIONS if name == "data_analysis" else _RESEARCH_TOOL_INSTRUCTIONS
     return Agent(
         client=client,
         id=f"{name}-agent",
         name=f"{name}-agent",
-        instructions=_CODE_INTERPRETER_INSTRUCTIONS if tools else _INSTRUCTIONS[name],
+        instructions=instructions,
         tools=tools or None,
         default_options={"store": False},
     )
