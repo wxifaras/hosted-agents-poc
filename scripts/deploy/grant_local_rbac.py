@@ -219,9 +219,10 @@ def create_grant(
     subscription: str,
     *,
     principal_type: Literal["User", "ServicePrincipal"] = "User",
+    assignment_name: str | None = None,
 ) -> None:
     """Use stable names; verify a concurrent duplicate before accepting it."""
-    name = str(uuid5(NAMESPACE_URL, f"{grant.scope.casefold()}|{principal}|{grant.definition_id}"))
+    name = assignment_name or str(uuid5(NAMESPACE_URL, f"{grant.scope.casefold()}|{principal}|{grant.definition_id}"))
     try:
         az(
             [

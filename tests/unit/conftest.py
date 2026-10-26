@@ -19,6 +19,9 @@ def isolated_settings(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterat
             "SUPERVISOR_PORT",
             "RESEARCH_PORT",
             "DATA_ANALYSIS_PORT",
+            "TOOLBOX_ENDPOINT",
+            "POC_APPLICATIONINSIGHTS_CONNECTION_STRING",
+            "POC_APPLICATIONINSIGHTS_AUTH_MODE",
         }:
             monkeypatch.delenv(name)
     monkeypatch.setenv("POC_ENV_FILE", str(tmp_path / ".env"))

@@ -105,9 +105,17 @@ Do not describe those as passing because another task completed.
 - **Implementation:** [grant_agent_rbac.py](../scripts/deploy/grant_agent_rbac.py) with `--apply`.
 - **Execution:** resolves each actual deployed instance principal, checks inherited
   assignments, and creates missing **Foundry User** assignments at the selected
-  Foundry account scope.
-- **Boundary:** these are agent grants, not test-user grants. No Blob, telemetry,
-  or impersonation permission is added in this mode. A grant is not delegation proof.
+  Foundry account scope. For **Data Analysis only**, it also creates a missing
+  **Monitoring Metrics Publisher** assignment on the environment's Application
+  Insights resource (`AZURE_APPLICATION_INSIGHTS_ID`, verified to be in the
+  POC resource group). That resource disables local auth, so trace export uses
+  the agent's Entra identity (`POC_APPLICATIONINSIGHTS_AUTH_MODE=entra`). It also
+  ensures the **project managed identity** has **Monitoring Reader** on the same
+  Application Insights resource so Foundry Insights can read the telemetry; Bicep
+  creates that grant too, and this task repairs it without reprovisioning.
+- **Boundary:** these are agent and project grants, not test-user grants. No Blob
+  or impersonation permission is added in this mode, and Supervisor and
+  Research get no telemetry role. A grant is not delegation proof.
 
 ### Access: Apply Supervisor impersonation permission
 
@@ -512,6 +520,513 @@ flowchart TD
     Missing --> Results["Record acceptance results"]
 ```
 
+### Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent
+
+**Use case:** Story #1 AC1. Enables Microsoft-managed Code Interpreter on the
+**already-deployed** `data-analysis-agent`, then proves it executes in the
+managed sandbox. It never creates an agent, and Supervisor and Research are
+not changed.
+
+**Prerequisites:** complete the repository's
+[setup and deployment steps](../README.md#quick-start---run-in-this-order).
+The selected environment must have all three existing agents active, and the
+operator must be signed in with access to the Foundry project. The hosted
+Data Analysis agent needs permission to call its toolbox. On a permission
+failure, follow the reported access task; this task does not grant roles.
+
+**Run in VS Code:**
+
+1. Choose **Terminal > Run Task...**.
+2. Select **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent**.
+3. Select the deployed environment.
+4. Select `enable-if-missing` for initial wiring, or `verify` for an
+   already-configured deployment.
+5. Review the terminal verdict and open the linked Markdown report.
+
+**Inputs:** environment (`hosted-agents-poc-dev` by default) and mode:
+
+- `verify` (default): read-only checks plus paid sandbox and model calls.
+  Reports `BLOCKED` if the toolbox or agent wiring is missing.
+- `enable-if-missing`: only when missing, uploads three synthetic CSVs
+  (1k/10k/100k rows) project-scoped, creates toolbox `story1-data-analysis-ci`
+  once, and runs `azd deploy data-analysis-agent`. That deploy moves the same
+  agent to a new version with `TOOLBOX_ENDPOINT`. Reruns detect both and do
+  not redeploy.
+
+**Steps:** [story1_data_analysis.py](../scripts/run_scenario/story1_data_analysis.py)
+
+1. Reads environment/configuration and snapshots all three existing agents:
+   version, status, instance principal, and routing.
+2. Generates the three synthetic CSVs locally in memory and computes their
+   expected SHA-256 checksums.
+3. Reuses the matching toolbox or, in `enable-if-missing` only, uploads the
+   CSVs and creates its version, matched by dataset SHA-256 in metadata.
+4. Probes the toolbox directly as the operator. The sandbox hashes each
+   mounted CSV and generates a PNG. The local runner lists and downloads the
+   PNG through the container files API and checks its PNG signature in memory.
+5. Reuses the existing agent wiring or, in `enable-if-missing` only, updates
+   the environment's toolbox endpoint and deploys just Data Analysis.
+6. Asks the existing Data Analysis endpoint for the 1k file's SHA-256 and
+   Python version, comparing the returned hash with the local value. The answer must also
+   carry a `poc-artifacts-v1` container reference that exists in the project.
+7. Re-snapshots the agents. Supervisor and Research must be unchanged and the
+   Data Analysis identity the same. On success, it writes
+   `artifacts\story-1\agents-baseline.json` for Steps 2-5.
+8. Renders the Markdown report, appends its link and verdict to the evidence
+   index, and prints the evidence path and exit status.
+
+#### Where Step 1 runs
+
+| Location | Work performed |
+|---|---|
+| Local computer running the VS Code task | Test runner, authentication/API calls, synthetic CSV generation, expected checksums and comparisons, PNG signature check, reports, and optional deployment commands |
+| Deployed Foundry hosted agent | Agent orchestration, model calls, and toolbox calls for the hosted execution proof |
+| Managed Code Interpreter sandbox | Executes the supplied probe Python and agent-requested analysis Python, reads mounted inputs, computes hashes, and generates `story1-probe.png` |
+
+The direct operator probe and the hosted-agent proof are separate calls;
+they do not imply the same sandbox container. The implementation observed a
+fresh container per tool call with the current preloaded-file configuration.
+`verify` avoids deployment/configuration changes, but still makes paid
+sandbox/model calls and writes local evidence. There is no local `exec` or
+subprocess fallback for analysis.
+
+#### Step 1 output files
+
+New run folders are under `artifacts\story-1\` and use
+`<YYYY-MM-DD>_<HH-MM-SS>Z-step-1-code-interpreter-<mode>-<8-character-id>`,
+for example `2026-10-23_12-04-08Z-step-1-code-interpreter-verify-a1b2c3d4`.
+The timestamp is UTC, the mode is `verify` or `enable-if-missing`, and the
+suffix distinguishes runs. Existing folders and index links are unchanged.
+
+| File inside each run folder | Contents |
+|---|---|
+| `01-existing-agent-code-interpreter.md` | Main report: checks, expected/observed results, findings, and acceptance verdict |
+| `manifest.json` | Full run ID, start time, scenario/mode, platform, and Python/SDK versions |
+| `events.jsonl` | Incrementally written, sanitized check observations; one JSON record per line |
+| `results.jsonl` | The same check records as `events.jsonl`, for machine processing |
+
+| Shared file under `artifacts\story-1\` | When written |
+|---|---|
+| `index.md` | Created if missing, then appended with each run's report link, timestamp, and verdict when report finalization is reached |
+| `agents-baseline.json` | Created or replaced only after successful validation; stores the environment, run ID, toolbox configuration, and agent snapshots for the Steps 2-5 reuse guard |
+
+Failed or blocked runs keep evidence already written and do not replace the
+baseline. An interrupted process can leave a partial report without a new
+index entry. Start with [the index](../artifacts/story-1/index.md), open a
+linked report, and press `Ctrl+Shift+V` for Markdown Preview. The report is
+also rendered in the task terminal.
+
+#### Report layout (all Story 1 steps)
+
+Every Story 1 report opens with a **Summary**, directly under the title. It
+contains:
+
+1. The acceptance verdict and a one-line conclusion.
+2. **Key results:** plain-language measurements from the run.
+3. **Findings:** what was found and the result for each finding. Each one has
+   an evidence label (Tested, Observed, Documented, or Unverified), an
+   ownership classification, and links to the official Microsoft documentation
+   that supports it. Capabilities classified as *Not supported* always link to
+   the Microsoft page that states or implies the limitation. Where Microsoft
+   doesn't document a behavior, the report says "No official Microsoft
+   documentation found" instead of linking a page that doesn't support it.
+4. **Gaps and follow-ups.**
+5. **Microsoft documentation referenced:** each linked page with the short
+   verbatim excerpt that supports the finding.
+
+Detailed check tables and raw evidence follow below the summary. The
+documentation sources live in
+[findings.py](../scripts/common/findings.py); each was checked against the
+live page.
+
+**Remote files, not local output files:**
+
+- `story1-sales-1000.csv`, `story1-sales-10000.csv`, and
+  `story1-sales-100000.csv` are generated locally in memory and uploaded to
+  the project-scoped Files API only when setup needs them. Existing matching
+  toolbox inputs are reused.
+- `story1-probe.png` is created inside a managed sandbox. The runner
+  downloads its bytes into memory to verify delivery; it does not save a
+  local PNG. No local CSV copies are saved either.
+- Sandbox files are temporary; this test does not persist them to Blob
+  Storage or embed the PNG in the Step 1 report.
+
+#### Cloud-only execution (proposed, not implemented)
+
+There is **no existing task or flag** that runs the complete validation
+without local execution or local evidence files. For that requirement, a
+possible future design is:
+
+1. Run the validation client in a cloud-hosted runner, such as an Azure
+   Container Apps Job, with an appropriately authorized managed identity.
+2. Have that runner call the existing deployed Foundry agent and toolbox.
+3. Persist reports, JSONL evidence, index, and baseline in Azure storage,
+   such as Blob Storage, rather than on the developer's computer.
+
+This moves the test runner to Azure; it does **not** move the runner or hosted
+agent orchestration into Code Interpreter. Generating datasets inside the
+sandbox would require a further test redesign while preserving an
+independent expected-result check. Cloud-runner infrastructure, identity,
+remote evidence storage, and a launch task are not implemented here; these
+are design considerations, not runnable setup instructions.
+
+#### Viewing Step 1 traces in Foundry
+
+Step 1's hosted proof and trace ingestion are separate checks. A `Met` report
+proves the implemented execution/reuse checks passed; it does not by itself
+prove that telemetry reached Foundry.
+
+1. Identify the Application Insights resource in the selected Foundry
+   project's `application-insights` connection. For this deployment,
+   `AZURE_APPLICATION_INSIGHTS_ID` in the azd environment identifies that
+   resource. Reuse it; do not provision another monitoring resource.
+2. Retrieve its connection string and set
+   `APPLICATIONINSIGHTS_CONNECTION_STRING` in the selected azd environment.
+   Do not put the value in source control, task arguments, or reports.
+   [azure.yaml](../azure.yaml) maps this value into Data Analysis only as
+   `POC_APPLICATIONINSIGHTS_CONNECTION_STRING`: Foundry rejects the standard
+   name as a user-supplied agent environment variable because it is reserved.
+   Settings prefer this application-owned alias while retaining the standard
+   name for local configuration.
+3. Deploy **only** `data-analysis-agent` in that environment. Do not run the
+   all-agents deployment task. A new immutable Data Analysis version is
+   expected; Supervisor/Research versions and agent identities must stay
+   unchanged. No foundation provisioning is needed.
+4. Startup passes the connection to the hosting SDK's public
+   `configure_observability` (the `microsoft-opentelemetry` distro is a
+   locked dependency of the agent server; the [Dockerfile](../src/backend/Dockerfile)
+   checks it imports). That path adds the Foundry enrichment processor, which
+   stamps `gen_ai.agent.name`/version and project ID on every span, exports to
+   Azure Monitor, and enables Agent Framework instrumentation. A custom Azure
+   Monitor setup would bypass the enrichment, so traces would not be
+   attributed to the agent in Foundry. Prompt/tool-content capture is forced
+   off regardless of the SDK's default. If no application setting is present,
+   a platform-supplied connection is used. Startup logs
+   `Telemetry export configured` once.
+5. The POC Application Insights resource disables local (instrumentation-key)
+   authentication, so connection-string-only export is rejected as
+   `Unauthorized`. [azure.yaml](../azure.yaml) therefore sets
+   `POC_APPLICATIONINSIGHTS_AUTH_MODE=entra` for Data Analysis. Foundry rejects
+   the SDK's own `APPLICATIONINSIGHTS_AUTH_MODE` name in agent definitions as
+   platform-reserved, so startup sets that process variable just before
+   configuring export; the SDK then authenticates with the agent's managed
+   identity. Startup logs `auth_mode: entra`. Run
+   **Access: Apply hosted agent permissions** so that identity holds
+   **Monitoring Metrics Publisher** on the Application Insights resource.
+   Role propagation can take several minutes.
+   This publish role does not grant Foundry Insights read access. The
+   **project managed identity** and the interactive Insights user also need
+   **Monitoring Reader** on the connected Application Insights resource.
+   The foundation's project-access module grants the project identity this
+   role; existing environments must apply that grant separately or through
+   a reviewed infrastructure update. **Access: Apply hosted agent permissions**
+   also checks and applies the project read role, and runs automatically in
+   **Agents: Deploy and smoke test all hosted agents**. Bare `azd deploy`
+   does not run the access task or update infrastructure RBAC.
+6. Rerun Step 1 in `verify` mode. In Foundry, select the same project and
+   Data Analysis agent, and a time range covering the run's UTC timestamp.
+   Allow for telemetry ingestion delay and refresh the trace view. The
+   hosted proof's response/session IDs are recorded in the Markdown/JSONL
+   evidence for correlation.
+7. If the view is empty, check the agent's console log for
+   `Retryable server-side error: Unauthorized` (missing role or propagation)
+   and inspect the linked Application Insights `requests`
+   and `dependencies` tables. Hosted request spans identify the agent using
+   `gen_ai.agent.name` or `azure.ai.agentserver.agent_name`; join downstream
+   spans by `operation_Id`. Confirm ingestion and attribution rather than
+   assuming that a successful model response proves tracing works.
+
+If the container fails at `settings.require_model()`, check the deployed
+model configuration before diagnosing telemetry: the manifest must map
+`AZURE_AI_MODEL_DEPLOYMENT_NAME` to `${AZURE_AI_MODEL_DEPLOYMENT_NAME}`.
+A missing or misspelled substitution leaves the model unset even when the
+selected azd environment contains a valid deployment name. Correct it and
+redeploy Data Analysis; existing immutable versions retain the old value.
+`FOUNDRY_PROJECT_ENDPOINT` is platform-supplied and must also be present.
+
+Only the hosted-agent proof traverses Data Analysis. The direct operator MCP
+probes call the toolbox independently and are not expected under its agent
+trace. Enabling telemetry affects future invocations; earlier unexported
+traces cannot be backfilled. Telemetry incurs monitoring ingestion/storage
+charges in addition to model and sandbox usage.
+
+**Does not prove:** filter/group/visualization correctness (Step 2), capacity
+(Step 3), sandbox boundaries (Step 4), or continuity (Step 5). With toolbox +
+hosted agent, the documented behavior is that users in a project share
+sandbox context.
+
+```mermaid
+flowchart TD
+    accTitle: Story 1 Step 1 reuse flow
+    accDescr: The task snapshots existing agents, reuses or creates the toolbox, probes the sandbox, updates only the existing Data Analysis agent when needed, proves hosted execution, and re-checks that nothing else changed.
+    Snapshot["Snapshot existing agents"] --> Toolbox{"Matching toolbox?"}
+    Toolbox -->|Yes| Probe["Direct sandbox probe"]
+    Toolbox -->|No, enable-if-missing| Create["Upload CSVs and create toolbox once"] --> Probe
+    Probe --> Wired{"Existing DA version wired?"}
+    Wired -->|Yes| Proof["Hosted SHA-256 proof via existing endpoint"]
+    Wired -->|No, enable-if-missing| Update["azd deploy data-analysis-agent only"] --> Proof
+    Proof --> Guard["Re-snapshot: only DA version may change"]
+```
+
+### Agents: Story 1 - 2 Analyze data and deliver outputs
+
+**Use case:** Story #1 AC2. Asks the existing `data-analysis-agent` to filter,
+group, summarize, and chart the 1k-row synthetic input with model-written
+pandas/matplotlib code in the managed sandbox. It then shows how the summary,
+aggregates, CSVs, and chart reach the user. It also records the existing
+Supervisor workflow path.
+
+**Prerequisites and guard:** the same as Step 3. A successful Step 1 run for
+the same environment must have written `artifacts\story-1\agents-baseline.json`.
+The agents and the toolbox inputs must still match it, otherwise the task
+reports `BLOCKED: run Task 1` (or `FAIL` for unexpected agent changes).
+
+**Run in VS Code:** choose **Terminal > Run Task...**, select
+**Agents: Story 1 - 2 Analyze data and deliver outputs**, then select the
+environment.
+
+**Effects:** no deployment, upload, toolbox, or agent change. Makes two paid
+hosted requests: one to Data Analysis and one `POC_WORKFLOW create` through
+the existing Supervisor, which writes that command's normal workflow state.
+
+**Steps:** [story1_data_analysis.py](../scripts/run_scenario/story1_data_analysis.py) `--step 2`
+
+1. Runs the reuse guard against the Step 1 baseline.
+2. Sends the recorded analysis request to the existing Data Analysis
+   endpoint. The request has a 300 s client timeout and no retries. It filters
+   `status == 'completed' and region == 'West'`, groups by category, and saves
+   `filtered.csv`, `by_category.csv`, and `revenue_by_category.png`. It then
+   prints the input SHA-256, filtered row count, per-category totals, and
+   overall totals as JSON.
+3. Quotes the plain-language summary from the answer. It compares the printed
+   JSON exactly with an independent local calculation in integer cents.
+4. Follows the answer's `poc-artifacts-v1` container reference, downloads the
+   three files through the authenticated container files API, and validates
+   them by content:
+   - `filtered.csv`: columns, exact row IDs, filter values, and revenue total.
+   - `by_category.csv`: every group.
+   - The chart: PNG signature and dimensions.
+
+   It then saves local copies for the report.
+5. Sends the same task through the Supervisor's existing `POC_WORKFLOW create`
+   path, unchanged. The nested caller guard (ADR-0001) currently stops it at
+   the Research hop; that is recorded as `BLOCKED` and is never bypassed.
+6. Re-snapshots the agents, then writes the delivery paths, findings,
+   limitations, and verdict.
+
+**Verdict:** AC2 accepts delivery to the supervisor **or** the user, so the
+user path decides it. `Met` means every user-path check passed. `Partially
+met` means the request completed but a check failed. `Not met` means the
+request failed or an agent changed. `Not evaluated` means the run was blocked.
+The Supervisor path is reported as a limitation. A `BLOCKED` Supervisor path
+also makes the task exit with code 2, even when the verdict is `Met`.
+
+#### Step 2 output files
+
+Run folders use
+`<YYYY-MM-DD>_<HH-MM-SS>Z-step-2-analysis-and-outputs-<8-character-id>`.
+
+| File inside each run folder | Contents |
+|---|---|
+| `02-analysis-and-outputs.md` | Main report: summary, expected-versus-observed tables, file checks, chart, delivery paths, findings, and verdict |
+| `outputs\` | Downloaded `filtered.csv`, `by_category.csv`, and `revenue_by_category.png` |
+| `manifest.json`, `events.jsonl`, `results.jsonl` | Same evidence format as Step 1 |
+
+**Does not prove:** forwarding files or charts through the Supervisor (not
+built), durable file storage (sandbox files expire), per-user file isolation
+(documented as not supported), or larger inputs (Step 3).
+
+### Agents: Story 1 - 3 Evaluate dataset sizes
+
+**Use case:** Story #1 AC3. Runs the same filter, group, summarize, and
+visualize workload on the 1k, 10k, and 100k-row synthetic inputs already
+mounted by the Step 1 toolbox. It records sandbox measurements, limits, and
+failures, then writes a viability conclusion scoped to the tested sizes.
+
+**Prerequisites:** a successful Step 1 run for the same environment, which
+writes `artifacts\story-1\agents-baseline.json`. The three existing agents
+must still match that baseline, and the toolbox version must still record the
+same input checksums. Otherwise the task reports `BLOCKED: run Task 1`, or
+`FAIL` if an agent changed unexpectedly. It never repairs anything. Step 2
+uses the same guard.
+
+**Run in VS Code:** choose **Terminal > Run Task...**, select
+**Agents: Story 1 - 3 Evaluate dataset sizes**, then select the environment.
+
+**Effects:** read-only. No deployment, upload, toolbox, or agent change. Each
+size is one paid hosted request plus one sandbox execution.
+
+**Steps:** [story1_data_analysis.py](../scripts/run_scenario/story1_data_analysis.py) `--step 3`
+
+1. Loads the Step 1 baseline, snapshots the three agents, and checks that the
+   toolbox version still records the local datasets' SHA-256 checksums.
+2. For each size in ascending order, sends one request in a fresh conversation
+   to the existing `data-analysis-agent`. Each request has a 300 s client
+   timeout, `max_retries=0`, and no concurrency. The request asks the agent to
+   run fixed Python verbatim, so data size is the only variable; only the
+   file name changes. Rows never pass through the prompt.
+3. In the sandbox, the workload filters, groups, writes `filtered.csv`,
+   `by_category.csv`, and `revenue_by_category.png`, and records:
+   - Per-phase wall times.
+   - Peak RSS.
+   - `os.cpu_count()` and `MemTotal`.
+   - Enforced cgroup memory and CPU limits.
+   - Free disk space.
+   - Python and pandas versions.
+
+   It writes these to `story1-step3-result.json`.
+4. The runner downloads that file and the outputs through the authenticated
+   container files API. It compares them with an independent local
+   calculation: the input SHA-256, filtered row IDs, and exact integer-cent
+   aggregates. It also checks that the PNG is valid. Numbers in the model's
+   answer are compared for information only.
+5. Escalation stops at the first platform failure: timeout, resource, quota,
+   service, connection, permission, or a failed agent response. Remaining
+   sizes are reported as `SKIP (not run after failure)`. A completed response
+   with wrong or missing outputs is a correctness `FAIL`, and the next size
+   still runs. The task does not search for a crash limit.
+6. Re-snapshots the agents, which must be unchanged. It then writes the
+   capacity summary, sandbox observations, findings, and verdict. A partial
+   report is written even when the run stops early.
+
+**Verdict:**
+
+- `Met`: every size passed.
+- `Met, with an observed limit`: a platform failure occurred after at least
+  one size passed.
+- `Partially met`: a correctness failure occurred, or a size was not reached.
+- `Not evaluated`: the run was blocked.
+
+Timings are observations, not an SLA, because none was agreed.
+
+#### Step 3 output files
+
+Run folders use
+`<YYYY-MM-DD>_<HH-MM-SS>Z-step-3-dataset-sizes-<8-character-id>`.
+
+| File inside each run folder | Contents |
+|---|---|
+| `03-capacity.md` | Main report: per-size checks, capacity summary, sandbox observations, findings, and verdict |
+| `outputs\<rows>\` | Downloaded `filtered.csv`, `by_category.csv`, `revenue_by_category.png`, and `story1-step3-result.json` for each completed size |
+| `manifest.json`, `events.jsonl`, `results.jsonl` | Same evidence format as Step 1 |
+
+**Does not prove:** the platform maximum input size, non-default
+`memory_limit` values, upload size limits, concurrency, or model-written
+analysis code (Step 2).
+
+### Agents: Story 1 - 4 Assess sandbox boundaries
+
+**Use case:** Story #1 AC4. Documents the sandbox's security boundaries,
+session lifetime, network restrictions, and configuration options from
+benign, targeted probes. It writes a documented-versus-observed matrix. It
+doesn't scan, attempt escapes, or read secrets; environment variables are
+recorded by name only.
+
+**Prerequisites and guard:** the same as Steps 2 and 3. A successful Step 1
+run must have written `agents-baseline.json`; the run never changes the
+agents or the Step 1 toolbox.
+
+**Run in VS Code:** **Agents: Story 1 - 4 Assess sandbox boundaries**, then
+choose:
+
+- **Options toolbox:** `probe` (default) creates a separate probe-only toolbox
+  that no agent uses. It tests toolbox-level `memory_limit` and
+  `network_policy`, then deletes the toolbox. `document` records the schema
+  and per-call results only.
+- **Idle wait:** `skip` (default) records the container expiry policy. `wait`
+  also idles about 21 minutes and checks that the container expired.
+
+**Steps:** [story1_sandbox.py](../scripts/run_scenario/story1_sandbox.py) via `--step 4`
+
+1. Runs the reuse guard. Reads the tool schema (`tools/list`), the per-call
+   `_meta` options, and the Step 1 toolbox definition.
+2. Calls the Step 1 toolbox directly twice with a fixed probe. The probe
+   records:
+   - User, uid, capabilities, `NoNewPrivs`, and seccomp mode.
+   - Which paths are writable.
+   - Visible processes, cgroup limits, and runtime versions.
+   - Network outcomes for a public host, its IP address, and the customer
+     storage endpoint.
+
+   It also checks whether a file written by one call is visible to the next.
+3. Sends per-call `_meta` options: `memory_limit` 4g, a network allowlist,
+   and reuse of the first call's container. A 100-second execution is checked
+   against the documented 90-second limit.
+4. With `probe`, creates four versions of the probe-only toolbox: default,
+   `memory_limit` 4g, network disabled, and a network allowlist. It probes each
+   one and always deletes the toolbox, then confirms the read-back returns 404.
+5. Asks the existing agent to run the same probe, and compares its boundaries
+   with the direct probe. Downloading the agent's sandbox output with the
+   operator's identity shows that sandbox files are readable by another
+   principal.
+6. Reads the container expiry policy. With `wait`, idles past it and reads
+   the container's status again.
+7. Deletes only the sandbox containers its own direct probes created, checks
+   the agents again, and writes the boundary matrix and verdict.
+
+| File inside each run folder | Contents |
+|---|---|
+| `04-sandbox-boundaries.md` | Configuration surface, probe results, per-call and toolbox-level options, lifetime, the boundary matrix, and the highlighted multi-tenant limitation |
+| `outputs\hosted\` | The hosted probe's result file |
+| `manifest.json`, `events.jsonl`, `results.jsonl` | Same evidence format as Step 1 |
+
+**Does not prove:** the underlying isolation technology (Hyper-V or Azure
+Container Apps), the internal escape resistance, or limits above the observed
+defaults.
+
+### Agents: Story 1 - 5 Assess state continuity
+
+**Use case:** Story #1 AC5. Tests state continuity across requests and
+rehydration after the sandbox is recreated. It also assesses which state
+layers can live in the customer's network.
+
+**Prerequisites and guard:** the same as Step 4. Writing the Blob checkpoint
+needs the developer data role from **Access: Apply developer permissions**;
+without it the Blob check is `BLOCKED` and no roles are granted.
+
+**Run in VS Code:** **Agents: Story 1 - 5 Assess state continuity**.
+
+**Steps:** [story1_sandbox.py](../scripts/run_scenario/story1_sandbox.py) via `--step 5`
+
+1. R1, in a new conversation C1: fixed Python loads the 10k-row input,
+   computes exact aggregates, sets `story1_state` with a run nonce, and writes
+   a marker file. It also checks whether the sandbox can reach the customer
+   storage endpoint.
+2. R2, in the same conversation C1, and R3, in a new conversation C2: fixed
+   Python that doesn't contain the nonce checks for the variable, the marker,
+   the sandbox fingerprint, and the mounted inputs. The model must also say
+   whether it can recall the nonce from earlier in the conversation.
+3. Builds a small, versioned, SHA-256-sealed checkpoint from R1's validated
+   result. The checkpoint holds the dataset ID and checksum, the transform
+   spec, and the aggregates, but no data rows. It's saved in the run folder,
+   then written to and read back from
+   `artifacts/story1/checkpoints/<run-id>.json` in the existing Blob container.
+4. Recreates the sandbox by deleting R1's container through the containers
+   API, and confirms the container and its files return 404. The agent itself
+   isn't touched.
+5. R4, in a new conversation C3: rehydrates from the Blob checkpoint. It
+   rejects the checkpoint if it's missing, corrupt, a different schema, or
+   stale. Otherwise it reloads the re-mounted input, verifies its SHA-256, and
+   rebuilds the state, which must match the checkpoint and the local
+   calculation exactly.
+6. Deletes the Blob checkpoint and checks the agents again. Writes:
+   - The request-by-request continuity table.
+   - What survived, was lost, or was rebuilt.
+   - The rehydration comparison.
+   - The customer-network placement matrix for the sandbox, uploaded files,
+     conversations, hosted workflow state, and the custom checkpoint.
+
+| File inside each run folder | Contents |
+|---|---|
+| `05-state-continuity.md` | Continuity, checkpoint, recreation, inventory, rehydration, placement matrix, findings, and verdict |
+| `checkpoint.json` | The sealed checkpoint used for rehydration |
+| `outputs\r1\` ... `outputs\r4\` | The sandbox result file for each request |
+
+**Does not prove:** BYO storage for files or conversations (documented for
+the Standard agent setup; this POC uses Basic), private-endpoint residency
+(the POC storage uses a network security perimeter), or process-loss
+recovery (#7).
+
 ## Deployment
 
 ### Infrastructure: Apply changes (azd)
@@ -542,7 +1057,13 @@ Sequential composite:
 
 **Use case:** package/deploy plus agent-role setup plus independent real inference.
 **Effects:** paid builds/hosting/model calls and scoped agent RBAC.
+**Prompts:** each step asks for the environment; enter the same name every time.
 **Boundary:** not delegation, native-user isolation, recovery, or foundation provisioning.
+**Next:** on a new environment, run **Agents: Story 1 - 1 Enable Code Interpreter
+on existing Data Analysis agent** with `enable-if-missing`. For the full order,
+see the [complete task sequence](deployment.md#complete-task-sequence-after-provisioning);
+for `Project not found`, see
+[troubleshooting](deployment.md#troubleshooting-project-not-found).
 
 ### Agents: Deploy and test hosted delegation
 
@@ -591,8 +1112,8 @@ nor does it bypass the workflow guard. It does not reprovision the foundation.
 
 | Task input | Meaning / caution |
 |---|---|
-| `infraEnvironment` | Named azd environment used by the task/helper; default is `hosted-agents-poc-dev`. Provisioning tasks without this argument use the already selected environment. |
-| `infraSubscription` | Explicit Azure subscription name or ID for native infrastructure/developer-access tasks. |
+| `infraEnvironment` | Named azd environment used by the task/helper; default is `hosted-agents-poc-dev`. Type your actual environment name (for example `hosted-agents-poc-dev-001`) when it differs. Provisioning tasks without this argument use the already selected environment (`azd env select`). |
+| `infraSubscription` | Explicit Azure subscription name or ID for native infrastructure/developer-access tasks; default is `lz-app1`, so enter your own subscription when it differs. |
 | `infraDeployment` | Exact subscription deployment operation name for inspection, not the environment name. |
 | `infraCredential` | `az` or `azd` for developer grants; the helper verifies matching users when azd is selected. |
 | `authProfileUsers` | Comma-separated full user UPNs; native isolation requires exactly two distinct authenticated users. Never enter passwords. |

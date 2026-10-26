@@ -27,6 +27,14 @@ For an existing environment, use `azd env select hosted-agents-poc-dev` instead
 of `azd env new`. The templates allow `northcentralus`, `eastus`, and `westus`;
 verify model/Hosted Agent availability and quota before choosing a region.
 
+Resource names derive from the subscription and resource group
+(`rg-<environment>`), so a different environment name, for example
+`hosted-agents-poc-dev-001`, produces an entirely new set of resources. VS Code
+task prompts default to `hosted-agents-poc-dev` for the environment and
+`lz-app1` for the subscription; type your actual values at every prompt when
+they differ. Tasks without an environment prompt use the azd default
+environment, so also run `azd env select <environment>`.
+
 ## Preview and provision
 
 ```powershell
@@ -47,6 +55,22 @@ azd provision
 This creates resources and incurs charges. Inspect failed deployment operations
 before continuing; do not silently change regions or treat provisioning as
 proof of NSP/data access.
+
+A failed `azd provision` saves **no** outputs to the azd environment. A later
+`azd deploy` then fails with `Microsoft Foundry project ID is required:
+AZURE_AI_PROJECT_ID is not set`; do not set the value by hand. Find the failing
+operation, fix it, and provision again:
+
+```powershell
+az deployment sub list --query "sort_by([?contains(name,'<environment>')], &properties.timestamp)[-3:].{name:name,state:properties.provisioningState}" -o table
+az deployment operation sub list --name <failed-deployment-name> --query "[?properties.provisioningState=='Failed'].properties.statusMessage.error" -o json
+azd env get-value AZURE_AI_PROJECT_ID   # set only after a successful provision
+```
+
+On 2026-10-25 this happened with `RoleDefinitionDoesNotExist` from
+`project-access`: the Monitoring Reader assignment used an ID that is not a
+built-in role. It now uses `43d0d8ad-25c7-4714-9337-8ba259a9fe05`; verify role
+IDs with `az role definition list --name "<role name>" --query "[0].name"`.
 
 ## Grant local-user access
 
@@ -109,7 +133,9 @@ uv run --frozen --no-sync --group validation python -m scripts.run_scenario.host
 - Each deployment creates an immutable agent version, even with unchanged code.
 - Agent-instance model grants are separate from local-user RBAC. The helper
   resolves actual instance principals and applies scoped Foundry User roles.
-  Ordinary smoke setup adds no Blob, impersonation, or telemetry roles. The
+  It also ensures Data Analysis has Monitoring Metrics Publisher and the project
+  managed identity has Monitoring Reader on the connected Application Insights.
+  Ordinary smoke setup adds no Blob or impersonation roles. The
   optional Supervisor impersonation grant is separate and does not establish
   verified caller propagation. RBAC propagation may delay requests.
 - Hosted smoke uses the Azure CLI user and actual agent-bound Responses
@@ -123,6 +149,42 @@ uv run --frozen --no-sync --group validation python -m scripts.run_scenario.host
   exit code is not deployment proof. Inspect named-service failures explicitly.
 - Foundry injects reserved `FOUNDRY_*` and `PORT` variables. Do not add them to
   service `env`; the platform rejects these overrides.
+
+### Complete task sequence after provisioning
+
+Run these VS Code tasks in order for a new or re-created environment. Enter the
+same environment and subscription at every prompt.
+
+| # | Task | Grants or configures |
+|---|---|---|
+| 1 | **Setup: Update .env from deployment** (or **Create** when no `.env` exists) | Project endpoint and model deployment in `.env` |
+| 2 | **Access: Preview developer permissions**, then **Access: Apply developer permissions** | Your identity: Foundry User, Storage Blob Data Contributor, Log Analytics Reader, Monitoring Reader, Monitoring Metrics Publisher |
+| 3 | *(Optional, CLI)* `azd env set APPLICATIONINSIGHTS_CONNECTION_STRING (az monitor app-insights component show --ids (azd env get-value AZURE_APPLICATION_INSIGHTS_ID) --query connectionString -o tsv)` | Data Analysis trace export; must precede step 4 |
+| 4 | **Agents: Deploy and smoke test all hosted agents** | Deploys all three agents, then runs **Access: Apply hosted agent permissions** (agent Foundry User, Data Analysis Monitoring Metrics Publisher, project Monitoring Reader) and the hosted smoke test |
+| 5 | **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent**, mode `enable-if-missing` | Uploads Story 1 data, creates the toolbox, sets `DATA_ANALYSIS_TOOLBOX_ENDPOINT`, redeploys only Data Analysis, writes `agents-baseline.json` |
+
+The project identity's Foundry User, AcrPull, and Monitoring Reader roles come
+from Bicep. Run **Access: Preview/Apply hosted agent permissions** alone only
+to repair agent grants without redeploying. Optional: **Access: Apply
+Supervisor impersonation permission** before delegation scenarios, and
+**Access: Create isolated user auth profiles** before native-user isolation.
+
+### Troubleshooting `Project not found`
+
+If agent creation or the Agent Service returns `404 NotFound: Project not
+found` while the project exists, check whether the Agent Service has
+registered the project:
+
+```powershell
+$t = az account get-access-token --resource https://ai.azure.com --query accessToken -o tsv
+try { (Invoke-WebRequest "$(azd env get-value AZURE_AI_PROJECT_ENDPOINT)/agents?api-version=v1" -Headers @{Authorization="Bearer $t"} -UseBasicParsing).StatusCode } catch { [int]$_.Exception.Response.StatusCode }
+```
+
+`404` means not yet registered; `403` means registered but your identity lacks
+access (apply developer permissions); `200` means ready. Capability hosts are
+[not required](https://learn.microsoft.com/azure/foundry/agents/concepts/capability-hosts)
+for this basic setup, so do not add one to work around it. See
+[re-creating after teardown](#re-create-after-teardown) for the observed case.
 
 Full stateful delegation is not yet validated. The current application guard
 rejects a missing nested user ID before State Store access, although the
@@ -631,3 +693,57 @@ Local source and `.env` are not deleted; endpoints in that file become stale.
 The custom impersonation role was created explicitly outside Bicep. Project
 deletion removes its scoped assignment, but the custom definition may require
 separate administrator cleanup. Teardown never runs from setup, F5, or hooks.
+
+Verify deletion, including the purge:
+
+```powershell
+az group exists --name rg-hosted-agents-poc-dev           # false
+az cognitiveservices account list-deleted -o table        # no aif-poc-* entry
+```
+
+`azd down` keeps the local azd environment but, as observed on 2026-10-25,
+removes its provisioning outputs and `AZURE_SUBSCRIPTION_ID`/`AZURE_LOCATION`.
+It keeps `AGENT_*`, `DATA_ANALYSIS_TOOLBOX_ENDPOINT`, and
+`APPLICATIONINSIGHTS_CONNECTION_STRING`, which then point at deleted resources.
+To delete the local environment too, run this **after** `azd down`, because
+`azd down` needs the environment's values:
+
+```powershell
+azd env remove hosted-agents-poc-dev --force   # deletes only .azure\hosted-agents-poc-dev\
+```
+
+### Re-create after teardown
+
+Prefer a **new environment name**, for example `hosted-agents-poc-dev-001`:
+
+```powershell
+azd env new hosted-agents-poc-dev-001
+azd env set AZURE_SUBSCRIPTION_ID (az account show --query id --output tsv)
+azd env set AZURE_LOCATION northcentralus
+azd provision --preview
+azd provision
+```
+
+Then follow the [complete task sequence](#complete-task-sequence-after-provisioning).
+
+Observed on 2026-10-25: after purging and re-creating with the **same**
+environment name (and therefore the same account and project names), ARM, the
+project endpoint, `/connections`, and `/assistants` worked, but the Agent
+Service (`/agents`, `/toolboxes`) returned `404 Project not found` for over
+25 minutes, including for a new temporary project in the same account.
+Deployment failed until then. A new environment name produced a new account
+that the Agent Service recognized promptly. The cause is unconfirmed; similar
+delays for new projects are
+[reported to clear within hours](https://github.com/orgs/microsoft-foundry/discussions/326).
+
+If you reuse the same name, set `AZURE_SUBSCRIPTION_ID` and `AZURE_LOCATION`
+again and clear the stale values before deploying:
+
+```powershell
+azd env set DATA_ANALYSIS_TOOLBOX_ENDPOINT ""
+azd env set APPLICATIONINSIGHTS_CONNECTION_STRING ""
+```
+
+A blank toolbox endpoint means "no toolbox"; Story 1 Step 1
+(`enable-if-missing`) sets it again. Existing evidence in `artifacts\story-1\`
+stays as historical evidence of the previous environment.

@@ -2,14 +2,15 @@
 
 import json
 import logging
+import os
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from time import perf_counter
 
+from azure.ai.agentserver.core import configure_observability
 from opentelemetry import trace
-from opentelemetry.sdk.resources import Resource
 from opentelemetry.trace import Span, Status, StatusCode
 
 from app.core.redaction import sanitize
@@ -33,7 +34,13 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(sanitize(payload), ensure_ascii=True)
 
 
-def configure_logging(service: str, *, level: str = "INFO", connection_string: str | None = None) -> None:
+def configure_logging(
+    service: str,
+    *,
+    level: str = "INFO",
+    connection_string: str | None = None,
+    auth_mode: str | None = None,
+) -> None:
     """Configure once at startup; requested telemetry errors are not swallowed."""
     global _telemetry_service
     root = logging.getLogger()
@@ -44,19 +51,20 @@ def configure_logging(service: str, *, level: str = "INFO", connection_string: s
     root.setLevel(level)
     logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
     if connection_string and _telemetry_service is None:
-        try:
-            from azure.monitor.opentelemetry import configure_azure_monitor
-        except ImportError as error:
-            raise RuntimeError("Azure telemetry requires: uv sync --extra telemetry") from error
-        from agent_framework.observability import enable_instrumentation
-
-        configure_azure_monitor(
-            connection_string=connection_string,
-            resource=Resource.create({"service.name": f"{service}-agent", "service.version": "0.1.0"}),
-            enable_live_metrics=False,
-        )
-        enable_instrumentation(enable_sensitive_data=False)
+        if auth_mode == "entra":
+            # Foundry rejects this platform-reserved name in agent definitions, but the SDK only reads
+            # it from the process environment to export with the agent's managed identity.
+            os.environ["APPLICATIONINSIGHTS_AUTH_MODE"] = "entra"
+        # The hosting SDK path stamps Foundry agent identity on every span, which the Foundry
+        # trace view filters on, and enables Agent Framework instrumentation via its distro.
+        configure_observability(connection_string=connection_string, log_level=level, enable_sensitive_data=False)
         _telemetry_service = service
+        logging.getLogger(__name__).info(
+            "Telemetry export configured",
+            extra={
+                "details": {"agent": service, "auth_mode": auth_mode or "connection_string", "sensitive_data": False}
+            },
+        )
 
 
 class Logger:

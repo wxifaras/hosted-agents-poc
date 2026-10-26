@@ -49,6 +49,12 @@ and container recipe.
 - Start with developer-controlled Python analysis in Data Analysis. A separately
   invoked managed Code Interpreter would be a different execution environment,
   not evidence of this container's capacity.
+- **Amendment (2026-10-22, Story #1):** for Story 1, the baseline is
+  Microsoft-managed Code Interpreter. It is attached through a Foundry toolbox
+  to the **existing** Data Analysis hosted agent, using `FoundryToolbox`, only
+  when `TOOLBOX_ENDPOINT` is set. Sandbox measurements describe that managed
+  sandbox, not the hosted container's 0.5 CPU / 1 GiB. Developer-controlled
+  in-container Python remains a separate option and is not implemented.
 
 The disposable POC permits authenticated public endpoints. Blob connectivity
 uses enforced Network Security Perimeter (NSP) with broad IPv4 ingress,
@@ -211,7 +217,7 @@ proof. Analysis tools and automatic recovery are not implemented.
 | Capability | Implementation | Observed evidence / remaining validation |
 |---|---|---|
 | Python/uv, core modules, packaging, Rich scripts | Implemented | Local import/readiness, packaging, lint/types/tests exercised |
-| Bicep foundation and operator access | Implemented | Provisioning, model, developer Blob/monitoring probes observed; isolated NSP-denial checks pending |
+| Bicep foundation and operator access | Implemented | Provisioning, model, developer Blob/monitoring probes observed; invalid Monitoring Reader role ID in `project-access` fixed 2026-10-25; isolated NSP-denial checks pending |
 | Three independent hosted model agents | Implemented | Last all-three hosted smoke passed on version 4; not an orchestration test |
 | Last verified deployment snapshot | Supervisor 11, Research 6, Data Analysis 4 | Native-user tests independently verified Research 6; rediscover versions before testing |
 | Idle policy: 120 seconds | Configured | Raw deployed metadata verified; does not prove file restoration or exact deprovision timing |
@@ -221,7 +227,7 @@ proof. Analysis tools and automatic recovery are not implemented.
 | Separate forwarding/state/history experiments | Implemented, opt-in | Hosted nested delegated B denial failed; direct native-user Research isolation subsequently passed |
 | Direct native-Entra-user control | Passed for Research 6 in both directions | Two distinct authenticated users, no delegated headers, state/history denial and final owner continuation; not nested propagation proof |
 | Direct delegated-user control | Passed with temporary approved operator permission | Platform user visible, A continuity and B denial verified; temporary grants removed; nested flow still fails |
-| CSV/XLSX analysis and dataset generation | Not implemented | Parse/filter/group/statistics, derived data, and visualization still required |
+| CSV/XLSX analysis and dataset generation | Partial (Story 1) | Managed Code Interpreter on the existing Data Analysis agent (v6 in `hosted-agents-poc-dev`) verified 2026-10-24 with a sandbox-computed SHA-256 and container reference; filter/group/visualize with summary, aggregates, CSVs, and chart delivered to the user (Story 1 Step 2, AC2) Met on 2026-10-24, Supervisor path blocked at the nested caller guard and file forwarding through it not built; Story 1 Step 3 (AC3) on 2026-10-24: exact results and all outputs at 1k/10k/100k rows (up to 5.4 MiB) in one sandbox execution each, peak RSS 162 MiB of a 2 GiB / 1 CPU enforced sandbox limit; viable for the tested sizes only; Story 1 Step 4 (AC4) on 2026-10-24: sandbox runs as non-root `sandbox` with no capabilities and a read-only root, has no DNS or egress, gives every tool call a new container, and lets other project principals read sandbox outputs; per-call and toolbox-level `memory_limit` 4g did not change the enforced 2 GiB, network allowlists are rejected by organization policy, a 100 s execution completed beyond the tool's self-described 90 s limit (consistent with the documented 220 s maximum), and containers follow a 20 min idle-expiry policy (expired after 21.5 min idle) versus the documented 30 min; Story 1 Step 5 (AC5) on 2026-10-24: conversation history continues and is isolated per conversation, sandbox variables and files never carry over, a deleted container's files are gone, and state was rebuilt exactly from a sealed checkpoint stored in customer Blob |
 | ArtifactStore/Blob references | Not implemented | Storage exists; application I/O, checksums, and authorization still required |
 | Capacity harness | Not implemented | Measure progressive workloads at 0.5/1, 1/2, and 2/4 vCPU/GiB; no measured boundary yet |
 | Session filesystem idle/resume | Not validated | Upload, derive, idle/resume same session, verify hashes, continue analysis |
@@ -247,7 +253,7 @@ regional availability, pinned-SDK compatibility, implementation, or test success
 | [State Store (preview)][state-store] | Core durable state | Partial hosted mapping proof, not full checkpoint/isolation proof |
 | Session filesystem and conversation history | Core lifecycle experiment | Interfaces in use; lifecycle and private-history boundaries unverified |
 | Dedicated agent identities and model deployment | Core | In use; actual principals and scoped model access checked |
-| Hosted-agent Toolboxes (GA) + Tool Search (GA) | Planned Research experiment | Not connected; require approved read-only tool discovery/execution and traces |
+| Hosted-agent Toolboxes (GA) + Tool Search (GA) | Story 1 Data Analysis (Code Interpreter); planned Research experiment | Toolbox `story1-data-analysis-ci` with `code_interpreter` is in use by the existing Data Analysis agent; Research is not connected |
 | [Long-running hosted-agent resilience (public preview)][resilience] | Planned core recovery experiment | Not enabled; meaningful checkpoints and opt-in failure tests required |
 | Insights (public preview) | Optional after repeatable traces | Not used; findings require human review, not automatic changes |
 | A2A (GA) | Optional interoperability experiment | Not used; Responses delegation is not A2A interoperability proof |
@@ -256,8 +262,8 @@ regional availability, pinned-SDK compatibility, implementation, or test success
 | Cross-session semantic memory | Optional, separate experiment | Not used; Foundry/Cosmos choices need their own compatibility and isolation checks |
 
 MAF/uv are the framework/toolchain; ACR, Blob, NSP, and Azure Monitor are supporting
-Azure services, not additional Foundry features. Managed Code Interpreter would
-be a separate experiment. Voice, Foundry Local, model-catalog upgrades, a frontend,
+Azure services, not additional Foundry features. Managed Code Interpreter is
+used only for Story 1 (see the amendment above). Voice, Foundry Local, model-catalog upgrades, a frontend,
 production load testing, and multi-region/private-network production design are
 not automatically added because a release announcement mentions them.
 

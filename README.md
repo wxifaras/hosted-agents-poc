@@ -94,16 +94,78 @@ flowchart LR
 
 ### Data Analysis
 
-`POC_AGENT_NAME=data_analysis`. Discusses supplied synthetic examples using
-Data Analysis-specific instructions. File analysis, Python execution tools,
-and artifact generation are not implemented yet.
+`POC_AGENT_NAME=data_analysis`. Without `TOOLBOX_ENDPOINT`, it discusses
+supplied synthetic examples using Data Analysis-specific instructions. For
+Story #1 the **existing** deployed agent is wired to Microsoft-managed Code
+Interpreter through a Foundry toolbox. It then executes Python in the managed
+sandbox and returns `poc-artifacts-v1` container references. Generated files
+stay in the sandbox and are downloaded by an authenticated client. See
+**Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent**.
+
+To run it, choose **Terminal > Run Task...** in VS Code, select that task,
+then select the environment and mode. Use `enable-if-missing` for initial
+toolbox/agent wiring, or `verify` to test an already-configured deployment.
+Both modes incur sandbox/model usage charges. See the
+[Step 1 task guide](docs/tasks-detailed.md#agents-story-1---1-enable-code-interpreter-on-existing-data-analysis-agent)
+for prerequisites, execution steps, and the complete output-file inventory.
+
+This is a **local test runner calling remote services**, not a sandbox-only
+task: dataset generation, expected checksums, API coordination, and evidence
+writing run locally; agent orchestration runs in the deployed Foundry agent;
+Code Interpreter executes the probe/analysis Python in the managed sandbox.
+There is no implemented "nothing local" mode. The
+[cloud-only execution proposal](docs/tasks-detailed.md#cloud-only-execution-proposed-not-implemented)
+describes that separate, unimplemented approach.
+
+Results are linked from [the Story 1 evidence index](artifacts/story-1/index.md).
+New Step 1 run folders include the UTC start time, step, capability, mode, and a
+short unique suffix, for example
+`artifacts\story-1\2026-10-23_12-04-08Z-step-1-code-interpreter-verify-a1b2c3d4\`.
+Open `01-existing-agent-code-interpreter.md` inside the run folder for the report.
+Existing run folders and their index links are left unchanged.
+
+After Step 1, run **Agents: Story 1 - 2 Analyze data and deliver outputs**
+(Story #1 AC2), **Agents: Story 1 - 3 Evaluate dataset sizes** (AC3),
+**Agents: Story 1 - 4 Assess sandbox boundaries** (AC4), and
+**Agents: Story 1 - 5 Assess state continuity** (AC5). They require the Step 1
+baseline, never change the agents or the Step 1 toolbox, and write
+`02-analysis-and-outputs.md` through `05-state-continuity.md`. Step 4 can
+create and delete a separate probe-only toolbox; Step 5 deletes one sandbox
+container and writes, reads, and deletes one synthetic Blob checkpoint. See the
+[Step 2](docs/tasks-detailed.md#agents-story-1---2-analyze-data-and-deliver-outputs),
+[Step 3](docs/tasks-detailed.md#agents-story-1---3-evaluate-dataset-sizes),
+[Step 4](docs/tasks-detailed.md#agents-story-1---4-assess-sandbox-boundaries),
+and [Step 5](docs/tasks-detailed.md#agents-story-1---5-assess-state-continuity)
+task guides.
+
+Data Analysis exports hosted request and Agent Framework traces to the
+Application Insights resource linked to the Foundry project when
+`APPLICATIONINSIGHTS_CONNECTION_STRING` is populated in the selected azd
+environment before deployment. The manifest passes the value as
+`POC_APPLICATIONINSIGHTS_CONNECTION_STRING` because the standard name is
+platform-reserved; a platform-supplied connection is used as the fallback.
+Startup uses the hosting SDK's `configure_observability`, which stamps the
+Foundry agent name/version on every span (what the Foundry trace view filters
+on) and enables Agent Framework instrumentation. Application Insights disables
+local auth, so Data Analysis exports with its Entra identity
+(`POC_APPLICATIONINSIGHTS_AUTH_MODE=entra`); **Access: Apply hosted agent
+permissions** grants it Monitoring Metrics Publisher on that resource only.
+The same task also grants the Foundry project's managed identity Monitoring
+Reader on that resource, so Foundry Insights can read the exported telemetry.
+It checks existing assignments before applying either role.
+Prompt/tool-content capture is explicitly disabled. See
+[viewing Step 1 traces](docs/tasks-detailed.md#viewing-step-1-traces-in-foundry)
+for setup, deployment scope, and verification. Direct operator toolbox probes
+are not Data Analysis agent invocations.
 
 ```mermaid
 flowchart LR
     accTitle: Data Analysis agent turn
-    accDescr: Data Analysis receives synthetic context, runs the shared model with its own instructions, and returns a text answer without executing analysis tools.
+    accDescr: Data Analysis receives a task, runs the shared model with its own instructions, optionally executes code in the managed Code Interpreter sandbox, and returns an answer with container references.
     Task["Task and synthetic context"] --> Analysis["Data Analysis instructions and model"]
-    Analysis --> Answer["Text answer - no tool execution yet"]
+    Analysis --> Sandbox["Managed Code Interpreter via toolbox, when configured"]
+    Sandbox --> Answer["Answer plus container references"]
+    Analysis --> Answer
 ```
 
 ## Quick start - run in this order
@@ -148,6 +210,8 @@ provisioning or a new agent version.
    existing subscription/region values rather than overwriting them blindly.
    Check model/Hosted Agent availability and quota before choosing a different
    [supported region](docs/deployment.md#select-the-environment).
+   Task prompts default to environment `hosted-agents-poc-dev` and subscription
+   `lz-app1`; enter your own values when they differ.
 4. **Preview the foundation** only if it is new or an infrastructure change is needed:
 
    ```powershell
@@ -165,7 +229,9 @@ provisioning or a new agent version.
    ```
 
    This creates/changes Azure resources and incurs charges. Skip it when reusing
-   an unchanged foundation.
+   an unchanged foundation. If it fails, no outputs are saved and a later deploy
+   reports `AZURE_AI_PROJECT_ID is not set`; see
+   [provisioning failures](docs/deployment.md#preview-and-provision).
 6. **Generate local settings:** use **Setup: Create .env from deployment**, or
    **Setup: Update .env from deployment** for an existing file. The helper finds
    the latest successful deployment for the exact environment and preserves
@@ -187,8 +253,20 @@ provisioning or a new agent version.
    task. See [local debugging details](docs/deployment.md#local-hosts-and-debugging).
 10. **Deploy and verify independently hosted agents:** run
     **Agents: Deploy and smoke test all hosted agents**. This explicitly builds
-    remotely in ACR, creates hosted versions, applies scoped instance model access,
-    and invokes all three agents. It incurs build/session/model usage.
+    remotely in ACR, creates hosted versions, runs
+    **Access: Apply hosted agent permissions** (agent model access, Data
+    Analysis telemetry publishing, project Monitoring Reader), and invokes all
+    three agents. It incurs build/session/model usage. For Data Analysis traces,
+    set `APPLICATIONINSIGHTS_CONNECTION_STRING` in the azd environment first
+    ([details](docs/tasks-detailed.md#viewing-step-1-traces-in-foundry)).
+    A `Project not found` error means the Agent Service has not registered the
+    project yet; see [troubleshooting](docs/deployment.md#troubleshooting-project-not-found).
+11. **Enable Code Interpreter for Story 1:** run
+    **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent**
+    with mode `enable-if-missing` on a new environment, `verify` afterwards.
+
+The [complete task sequence](docs/deployment.md#complete-task-sequence-after-provisioning)
+lists every deployment and permission task in order.
 
 For already-deployed agents, **Agents: Smoke test all hosted agents** avoids a
 new build/version and requires no local F5 hosts. Use `azd provision` for reviewed
@@ -249,7 +327,9 @@ platform GA/preview status, implementation, and verification are not interchange
 Teardown is manual, destructive, and never part of setup or debugging. It can
 permanently remove the POC and supported recovery copies. Confirm the selected
 subscription/environment, save anything needed, then follow the
-[teardown procedure and warnings](docs/deployment.md#tear-down).
+[teardown procedure and warnings](docs/deployment.md#tear-down). To start over,
+prefer a new environment name; see
+[re-create after teardown](docs/deployment.md#re-create-after-teardown).
 
 ## VS Code tasks
 
@@ -272,6 +352,11 @@ for setup, execution boundaries, and debugger details.
 | **Agents: Smoke test all hosted agents** | Remote inference without building new versions |
 | **Agents: Test hosted identity variants and isolation** | Explicit hosted call-context/user-label experiments and synthetic state/history tests; no models; requires diagnostic opt-in |
 | **Agents: Test native Entra user isolation** | Choose verbose request/response panels or shorter output; two native CLI users directly invoke Research, with no delegated labels or models |
+| **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent** | Reuses the existing agents. `verify` is read-only plus a paid sandbox proof. `enable-if-missing` creates the Story 1 toolbox and updates only the existing Data Analysis agent, once. Writes a Markdown report |
+| **Agents: Story 1 - 2 Analyze data and deliver outputs** | Read-only reuse of the Step 1 agents and toolbox. One paid Data Analysis request (model-written filter/group/summarize/chart) validated against a local oracle, downloaded CSVs and chart, and the existing Supervisor workflow path. Writes `02-analysis-and-outputs.md` |
+| **Agents: Story 1 - 3 Evaluate dataset sizes** | Read-only reuse of the Step 1 agents and toolbox. One sequential paid request per size (1k/10k/100k rows), no retries, and stops at the first platform failure. Writes `03-capacity.md` with sandbox measurements and a scoped viability verdict |
+| **Agents: Story 1 - 4 Assess sandbox boundaries** | Paid benign sandbox probes (identity, filesystem, network, execution limit, per-call and toolbox-level options), one hosted confirmation, and an optional ~21-minute idle-expiry wait. Can create and then delete a separate probe-only toolbox. Writes `04-sandbox-boundaries.md` |
+| **Agents: Story 1 - 5 Assess state continuity** | Four paid hosted requests across three conversations, one sandbox container deletion, and a synthetic checkpoint written to, read from, and deleted in the existing Blob container. Writes `05-state-continuity.md` |
 | **Access: Preview hosted agent permissions** | Read-only actual-instance permission inspection |
 | **Access: Create isolated user auth profiles** | Prompt for UPNs and optional project-scoped Consumer RBAC; operator grants precede isolated Microsoft sign-in; no agent calls or administrative/impersonation grants |
 | **Access: Apply hosted agent permissions** | Explicit scoped grants; not proof of delegation |

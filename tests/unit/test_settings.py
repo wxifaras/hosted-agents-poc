@@ -74,6 +74,36 @@ def test_blank_example_is_valid(monkeypatch: pytest.MonkeyPatch) -> None:
     assert get_settings().foundry_project_endpoint is None
 
 
+def test_hosted_telemetry_alias_overrides_standard_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("APPLICATIONINSIGHTS_CONNECTION_STRING", "local-connection")
+    local = Settings().applicationinsights_connection_string
+    assert local is not None and local.get_secret_value() == "local-connection"
+    monkeypatch.setenv("POC_APPLICATIONINSIGHTS_CONNECTION_STRING", "hosted-connection")
+    hosted = Settings().applicationinsights_connection_string
+    assert hosted is not None and hosted.get_secret_value() == "hosted-connection"
+    assert "hosted-connection" not in repr(Settings())
+    monkeypatch.setenv("POC_APPLICATIONINSIGHTS_CONNECTION_STRING", "")
+    assert Settings().applicationinsights_connection_string is None
+
+
+def test_telemetry_auth_mode_alias_accepts_only_entra(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert Settings().applicationinsights_auth_mode is None
+    monkeypatch.setenv("POC_APPLICATIONINSIGHTS_AUTH_MODE", "")
+    assert Settings().applicationinsights_auth_mode is None
+    monkeypatch.setenv("POC_APPLICATIONINSIGHTS_AUTH_MODE", "entra")
+    assert Settings().applicationinsights_auth_mode == "entra"
+    monkeypatch.setenv("POC_APPLICATIONINSIGHTS_AUTH_MODE", "key")
+    with pytest.raises(ValidationError):
+        Settings()
+
+
+def test_telemetry_constructor_setting_is_preserved() -> None:
+    connection = Settings(
+        applicationinsights_connection_string="explicit-connection"
+    ).applicationinsights_connection_string
+    assert connection is not None and connection.get_secret_value() == "explicit-connection"
+
+
 def test_port_and_model_validation() -> None:
     with pytest.raises(ValidationError):
         Settings(port=65536)

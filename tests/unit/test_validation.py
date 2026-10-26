@@ -35,6 +35,7 @@ def test_recursive_redaction() -> None:
 @pytest.mark.parametrize(("status", "expected_code"), [("PASS", 0), ("FAIL", 1), ("BLOCKED", 2), ("SKIP", 1)])
 def test_result_output_and_exit_code(tmp_path: Path, status: str, expected_code: int) -> None:
     run = ValidationRun("test", "unit", tmp_path, no_color=True)
+    assert run.path == tmp_path / run.run_id
     # Use the command's public statuses, not an arbitrary unvalidated payload.
     from scripts.common.reporting import Status
 
