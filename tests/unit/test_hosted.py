@@ -34,7 +34,7 @@ CONTEXT = {
 ROLE_IDS = {
     "Foundry User": PRINCIPAL,
     "Monitoring Metrics Publisher": "3913510d-42f4-4e42-8a64-420c390055eb",
-    "Monitoring Reader": "43d8fa96-e556-4b83-a735-4c5e71f4bac2",
+    "Monitoring Reader": "43d0d8ad-25c7-4714-9337-8ba259a9fe05",
 }
 
 

@@ -16,12 +16,12 @@ resource insights 'Microsoft.Insights/components@2020-02-02' existing = {
 }
 
 resource insightsRead 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(insights.id, principalId, '43d8fa96-e556-4b83-a735-4c5e71f4bac2')
+  name: guid(insights.id, principalId, '43d0d8ad-25c7-4714-9337-8ba259a9fe05')
   scope: insights
   properties: {
     principalId: principalId
     principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '43d8fa96-e556-4b83-a735-4c5e71f4bac2')
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '43d0d8ad-25c7-4714-9337-8ba259a9fe05')
   }
 }
 

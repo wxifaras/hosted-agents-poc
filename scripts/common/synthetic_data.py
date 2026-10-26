@@ -118,6 +118,11 @@ def build_dataset(count: int, *, seed: int = SEED) -> Dataset:
     return Dataset(rows=count, filename=f"story1-sales-{count}.csv", content=to_csv(generate_rows(count, seed=seed)))
 
 
+def expected_filtered_ids(rows: Iterable[Row]) -> list[int]:
+    """Row IDs, in file order, that the completed-West filter must keep."""
+    return [row.row_id for row in rows if row.status == FILTER_STATUS and row.region == FILTER_REGION]
+
+
 def expected_aggregates(rows: Iterable[Row]) -> dict[str, CategoryTotals]:
     """Filter completed West rows, then group by category; nulls are excluded from sums."""
     totals: dict[str, list[int]] = {}

@@ -111,7 +111,7 @@ def test_project_identity_can_read_insights_at_resource_scope(compiled: dict) ->
         item
         for item in access["properties"]["template"]["resources"]
         if item["type"] == "Microsoft.Authorization/roleAssignments"
-        and "43d8fa96-e556-4b83-a735-4c5e71f4bac2" in item["properties"]["roleDefinitionId"]
+        and "43d0d8ad-25c7-4714-9337-8ba259a9fe05" in item["properties"]["roleDefinitionId"]
     ]
     assert len(roles) == 1
     role = roles[0]

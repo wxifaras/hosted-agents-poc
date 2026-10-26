@@ -41,6 +41,16 @@ does not run that access task. The interactive Insights user also needs
 Monitoring Reader, as described in the
 [Foundry Insights prerequisites](https://learn.microsoft.com/azure/foundry/observability/how-to/agent-insights#prerequisites).
 
+[project-access.bicep](modules/project-access.bicep) uses built-in role IDs:
+Foundry User `53ca6127-db72-4b80-b1b0-d745d6d5456d`, AcrPull
+`7f951dda-4ed3-4680-a7ca-43fe172d538d`, and Monitoring Reader
+`43d0d8ad-25c7-4714-9337-8ba259a9fe05`. The Monitoring Reader grant first
+shipped with a nonexistent ID; on 2026-10-25 a fresh provision failed with
+`RoleDefinitionDoesNotExist` until it was corrected. Environments provisioned
+before that grant existed were unaffected. Check any new role ID with
+`az role definition list --name "<role name>" --query "[0].name"`; the unit
+tests assert the IDs in the compiled template, not that they exist in Azure.
+
 All-public-IP NSP ingress is intentionally broad internet reachability for this
 synthetic POC, not private networking or anonymous data access. Prefix acceptance
 and real data-plane behavior still require deployed verification.

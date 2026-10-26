@@ -204,6 +204,42 @@
       "problemMatcher": []
     },
     {
+      "label": "Agents: Story 1 - 2 Analyze data and deliver outputs",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "2", "--environment", "${input:infraEnvironment}"],
+      "detail": "Read-only reuse of the Step 1 agents and toolbox. Paid: one Data Analysis request (model-written filter/group/summarize/chart on 1k rows) validated against a local oracle, downloads the CSVs and chart, and records the existing Supervisor POC_WORKFLOW path. Writes 02-analysis-and-outputs.md. Requires a Step 1 baseline.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 1 - 3 Evaluate dataset sizes",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "3", "--environment", "${input:infraEnvironment}"],
+      "detail": "Read-only reuse of the Step 1 agents and toolbox. Paid: one sequential hosted request per size (1k/10k/100k rows, 300 s client timeout, no retries); stops escalating at the first platform failure. Writes 03-capacity.md with sandbox measurements and a scoped viability verdict. Requires a Step 1 baseline.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 1 - 4 Assess sandbox boundaries",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "4", "--environment", "${input:infraEnvironment}", "--options-toolbox", "${input:story1OptionsToolbox}", "--idle-wait", "${input:story1IdleWait}"],
+      "detail": "Reuses the Step 1 agents and toolbox without changing them. Paid: benign direct sandbox probes (identity, filesystem, network, 90 s limit, per-call options), one hosted confirmation, and optionally a temporary probe-only toolbox that is deleted. Deletes only its own probe containers. Writes 04-sandbox-boundaries.md.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 1 - 5 Assess state continuity",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "5", "--environment", "${input:infraEnvironment}"],
+      "detail": "Reuses the Step 1 agents and toolbox without changing them. Paid: four hosted requests across three conversations, deletes one sandbox container to test recreation, and writes/reads/deletes one synthetic checkpoint in the existing Blob container. Writes 05-state-continuity.md.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
       "label": "Infrastructure: Compile Bicep",
       "type": "process",
       "command": "az",
@@ -332,6 +368,20 @@
       "description": "verify = no changes; enable-if-missing = create the Story 1 toolbox and update the EXISTING data-analysis-agent once if not already done",
       "options": ["verify", "enable-if-missing"],
       "default": "verify"
+    },
+    {
+      "id": "story1OptionsToolbox",
+      "type": "pickString",
+      "description": "probe = create a separate probe-only toolbox (no agent uses it), test memory/network options, then delete it; document = schema and per-call tests only",
+      "options": ["probe", "document"],
+      "default": "probe"
+    },
+    {
+      "id": "story1IdleWait",
+      "type": "pickString",
+      "description": "skip = record the container expiry policy only; wait = idle about 21 minutes and check that the container expired",
+      "options": ["skip", "wait"],
+      "default": "skip"
     },
     {
       "id": "nativeIsolationVerbosity",

@@ -3,6 +3,7 @@
 import argparse
 import json
 import platform
+import re
 from datetime import UTC, datetime
 from importlib.metadata import version
 from pathlib import Path
@@ -149,13 +150,24 @@ def markdown_cell(value: object) -> str:
     return text.replace("|", "\\|").replace("\r", "").replace("\n", "<br>") or "-"
 
 
+SUMMARY_SLOT = "<!-- report-summary -->"
+
+
 class MarkdownReport:
     """Incrementally persisted, sanitized Markdown evidence that renders in VS Code Preview."""
 
     def __init__(self, path: Path, title: str) -> None:
         self.path = path
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(f"# {sanitize_text(title)}\n", encoding="utf-8")
+        # The reader-first summary is only known at the end; reserve its place directly under the title.
+        self.path.write_text(f"# {sanitize_text(title)}\n\n{SUMMARY_SLOT}\n", encoding="utf-8")
+
+    def summary(self, markdown: str) -> None:
+        """Place the summary under the title; append it if the slot is gone."""
+        text = self.path.read_text(encoding="utf-8")
+        block = sanitize_text(markdown).rstrip() + "\n"
+        text = text.replace(SUMMARY_SLOT, block, 1) if SUMMARY_SLOT in text else f"{text}\n{block}"
+        self.path.write_text(text, encoding="utf-8")
 
     def _append(self, text: str) -> None:
         with self.path.open("a", encoding="utf-8") as stream:
@@ -177,18 +189,27 @@ class MarkdownReport:
         self._append("\n" + "\n".join(lines) + "\n")
 
     def code(self, text: str, language: str = "") -> None:
-        self._append(f"\n```{language}\n{sanitize_text(text).rstrip()}\n```\n")
+        safe = sanitize_text(text).rstrip()
+        # A fence longer than any backtick run inside keeps nested fenced blocks intact.
+        longest = max((len(run) for run in re.findall(r"`+", safe)), default=0)
+        fence = "`" * max(3, longest + 1)
+        self._append(f"\n{fence}{language}\n{safe}\n{fence}\n")
 
     def render(self, console: Console) -> None:
         """Show the same persisted Markdown in the terminal."""
         text = self.path.read_text(encoding="utf-8")
         console.print()
         console.rule("Markdown report")
-        try:
+        # Render off-screen first: a failed write would leave the glyphs in Rich's buffer and break any fallback.
+        with console.capture() as capture:
             console.print(Markdown(text))
+        try:
+            capture.get().encode(console.encoding)
         except UnicodeEncodeError:
             # Legacy code-page consoles cannot draw Rich's Markdown glyphs; the source is still readable.
             console.print(text.encode("ascii", "replace").decode("ascii"), markup=False, highlight=False)
+        else:
+            console.print(Markdown(text))
         console.print(f"Markdown report: {self.path}  (open it and press Ctrl+Shift+V for VS Code Preview)")
 
 
