@@ -21,6 +21,17 @@ from rich.text import Text
 
 Status = Literal["PASS", "FAIL", "BLOCKED", "SKIP"]
 
+# Markdown reports show check statuses as icons (same icons as the finding outcomes); JSONL evidence keeps the words.
+STATUS_ICONS: dict[str, str] = {"PASS": "✅", "FAIL": "❌", "BLOCKED": "⛔", "SKIP": "⏭️"}
+
+
+def status_icon(status: str | None, missing: str = "not run") -> str:
+    """The icon for a check status in Markdown; any other value is returned unchanged."""
+    if status is None:
+        return missing
+    return STATUS_ICONS.get(status, status)
+
+
 REPORT_FILE = "report.md"
 
 

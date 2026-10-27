@@ -18,7 +18,7 @@ from app.services.orchestration import DelegateCommand, DelegationReport, Identi
 from pydantic import JsonValue
 
 from scripts.common.findings import Finding, isolation_options_link
-from scripts.common.reporting import Status, StepSpec
+from scripts.common.reporting import Status, StepSpec, status_icon
 from scripts.deploy.grant_local_rbac import CliError, object_value
 from scripts.run_scenario.story1_data_analysis import (
     OUTPUT_FILES,
@@ -928,9 +928,10 @@ class Step6(Story4Step):
 
     def summary(self) -> tuple[str, list[str], list[Finding], list[str]]:
         results = [
-            f"Story 1 evidence: {self.statuses.get('Story 1 evidence reused', 'not checked')}.",
-            f"Analysis through the Supervisor: {self.statuses.get('Analysis matches the Story 1 oracle', 'not run')}.",
-            f"Outputs delivered: {self.statuses.get('Outputs delivered to the user', 'not run')}.",
+            f"Story 1 evidence: {status_icon(self.statuses.get('Story 1 evidence reused'), 'not checked')}.",
+            f"Analysis through the Supervisor: "
+            f"{status_icon(self.statuses.get('Analysis matches the Story 1 oracle'))}.",
+            f"Outputs delivered: {status_icon(self.statuses.get('Outputs delivered to the user'))}.",
         ]
         findings = [
             Finding(

@@ -39,6 +39,7 @@ from scripts.common.reporting import (
     ValidationRun,
     add_output_arguments,
     index_entry,
+    status_icon,
     update_index,
 )
 from scripts.deploy.grant_local_rbac import command_prefix, object_value
@@ -822,8 +823,8 @@ class Step7(Story4Step):
 
     def summary(self) -> tuple[str, list[str], list[Finding], list[str]]:
         results = [
-            f"Direct Research response: {self.statuses.get('Direct response from Research', 'not run')}.",
-            f"Conversation continuity: {self.statuses.get('Conversation continuity on Research', 'not run')}.",
+            f"Direct Research response: {status_icon(self.statuses.get('Direct response from Research'))}.",
+            f"Conversation continuity: {status_icon(self.statuses.get('Conversation continuity on Research'))}.",
         ]
         direct = self.statuses.get("Direct response from Research")
         findings = [

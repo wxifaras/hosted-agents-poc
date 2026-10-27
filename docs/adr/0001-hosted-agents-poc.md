@@ -760,6 +760,22 @@ reports for [#1](../issue-1-validate-hosted-agent-memory-and-data-analysis-capac
 and [#4](../issue-4-validate-representative-hosted-agent-patterns.md) track the
 gaps and next steps.
 
+**Story 3 conversation management, implementation 2026-10-27 (hosted runs
+pending):** a Supervisor-only `POC_CONVERSE` command
+([conversations.py](../../src/backend/app/services/conversations.py)) implements
+the "distinct conversation per agent" row of the state table without the nested
+caller guard. The Supervisor, which is called directly by the client and sees
+the original user, creates one Research conversation per Supervisor conversation
+with its own agent identity, stores the mapping under a digest of the Supervisor
+conversation in its user-isolated state store, and only reuses that mapping.
+Research receives plain text, so its SDK adapter hydrates its own conversation.
+A `shared` pattern instead passes the Supervisor's conversation ID to Research,
+and a model-free `inspect` reports mapping, listing, and hydrated-history counts
+only. `POC_WORKFLOW` and its guard are unchanged. The **Agents: Story 3 - 1** to
+**5** tasks produce the evidence; record their outcomes here and in the
+[#3 status report](../issue-3-validate-multi-agent-conversation-management.md)
+when they run.
+
 Review this record when authorization semantics, runtime/protocol, state ownership,
 or POC scope changes. Update dated findings without rewriting decision history;
 use a new superseding ADR for a materially different accepted architecture.

@@ -37,7 +37,7 @@ from openai import OpenAIError
 from pydantic import JsonValue
 
 from scripts.common.findings import Finding, Outcome, checks_outcome, doc_cell, isolation_options_link, render_summary
-from scripts.common.reporting import MarkdownReport, Status, StepSpec, ValidationRun
+from scripts.common.reporting import MarkdownReport, Status, StepSpec, ValidationRun, status_icon
 from scripts.common.synthetic_data import (
     FILTER_REGION,
     FILTER_STATUS,
@@ -1619,7 +1619,7 @@ class Step5(SandboxStep):
                     "written" if name == "R1" else presence(data.get("marker")),
                     "-" if name == "R1" else len(i) if isinstance(i := data.get("inputs"), list) else "-",
                     "-" if name == "R1" else nonce_line(reply.text) or "no NONCE line",
-                    reply.status,
+                    status_icon(reply.status),
                 ]
             )
         self.report.table(
