@@ -9,6 +9,62 @@
 Status report: what works, what doesn't and why, and what to do next, for
 each requirement of issue #1 (Story 1 tasks in this repository).
 
+**Implementation update, 2026-10-27:** `story1-improvements` moves the existing
+Data Analysis agent to a fixed native managed Code Interpreter path without a
+fourth agent. The same task entries now default to a credential-free preview;
+see [current native validation instructions](tasks-detailed.md#native-story-1-validation-current-branch).
+The evaluated toolbox results below are retained unchanged and are not passes
+for this native implementation. Native live validation, deployment, and paid
+requests require separate approval. Supervisor and Hosted idle/resume are
+bounded best-effort probes; a failed probe may lead to a redesign proposal,
+implemented only with explicit user approval.
+
+**Native deployment/readiness checkpoint, 2026-10-27:** the existing deploy-all
+task deployed Supervisor v13, Research v8, and Data Analysis v8 to
+`hosted-agents-poc-dev` (`northcentralus`, `gpt-5-mini`). All are active.
+Native Step 1 run `20261027T201528Z-b1f35aca` passed the 1,000-row independent
+analytical/original-output checks and wrote a distinct native baseline.
+One actual native model analysis was submitted, without retry. This is separate
+from the historical evaluated environment below; it does not close two-user
+isolation, memory pressure, chart-meaning review, Blob recovery, or Supervisor
+delivery. No infrastructure reprovisioning or permission changes were performed.
+
+### Native validation continuation, 2026-10-27
+
+These results apply to `hosted-agents-poc-dev`, Supervisor v13, Research v8,
+and Data Analysis v8. They do not replace the historical toolbox findings below.
+
+| Native track | Result | Scope and evidence |
+|---|---|---|
+| Step 2 analysis and user-approved chart review | Met | Original analysis `20261027T202108Z-aea1fafe`; offline review `20261027T204940Z-3411caf3` rechecked retained hashes/oracle and the user's PNG review. No repeat model analysis for review. |
+| Step 3 baseline capacity | Tested envelope passed; pressure target not reached | `20261027T202247Z-02a3faba`: 1k, 10k, and 100k rows produced correct originals. At 100k, process peak RSS was 261,029,888 bytes (about 249 MiB), 12.16% of the observed 2,147,483,648-byte limit. Cgroup peak was separately 505,753,600 bytes. |
+| Step 4 application/session isolation | Met for tested users and operations | `20261027T204412Z-37747689`: both genuine users' analyses/original downloads succeeded; foreign workflow and session-file requests were denied in both directions with successful owner controls; a distinct same-user session could not inherit the workflow. |
+| Step 5 required Blob reconstruction | Met | `20261027T202731Z-435a6d1f`: authenticated checkpoint write/readback and recomputation passed in a new authorized session with a distinct native interpreter fingerprint. Checkpoint and original interpreter were not deleted. |
+| Step 5 optional Hosted observation | Partial | `20261027T204719Z-b842688c`: process marker changed and HOME sentinel persisted after a 180-second quiet interval; zero native analyses. Independent platform idle-boundary evidence is still missing, so this is not a full idle/resume pass. |
+| Story 4 Step 6 Supervisor integration | Blocked before inference | `20261027T205517Z-f2ce64f3`: the existing stateless protocol lacks the trusted native session/file contract. Zero model submissions; redesign requires explicit approval. |
+
+Before Step 4, operator-side role reads and separate cached-profile/Graph checks
+verified the two selected users and distinct identities. With sponsor approval,
+two direct project-scoped Foundry Agent Consumer grants were added. Readback also
+showed inherited resource-group Consumer grants; no different role types were
+observed. These are scoped application-access results, not privileged
+project-user native-file confidentiality or a complete permissions certification.
+
+For repeatable setup, use **Access: Preview isolated user Consumer grants**, then
+the existing **Access: Create isolated user auth profiles** task if grants or
+local sign-in profiles need preparing. See
+[another-computer instructions](tasks-detailed.md#repeat-the-tests-on-another-computer).
+The six native validation task entries remain unchanged in number.
+
+Pressure remains disabled. This run made no automatic retries, permission
+escalation beyond approved Consumer grants, forced lifecycle faults, resource
+deletions, or redesign. The failed offline chart-review invocation with an
+incorrect receipt path was retained; correcting that local path made no model
+call. Remaining decisions are a separately approved pressure profile and any
+minimal Supervisor/lifecycle-evidence work.
+
+### Historical toolbox evaluation
+
 | Field | Value |
 |---|---|
 | Report date | 2026-10-26 (overview added and accuracy review 2026-10-27) |

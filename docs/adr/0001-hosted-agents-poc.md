@@ -201,6 +201,55 @@ accepted limitations, not production recommendations.
 This dated appendix is a living summary, separate from the accepted decisions.
 Implementation, platform availability, and hosted verification are different axes.
 
+### 2026-10-27: native Story 1 POC implementation
+
+The approved local increment on `story1-improvements` reuses the native feature
+branch selectively inside the existing Data Analysis agent; it does not add the
+experimental native agent or keep dual native/toolbox runtime modes. Existing
+toolbox evidence remains historical. Public authenticated Blob checkpoint
+reconstruction is required; normal TLS/authentication and application ownership
+checks remain. No production certification, custom PKI, or new interpreter
+infrastructure is included.
+
+The same Story 1 task entries and Story 4 Step 6 use
+[preview-first native validation](../tasks-detailed.md#native-story-1-validation-current-branch).
+Supervisor and Hosted idle/resume receive bounded best-effort probes, not an
+automatic framework redesign. If blocked, record evidence and propose the
+smallest redesign and revised validation budget for explicit user approval.
+Local implementation does not establish a new hosted isolation, memory, or
+recovery pass; those claims require approved current-version live evidence.
+
+Subsequent approved deployment used the existing deploy-all task in
+`hosted-agents-poc-dev`: Supervisor v13, Research v8, and Data Analysis v8 are
+active. Native Step 1 run `20261027T201528Z-b1f35aca` passed its 1k-row analytical
+and original-output checks with one actual native model analysis and saved the
+separate native baseline. No reprovisioning or role changes were needed.
+Pressure remains disabled; two-user isolation, Blob reconstruction, Hosted idle,
+and Supervisor delivery were not run. The PNG structural check is not a human
+chart-meaning review. The sponsor declined an additional evaluation suite and
+retained the existing task-based validation approach.
+
+The subsequent approved native tests completed Step 2 analytical/user-approved
+chart review, the 1k/10k/100k baseline, two-real-user application/session
+isolation, and required Blob-backed recomputation. At 100k rows, process peak
+RSS was about 249 MiB against an observed 2 GiB limit (12.16%); memory pressure
+was not reached. Original Blob readback and a new native-container fingerprint
+were checked without deleting the checkpoint or original interpreter.
+
+A separate zero-analysis Hosted observation saw a changed process marker and
+retained HOME sentinel after a 180-second quiet interval. It lacks an independent
+platform idle witness and is not a full idle/recovery pass. Supervisor native
+integration remains blocked at contract preflight before model submission.
+Neither gap triggered an automatic redesign.
+
+The sponsor approved minimal access preparation for the two test users.
+Project-scoped Consumer grants were added; inherited RG Consumer grants were
+also observed, with no different role types reported. Claims remain limited to
+the tested application-mediated operations, not native-file privacy against
+privileged project users. One read-only Access grant-preview task was added;
+the existing apply/profile task and six native validation entries are reused.
+See the [current Story 1 results](../issue-1-validate-hosted-agent-memory-and-data-analysis-capacity.md#native-validation-continuation-2026-10-27).
+
 ### Current status
 
 Independent hosted model smoke tests have passed. Full delegation is not yet

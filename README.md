@@ -105,20 +105,18 @@ flowchart LR
 
 ### Data Analysis
 
-`POC_AGENT_NAME=data_analysis`. Without `TOOLBOX_ENDPOINT`, it discusses
-supplied synthetic examples using Data Analysis-specific instructions. For
-Story #1 the **existing** deployed agent is wired to Microsoft-managed Code
-Interpreter through a Foundry toolbox. It then executes Python in the managed
-sandbox and returns `poc-artifacts-v1` container references. Generated files
-stay in the sandbox and are downloaded by an authenticated client. See
-**Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent**.
+`POC_AGENT_NAME=data_analysis`. Story #1 now targets **native Microsoft-managed
+Code Interpreter** on the existing `data-analysis-agent`, without a fourth agent
+or toolbox wrapper. Fixed synthetic CSV commands use trusted owner/session
+bindings and deliver original output bytes through authorized Hosted Session
+Files. Selecting the native tool alone is not proof of isolation, and this POC
+does not claim confidentiality against privileged project users.
 
-To run it, choose **Terminal > Run Task...** in VS Code, select that task,
-then select the environment and mode. Use `enable-if-missing` for initial
-toolbox/agent wiring, or `verify` to test an already-configured deployment.
-Both modes incur sandbox/model usage charges. See the
-[Step 1 task guide](docs/tasks-detailed.md#agents-story-1---1-enable-code-interpreter-on-existing-data-analysis-agent)
-for prerequisites, execution steps, and the complete output-file inventory.
+Use the same five **Agents: Story 1** task entries. Each defaults to `preview`,
+which is local and credential-free. Select `run` only after approving the bounded
+paid validation budget and deploying the reviewed native version. Tasks do not
+deploy, grant roles, delete service resources, or fall back to the toolbox.
+See [current native task instructions](docs/tasks-detailed.md#native-story-1-validation-current-branch).
 
 This is a **local test runner calling remote services**, not a sandbox-only
 task: dataset generation, expected checksums, API coordination, and evidence
@@ -132,7 +130,7 @@ Results are linked from [the Story 1 evidence index](artifacts/story-1/index.md)
 Each run is written to
 `artifacts\story-<n>\step-<NN>-<slug>\<YYYYMMDDTHHMMSSZ>-<id8>\report.md`, for example
 `artifacts\story-1\step-01-code-interpreter\20261023T120408Z-a1b2c3d4\report.md`.
-The step folder groups every rerun of a step, and the Step 1 mode is recorded in
+The step folder groups every rerun of a step, and the native variant is recorded in
 `manifest.json` and the index entry. Runs written before this convention keep
 their original folder names and index links. See
 [output files](docs/tasks-detailed.md#step-1-output-files) for the full layout.
@@ -141,15 +139,17 @@ After Step 1, run **Agents: Story 1 - 2 Analyze data and deliver outputs**
 (Story #1 AC2), **Agents: Story 1 - 3 Evaluate dataset sizes** (AC3),
 **Agents: Story 1 - 4 Assess sandbox boundaries** (AC4), and
 **Agents: Story 1 - 5 Assess state continuity** (AC5). They require the Step 1
-baseline, never change the agents or the Step 1 toolbox, and write their
-reports under `step-02-analysis-and-outputs\` through `step-05-state-continuity\`. Step 4 can
-create and delete a separate probe-only toolbox; Step 5 deletes one sandbox
-container and writes, reads, and deletes one synthetic Blob checkpoint. See the
-[Step 2](docs/tasks-detailed.md#agents-story-1---2-analyze-data-and-deliver-outputs),
-[Step 3](docs/tasks-detailed.md#agents-story-1---3-evaluate-dataset-sizes),
-[Step 4](docs/tasks-detailed.md#agents-story-1---4-assess-sandbox-boundaries),
-and [Step 5](docs/tasks-detailed.md#agents-story-1---5-assess-state-continuity)
-task guides.
+native baseline, never change agents, and retain reports under
+`step-02-analysis-and-outputs\` through `step-05-state-continuity\`.
+Step 4 uses two real existing user profiles. Step 5 retains its Blob checkpoint
+and demonstrates runner-driven reconstruction, not surviving interpreter RAM.
+Hosted idle/resume and the existing Story 4 Step 6 Supervisor integration are
+bounded best-effort probes. A blocker may lead to a redesign proposal, but
+implementation of that redesign requires explicit approval.
+
+For another computer, use the [repeatable user-access and validation setup](docs/tasks-detailed.md#repeat-the-tests-on-another-computer).
+Azure grants persist; local sign-in profiles and version-bound test evidence must
+be prepared on that computer.
 
 ### Story 4: representative hosted agent patterns
 
@@ -191,6 +191,9 @@ Prompt/tool-content capture is explicitly disabled. See
 [viewing Step 1 traces](docs/tasks-detailed.md#viewing-step-1-traces-in-foundry)
 for setup, deployment scope, and verification. Direct operator toolbox probes
 are not Data Analysis agent invocations.
+
+The following diagram illustrates the historical toolbox path, not the native
+Story 1 path described above; its earlier reports remain historical evidence.
 
 ```mermaid
 flowchart LR
@@ -295,9 +298,11 @@ provisioning or a new agent version.
     ([details](docs/tasks-detailed.md#viewing-step-1-traces-in-foundry)).
     A `Project not found` error means the Agent Service has not registered the
     project yet; see [troubleshooting](docs/deployment.md#troubleshooting-project-not-found).
-11. **Enable Code Interpreter for Story 1:** run
+11. **Validate native Code Interpreter for Story 1:** deploy the reviewed native
+    version when approved, then run
     **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent**
-    with mode `enable-if-missing` on a new environment, `verify` afterwards.
+    in `preview` first and `run` only within the approved paid budget. This task
+    does not create a toolbox or deploy a version.
 
 The [complete task sequence](docs/deployment.md#complete-task-sequence-after-provisioning)
 lists every deployment and permission task in order.
@@ -308,7 +313,8 @@ foundation changes and `azd deploy` for code; do not substitute `azd up`.
 
 To demonstrate **direct native-user isolation** on an existing Research deployment:
 
-1. Run **Access: Create isolated user auth profiles** with two full user UPNs.
+1. Run **Access: Preview isolated user Consumer grants**, then
+   **Access: Create isolated user auth profiles** with two full user UPNs.
    Choose `consumer` for the required project-scoped invocation grants, or `none`
    if access is already configured.
 2. Run **Agents: Test native Entra user isolation** with those same users and
@@ -388,19 +394,20 @@ for setup, execution boundaries, and debugger details.
 | **Agents: Smoke test all hosted agents** | Remote inference without building new versions |
 | **Agents: Test hosted identity variants and isolation** | Explicit hosted call-context/user-label experiments and synthetic state/history tests; no models; requires diagnostic opt-in |
 | **Agents: Test native Entra user isolation** | Choose verbose request/response panels or shorter output; two native CLI users directly invoke Research, with no delegated labels or models |
-| **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent** | Reuses the existing agents. `verify` is read-only plus a paid sandbox proof. `enable-if-missing` creates the Story 1 toolbox and updates only the existing Data Analysis agent, once. Writes a Markdown report |
-| **Agents: Story 1 - 2 Analyze data and deliver outputs** | Read-only reuse of the Step 1 agents and toolbox. One paid Data Analysis request (model-written filter/group/summarize/chart) validated against a local oracle, downloaded CSVs and chart, and the existing Supervisor workflow path, including files forwarded by container ID through the Supervisor. Writes a report under `step-02-analysis-and-outputs\` |
-| **Agents: Story 1 - 3 Evaluate dataset sizes** | Read-only reuse of the Step 1 agents and toolbox. One sequential paid request per size (1k/10k/100k rows), no retries, and stops at the first platform failure. Writes `03-capacity.md` with sandbox measurements and a scoped viability verdict |
-| **Agents: Story 1 - 4 Assess sandbox boundaries** | Paid benign sandbox probes (identity, filesystem, network, execution limit, per-call and toolbox-level options), one hosted confirmation, and an optional ~21-minute idle-expiry wait. Can create and then delete a separate probe-only toolbox. Writes `04-sandbox-boundaries.md` |
-| **Agents: Story 1 - 5 Assess state continuity** | Four paid hosted requests across three conversations, one sandbox container deletion, and a synthetic checkpoint written to, read from, and deleted in the existing Blob container. Writes `05-state-continuity.md` |
+| **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent** | Preview locally; approved run validates native execution on the same Data Analysis agent and records a distinct native baseline. No toolbox or deployment |
+| **Agents: Story 1 - 2 Analyze data and deliver outputs** | Native model-written CSV analysis, independent oracle and original session-file downloads. Chart meaning is reviewed offline against the PNG hash |
+| **Agents: Story 1 - 3 Evaluate dataset sizes** | Finite baseline or opt-in pressure ladder; observed interpreter memory, no retries, stop at first failure/unavailable metric or 75% target |
+| **Agents: Story 1 - 4 Assess sandbox boundaries** | Two-real-user native application/session isolation checks, owner controls, and original file access. No privileged-native-file confidentiality claim |
+| **Agents: Story 1 - 5 Assess state continuity** | Required runner-driven authenticated Blob reconstruction, retaining evidence; optional bounded Hosted idle observation. No default deletion or local-source fallback |
 | **Agents: Story 4 - 1 Demonstrate Supervisor delegation** | AC1. `verify` changes nothing; `prepare-if-missing` creates the Research MCP toolbox and runs `azd deploy --all` once if needed. Two paid model-routed delegations. Writes `01-supervisor-delegation.md` and the Story 4 baseline |
 | **Agents: Story 4 - 2 Assess sync and async delegation** | AC2. Paid sync and background Supervisor -> Research delegation, each with a simulated sub-agent failure, plus one direct background request. Writes `02-sync-async-and-failure.md` |
 | **Agents: Story 4 - 3 Demonstrate Research tool call** | AC3. Direct toolbox probe plus a paid Supervisor -> Research MCP tool call; caller/target/permission/trust-boundary table. Writes `03-research-tool-call.md` |
 | **Agents: Story 4 - 4 Evaluate identity paths** | AC4. Reads (never grants) roles; paid agent-owned, call-context, and delegated-user calls. Writes `04-identity-paths.md` |
 | **Agents: Story 4 - 5 Trace identity and access** | AC5. Paid traced request and platform/application denials with the enforcing component. Writes `05-trace-and-access.md` |
-| **Agents: Story 4 - 6 Demonstrate Data Analysis via Supervisor** | AC6. Reuses the Story 1 toolbox, request, oracle, and evidence; one paid Code Interpreter analysis through the Supervisor. Writes `06-data-analysis-code-interpreter.md` |
+| **Agents: Story 4 - 6 Demonstrate Data Analysis via Supervisor** | AC6. Bounded best-effort native stateless compatibility probe using reviewed Story 1 evidence. Unsupported identity/protocol contract is blocked; redesign requires approval |
 | **Agents: Story 4 - 7 Invoke Research directly** | AC7. Two paid requests only to Research in its own conversation; no Supervisor. Writes `07-direct-invocation.md` |
 | **Access: Preview hosted agent permissions** | Read-only actual-instance permission inspection |
+| **Access: Preview isolated user Consumer grants** | Read-only project-scoped test-user grant plan; no sign-in, role writes, or agent calls. Reuses covering grants |
 | **Access: Create isolated user auth profiles** | Prompt for UPNs and optional project-scoped Consumer RBAC; operator grants precede isolated Microsoft sign-in; no agent calls or administrative/impersonation grants |
 | **Access: Apply hosted agent permissions** | Explicit scoped grants; not proof of delegation |
 | **Quality: Run all local checks** | Lint, format, mypy, and tests; default build task |
