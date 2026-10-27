@@ -140,7 +140,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.grant_agent_rbac", "--environment", "${input:infraEnvironment}", "--delegation"],
-      "detail": "Read-only plan for the Supervisor's single custom impersonation action at the selected project.",
+      "detail": "Read-only plan: the standard hosted model/telemetry and project Insights roles, plus the Supervisor's single custom impersonation action at the selected project. Does not modify roles.",
       "problemMatcher": []
     },
     {
@@ -253,7 +253,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "2", "--environment", "${input:infraEnvironment}"],
-      "detail": "AC2. Read-only reuse of the Story 4 baseline. Paid: Supervisor -> Research synchronous and background delegation, each with a simulated sub-agent failure, plus one direct background request. No retries. Writes a report under step-02-sync-async-and-failure\\.",
+      "detail": "AC2. Read-only reuse of the Story 4 baseline. Paid: Supervisor -> Research synchronous and background delegation, each with a simulated sub-agent failure, plus one direct background request to Research and one client background POC_DELEGATE that the Supervisor must reject. No retries. Writes a report under step-02-sync-async-and-failure\\.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },

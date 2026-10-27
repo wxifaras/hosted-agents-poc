@@ -124,7 +124,10 @@ Do not describe those as passing because another task completed.
   It checks/creates the tightly validated custom impersonation role and assigns it
   only to Supervisor at the selected project.
 - **Important:** this flag **extends** the ordinary agent-permission helper. The
-  task can also apply its missing Foundry User grants for the deployed agents.
+  task also applies everything **Access: Apply hosted agent permissions** applies:
+  missing Foundry User grants for the deployed agents, Monitoring Metrics
+  Publisher for Data Analysis, and Monitoring Reader for the project identity
+  on Application Insights.
 - **Boundary:** no specialist impersonation grants, broad administrative grants,
   Blob grants, or user-token/OBO exchange. Permission does not prove user propagation.
 
@@ -223,12 +226,15 @@ Do not describe those as passing because another task completed.
 
 - Resolves actual deployed instance identities and checks their scoped Foundry
   User assignments; does not guess principals from agent or blueprint names.
+- Also previews Data Analysis's Monitoring Metrics Publisher assignment and the
+  project managed identity's Monitoring Reader assignment on Application Insights.
 - Does not change roles or test actual inference/delegation.
 
 ### Access: Preview Supervisor impersonation permission
 
 - Runs the agent-permission helper with `--delegation`, without `--apply`.
-- Includes the normal hosted-agent Foundry User plan plus the Supervisor-only
+- Includes the full **Access: Preview hosted agent permissions** plan (Foundry
+  User, Data Analysis telemetry, project Insights reader) plus the Supervisor-only
   project-scoped custom impersonation role/assignment plan.
 - Validates an existing custom role's exact permissions before reuse; no role
   definitions/assignments are created by this preview.
@@ -681,15 +687,16 @@ or `SKIP` (not run). The documentation sources live in
 [findings.py](../scripts/common/findings.py). Every link, section anchor, and
 quote was last checked against the live page on 2026-10-26.
 
-**Remote files, not local output files:**
+**Story 1 Step 1 remote files, not local output files:**
 
 - `story1-sales-1000.csv`, `story1-sales-10000.csv`, and
   `story1-sales-100000.csv` are generated locally in memory and uploaded to
   the project-scoped Files API only when setup needs them. Existing matching
   toolbox inputs are reused.
 - `story1-probe.png` is created inside a managed sandbox. The runner
-  downloads its bytes into memory to verify delivery; it does not save a
-  local PNG. No local CSV copies are saved either.
+  downloads its bytes into memory to verify delivery; Step 1 does not save a
+  local PNG or local CSV copies. Story 1 Step 2 and Story 4 Step 6 do save
+  their downloaded analysis outputs under `outputs\` (see their output tables).
 - Sandbox files are temporary; this test does not persist them to Blob
   Storage or embed the PNG in the Step 1 report.
 
@@ -1057,18 +1064,24 @@ without it the Blob check is `BLOCKED` and no roles are granted.
    whether it can recall the nonce from earlier in the conversation.
 3. Builds a small, versioned, SHA-256-sealed checkpoint from R1's validated
    result. The checkpoint holds the dataset ID and checksum, the transform
-   spec, and the aggregates, but no data rows. It's saved in the run folder,
-   then written to and read back from
-   `artifacts/story1/checkpoints/<run-id>.json` in the existing Blob container.
+   spec, and the aggregates, but no data rows. It's saved in the run folder as
+   `checkpoint.json`. When the environment provides a Blob endpoint and
+   container, it's then written to and read back from
+   `artifacts/story1/checkpoints/<run-id>.json` in the existing Blob container
+   (container `artifacts`). The task always uses the default
+   `--blob-checkpoint write`; the CLI-only `--blob-checkpoint skip` omits the
+   Blob step.
 4. Recreates the sandbox by deleting R1's container through the containers
    API, and confirms the container and its files return 404. The agent itself
    isn't touched.
-5. R4, in a new conversation C3: rehydrates from the Blob checkpoint. It
-   rejects the checkpoint if it's missing, corrupt, a different schema, or
-   stale. Otherwise it reloads the re-mounted input, verifies its SHA-256, and
-   rebuilds the state, which must match the checkpoint and the local
-   calculation exactly.
-6. Deletes the Blob checkpoint and checks the agents again. Writes:
+5. R4, in a new conversation C3: rehydrates from the Blob checkpoint when the
+   Blob write and read-back passed, otherwise from the local `checkpoint.json`.
+   Before R4 is sent, the runner rejects the checkpoint if it's missing,
+   corrupt, a different schema, or stale. Otherwise R4 reloads the re-mounted
+   input, verifies its SHA-256, and rebuilds the state, which must match the
+   checkpoint and the local calculation exactly.
+6. Deletes the Blob checkpoint (only when it was written successfully) and
+   checks the agents again. Writes:
    - The request-by-request continuity table.
    - What survived, was lost, or was rebuilt.
    - The rehydration comparison.
@@ -1081,7 +1094,7 @@ Run folders are under `step-05-state-continuity\` and follow the
 | File inside each run folder | Contents |
 |---|---|
 | `report.md` | Continuity, checkpoint, recreation, inventory, rehydration, placement matrix, findings, and verdict |
-| `checkpoint.json` | The sealed checkpoint used for rehydration |
+| `checkpoint.json` | The local sealed checkpoint; used for rehydration unless the Blob copy passed write and read-back |
 | `outputs\r1\` ... `outputs\r4\` | The sandbox result file for each request |
 
 **Does not prove:** BYO storage for files or conversations (documented for
@@ -1194,7 +1207,10 @@ Supervisor's instance identity.
    handling, result retrieval), restrictions, and untested alternatives.
 
 The Supervisor never retries; a failure becomes a `sub_agent_failed` report
-with the failure's stage, code, and message. **Verdict:** `Met` when both
+with the failure's stage, code, and message. The runner also disables client
+SDK retries for every hosted request. Background work is polled inside the
+Supervisor's own synchronous request, so its 240 s client timeout bounds it.
+**Verdict:** `Met` when both
 modes pass success and failure; `Partially met` when one mode does.
 
 ### Agents: Story 4 - 3 Demonstrate Research tool call
@@ -1242,10 +1258,10 @@ outcome. Then exercises:
 | Case | Enforcing component |
 |---|---|
 | Allowed traced request | Foundry agent endpoint and toolbox (Entra + RBAC) |
-| `x-ms-user-identity` without impersonation | Foundry agent endpoint (expected HTTP 403) |
+| Supervisor sends `x-ms-user-identity` | Foundry agent endpoint (expected HTTP 403 without impersonation, allowed with it; `BLOCKED` if the grant can't be read) |
 | Unlisted target `billing-agent` | Supervisor application allow-list (no outbound call) |
-| `microsoft_docs_fetch` on the toolbox | Foundry toolbox `allowed_tools` |
-| User B reads user A's state/history | Foundry; see **Agents: Test native Entra user isolation** |
+| Operator calls `microsoft_docs_fetch` directly on the toolbox MCP endpoint (`tools/list` must not list it; `tools/call` must be rejected) | Foundry toolbox `allowed_tools` |
+| User B reads user A's state/history | Not run by this step; the report cross-references **Agents: Test native Entra user isolation** |
 
 ### Agents: Story 4 - 6 Demonstrate Data Analysis via Supervisor
 
