@@ -84,16 +84,13 @@ def test_toolbox_endpoint_setting_is_optional_and_validated(monkeypatch: pytest.
         Settings()
 
 
-def test_only_configured_data_analysis_gets_the_toolbox() -> None:
+def test_data_analysis_never_gets_a_toolbox_fallback() -> None:
     credential = DefaultAzureCredential()
     configured = Settings(toolbox_endpoint=ENDPOINT)
     for name in AGENT_NAMES:
         tools = data_analysis_tools(name, configured, credential)
-        assert len(tools) == (1 if name == "data_analysis" else 0)
+        assert tools == []
     assert data_analysis_tools("data_analysis", Settings(), credential) == []
-    toolbox = data_analysis_tools("data_analysis", configured, credential)[0]
-    assert toolbox.url == ENDPOINT
-    assert toolbox.tool_result_content == "both"
 
 
 def test_container_references_come_only_from_tool_results() -> None:
@@ -256,14 +253,15 @@ def test_story1_task_reuses_agents_and_has_no_hidden_dependencies() -> None:
     tasks = {task["label"]: task for task in document["tasks"]}
     task = tasks[story.TASK_LABEL]
     assert task["command"] == "uv" and "dependsOn" not in task
-    assert task["args"][-5:] == [
+    assert task["args"][-4:] == [
+        "--step",
         "1",
         "--environment",
         "${input:infraEnvironment}",
-        "--mode",
-        "${input:story1Step1Mode}",
     ]
-    mode = next(item for item in document["inputs"] if item["id"] == "story1Step1Mode")
-    assert mode["default"] == "verify" and mode["options"] == ["verify", "enable-if-missing"]
+    assert "scripts.run_scenario.story1_native" in task["args"] and "--mode" not in task["args"]
+    mode = next(item for item in document["inputs"] if item["id"] == "story1Execution")
+    assert mode["default"] == "preview" and mode["options"] == ["preview", "run"]
     service = (ROOT / "azure.yaml").read_text(encoding="utf-8")
-    assert service.count("TOOLBOX_ENDPOINT: ${DATA_ANALYSIS_TOOLBOX_ENDPOINT}") == 1
+    assert "TOOLBOX_ENDPOINT: ${DATA_ANALYSIS_TOOLBOX_ENDPOINT}" not in service
+    assert service.count("STORY1_NATIVE_ENABLED: 'true'") == 1

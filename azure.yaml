@@ -60,7 +60,7 @@ services:
     host: azure.ai.agent
     kind: hosted
     name: data-analysis-agent
-    description: Existing MAF Data Analysis host; managed Code Interpreter via the Story 1 toolbox when TOOLBOX_ENDPOINT is set.
+    description: Existing Data Analysis host; owner-bound native Story 1 Code Interpreter and original session files.
     sessionConfiguration:
       idleTimeoutSeconds: 120
     project: .
@@ -76,7 +76,10 @@ services:
       AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
       ENVIRONMENT: hosted
       POC_AGENT_NAME: data_analysis
-      TOOLBOX_ENDPOINT: ${DATA_ANALYSIS_TOOLBOX_ENDPOINT}
+      STORY1_NATIVE_ENABLED: 'true'
+      STORY1_NATIVE_PRESSURE_ENABLED: 'false'
+      STORY1_NATIVE_TIMEOUT_SECONDS: '300'
+      STORY1_NATIVE_MAX_OUTPUT_BYTES: '52428800'
       POC_APPLICATIONINSIGHTS_CONNECTION_STRING: ${APPLICATIONINSIGHTS_CONNECTION_STRING}
       POC_APPLICATIONINSIGHTS_AUTH_MODE: entra
     container:

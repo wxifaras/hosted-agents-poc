@@ -11,8 +11,9 @@ from typing import Any
 import httpx
 import pytest
 from azure.core.exceptions import ResourceNotFoundError
+from pydantic import JsonValue
 
-from scripts.common.reporting import REPORT_FILE, MarkdownReport, ValidationRun
+from scripts.common.reporting import REPORT_FILE, MarkdownReport, Status, ValidationRun
 from scripts.common.synthetic_data import build_dataset, expected_aggregates, generate_rows
 from scripts.run_scenario import story1_data_analysis as story
 from scripts.run_scenario import story1_sandbox as sb
@@ -21,7 +22,9 @@ ROOT = Path(__file__).resolve().parents[2]
 PROJECT = "https://a.services.ai.azure.com/api/projects/p"
 TEN = build_dataset(10_000)
 EXPECTED = expected_aggregates(generate_rows(10_000))
-GROUPS = {name: {"rows": t.rows, "units": t.units, "revenue_cents": t.revenue_cents} for name, t in EXPECTED.items()}
+GROUPS: dict[str, JsonValue] = {
+    name: {"rows": t.rows, "units": t.units, "revenue_cents": t.revenue_cents} for name, t in EXPECTED.items()
+}
 TOOLBOX = story.ToolboxRecord(story.TOOLBOX_NAME, "1", f"{PROJECT}/toolboxes/x/versions/1/mcp", {"10000": "file-10k"})
 
 
@@ -119,7 +122,7 @@ def test_platform_rejections_are_recorded_as_evidence() -> None:
 
 
 def test_boundary_helpers() -> None:
-    probe = {
+    probe: dict[str, JsonValue] = {
         "identity": {"user": "sandbox", "uid": 1001},
         "limits": {"cgroup_memory_max": "2147483648"},
         "network": {"dns_public": {"outcome": "dns_failure"}, "https_public": {"outcome": "reachable", "status": 200}},
@@ -136,12 +139,12 @@ def test_boundary_helpers() -> None:
 
 
 def test_checkpoint_seal_and_validation() -> None:
-    result = {"filtered_rows": 1249, "by_category": GROUPS}
+    result: dict[str, JsonValue] = {"filtered_rows": 1249, "by_category": GROUPS}
     checkpoint = sb.build_checkpoint("0123456789abcdef", TEN, "file-10k", result, {"container": "cntr_a"})
     sealed = sb.seal_checkpoint(checkpoint)
     body, problems = sb.open_checkpoint(sealed, TEN, "file-10k")
     assert problems == [] and body is not None and body["id"] == "story1-0123456789ab"
-    assert b"2026-" not in sealed.replace(checkpoint["created_at"].encode(), b"")  # no data rows
+    assert b"2026-" not in sealed.replace(str(checkpoint["created_at"]).encode(), b"")  # no data rows
     assert sb.open_checkpoint(None, TEN, "file-10k") == (None, ["missing"])
     assert sb.open_checkpoint(b"{", TEN, "file-10k") == (None, ["corrupt: not JSON"])
     tampered = sealed.replace(b'"filtered_rows": 1249', b'"filtered_rows": 1250')
@@ -174,10 +177,13 @@ def test_verdicts() -> None:
     assert sb.step4_verdict({}) == "Not evaluated"
     assert sb.step4_verdict({"Direct probe A": "PASS", "Idle expiry": "PASS"}) == "Met"
     assert sb.step4_verdict({"Direct probe A": "PASS", "Outbound network blocked": "FAIL"}) == "Partially met"
-    core = dict.fromkeys(sb.CORE_CHECKS, "PASS")
+    core: dict[str, Status] = dict.fromkeys(sb.CORE_CHECKS, "PASS")
     assert sb.step5_verdict({}) == "Not evaluated"
     assert sb.step5_verdict({**core, "Checkpoint in customer Blob": "PASS"}) == "Met"
-    assert sb.step5_verdict({**core, "Checkpoint in customer Blob": "BLOCKED"}) == "Met, with a validation gap"
+    assert sb.step5_verdict({**core, "Checkpoint in customer Blob": "BLOCKED"}) == "Partially met"
+    assert sb.step5_verdict({**core, "Checkpoint in customer Blob": "SKIP"}) == "Partially met"
+    assert sb.step5_verdict({**core, "Sandbox recreation": "SKIP", "R2 same conversation": "FAIL"}) == "Met"
+    assert sb.step5_verdict({**core, "Agents reused - after": "FAIL"}) == "Not met"
     assert sb.step5_verdict({**core, "Rehydration": "FAIL"}) == "Partially met"
     assert sb.step5_verdict({**core, "Agents reused - after": "FAIL", "Rehydration": "FAIL"}) == "Not met"
 
@@ -230,8 +236,11 @@ def test_probe_toolbox_is_always_deleted_and_never_the_step1_toolbox(tmp_path: P
     assert s4b.statuses["Probe-only toolbox deleted"] == "PASS"
 
 
-def test_step5_end_to_end_offline(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+@pytest.mark.parametrize("destructive", [False, True])
+def test_step5_end_to_end_offline(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, destructive: bool) -> None:
     s5 = step(sb.Step5, tmp_path)
+    if destructive:
+        s5.args.lifecycle_mode = "destructive"
     nonce = s5.nonce
     replies = {
         "R1": {
@@ -324,9 +333,12 @@ def test_step5_end_to_end_offline(monkeypatch: pytest.MonkeyPatch, tmp_path: Pat
 
     assert nonce in prompts["R1"] and nonce not in prompts["R2"] and nonce not in prompts["R3"]
     assert json.dumps(GROUPS)[:40] in prompts["R4"].replace("\\", "")  # checkpoint, not data rows, reaches R4
-    assert deleted_containers == ["cntr_R1"] and blobs == {}
+    assert deleted_containers == (["cntr_R1"] if destructive else [])
+    assert bool(blobs) is not destructive
+    assert s5.statuses["Sandbox recreation"] == ("PASS" if destructive else "SKIP")
     assert all(s5.statuses[name] == "PASS" for name in sb.CORE_CHECKS)
-    assert s5.statuses["Checkpoint in customer Blob"] == "PASS" and s5.statuses["Blob checkpoint cleanup"] == "PASS"
+    assert s5.statuses["Checkpoint in customer Blob"] == "PASS"
+    assert s5.statuses["Blob checkpoint cleanup"] == ("PASS" if destructive else "SKIP")
     assert s5.verdict == "Met"
     report = s5.report.path.read_text(encoding="utf-8")
     assert "| Conversation history | recalled | isolated |" in report
@@ -337,7 +349,10 @@ def test_step5_end_to_end_offline(monkeypatch: pytest.MonkeyPatch, tmp_path: Pat
         assert "](https://learn.microsoft.com/" in row, row
     assert "| ✅ PASS | Conversation history continues within a conversation" in report
     assert "| ⚠️ LIMITATION | Sandbox variables and files between requests | Lost on every request" in report
-    assert "| 🚫 NOT SUPPORTED | Automatic restore of sandbox memory or files" in report
+    if destructive:
+        assert "| 🚫 NOT SUPPORTED | Automatic restore of sandbox memory or files" in report
+    else:
+        assert "original container retained" in report and ", and retained" in report
     assert "| ✅ PASS | Rehydration from a small, sealed checkpoint" in report
     assert "| ✅ PASS | Keep custom checkpoints in customer storage | Written, read back" in report
     assert (s5.run.path / "checkpoint.json").is_file()
@@ -354,8 +369,152 @@ def test_step5_rehydration_refuses_a_tampered_checkpoint(tmp_path: Path) -> None
     (s5.run.path / "checkpoint.json").write_bytes(
         sb.seal_checkpoint(s5.checkpoint).replace(b'"rows": 10000', b'"rows": 9')
     )
-    s5.rehydrate(None, lambda: "t", None)
+    s5.statuses["Checkpoint in customer Blob"] = "PASS"
+    blob = sb.BlobStore(
+        httpx.Client(
+            transport=httpx.MockTransport(
+                lambda request: httpx.Response(200, content=(s5.run.path / "checkpoint.json").read_bytes())
+            )
+        ),
+        "https://s.blob/",
+        "artifacts",
+        "t",
+    )
+    s5.rehydrate(None, lambda: "t", blob)
     assert s5.statuses["Rehydration"] == "FAIL"
+
+
+@pytest.mark.parametrize(
+    "failure",
+    ["denied", "missing", "timeout", "corrupt", "schema", "owner", "hash", "stale", "file_id", "input_identity"],
+)
+def test_required_blob_read_never_substitutes_local_checkpoint(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: str
+) -> None:
+    s5 = step(sb.Step5, tmp_path)
+    s5.replies["R1"] = sb.HostedReply(
+        container="original", conversation="trusted-conversation", response_id="trusted-response"
+    )
+    checkpoint = sb.build_checkpoint(
+        s5.run.run_id, TEN, "file-10k", {"filtered_rows": 1249, "by_category": GROUPS}, s5.checkpoint_source()
+    )
+    s5.checkpoint = checkpoint
+    local_bytes = sb.seal_checkpoint(checkpoint)
+    (s5.run.path / "checkpoint.json").write_bytes(local_bytes)
+    remote = json.loads(json.dumps(checkpoint))
+    if failure == "schema":
+        remote["schema"] = "unsupported"
+    elif failure == "owner":
+        remote["source"]["conversation"] = "foreign-owner"
+    elif failure == "hash":
+        remote["id"] = "other-checkpoint"
+    elif failure == "stale":
+        remote["dataset"]["sha256"] = "stale"
+    elif failure == "file_id":
+        remote["dataset"]["file_id"] = "foreign-workflow"
+    elif failure == "input_identity":
+        remote["dataset"]["rows"] = 1
+    raw = b"{" if failure == "corrupt" else sb.seal_checkpoint(remote)
+    requests: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request.method)
+        if failure == "timeout":
+            raise httpx.ReadTimeout("bounded read timed out", request=request)
+        return httpx.Response({"denied": 403, "missing": 404}.get(failure, 200), content=raw)
+
+    def unexpected(*_args: Any, **_kwargs: Any) -> Any:
+        pytest.fail("No hosted call or local checkpoint read may follow a failed Blob read")
+
+    monkeypatch.setattr(s5, "hosted", unexpected)
+    monkeypatch.setattr(s5, "new_conversation", unexpected)
+    s5.statuses["Checkpoint in customer Blob"] = "PASS"
+    blob = sb.BlobStore(httpx.Client(transport=httpx.MockTransport(handler)), "https://s.blob", "artifacts", "t")
+    s5.rehydrate(None, lambda: "t", blob)
+    assert s5.statuses["Rehydration"] == ("BLOCKED" if failure == "denied" else "FAIL")
+    assert requests == ["GET"]
+    assert (s5.run.path / "checkpoint.json").read_bytes() == local_bytes
+    assert "R4" not in s5.replies
+    assert sb.step5_verdict(s5.statuses) != "Met"
+
+
+@pytest.mark.parametrize("blob_skipped", [False, True])
+def test_required_reconstruction_is_blocked_without_verified_blob(tmp_path: Path, blob_skipped: bool) -> None:
+    s5 = step(sb.Step5, tmp_path)
+    s5.replies["R1"] = sb.HostedReply(container="original", result={"filtered_rows": 1249, "by_category": GROUPS})
+    s5.statuses["R1 builds state"] = "PASS"
+    s5.args.blob_checkpoint = "skip" if blob_skipped else "write"
+    s5.save_checkpoint(None)
+    s5.rehydrate(None, lambda: "t", None)
+    s5.conclude()
+    assert s5.statuses["Checkpoint saved locally"] == "PASS"
+    assert s5.statuses["Checkpoint in customer Blob"] == s5.statuses["Rehydration"] == "BLOCKED"
+    assert s5.verdict == "Partially met"
+    report = s5.report.path.read_text(encoding="utf-8")
+    assert "local bytes are diagnostic only" in report
+    assert "Customer-owned storage worked" not in report
+
+
+@pytest.mark.parametrize(
+    ("operation", "failure"),
+    [(operation, failure) for operation in ("PUT", "GET") for failure in ("denied", "missing", "timeout")]
+    + [("GET", "mismatch")],
+)
+def test_persist_and_read_checkpoint_fails_closed(operation: str, failure: str) -> None:
+    checkpoint = sb.build_checkpoint(
+        "run",
+        TEN,
+        "workflow-uuid",
+        {"filtered_rows": 1249, "by_category": GROUPS},
+        {"owner": "trusted-owner", "session": "trusted-session"},
+    )
+    raw = sb.seal_checkpoint(checkpoint)
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request.method)
+        assert request.headers["authorization"] == "Bearer token"
+        if request.method == operation:
+            if failure == "timeout":
+                raise httpx.ReadTimeout("timeout", request=request)
+            if failure != "mismatch":
+                return httpx.Response(403 if failure == "denied" else 404)
+            if operation == "GET":
+                return httpx.Response(200, content=b"{}")
+        return httpx.Response(201 if request.method == "PUT" else 200, content=raw)
+
+    store = sb.BlobStore(httpx.Client(transport=httpx.MockTransport(handler)), "https://s.blob", "artifacts", "token")
+    with pytest.raises(sb.BlobCheckpointError):
+        sb.persist_and_read_checkpoint(
+            store,
+            "checkpoint",
+            raw,
+            TEN,
+            "workflow-uuid",
+            expected_source={"owner": "trusted-owner", "session": "trusted-session"},
+        )
+    assert calls == (["PUT"] if operation == "PUT" else ["PUT", "GET"])
+
+
+def test_verified_blob_helper_binds_native_owner_and_session_and_retains_bytes() -> None:
+    trusted: dict[str, JsonValue] = {"owner": "trusted-owner", "session": "trusted-session", "workflow": "uuid"}
+    checkpoint = sb.build_checkpoint("run", TEN, "uuid", {"filtered_rows": 1249, "by_category": GROUPS}, trusted)
+    raw = sb.seal_checkpoint(checkpoint)
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request.method)
+        if request.method == "PUT":
+            assert request.content == raw
+            return httpx.Response(201)
+        return httpx.Response(200, content=raw)
+
+    store = sb.BlobStore(httpx.Client(transport=httpx.MockTransport(handler)), "https://s.blob", "artifacts", "t")
+    assert sb.persist_and_read_checkpoint(store, "checkpoint", raw, TEN, "uuid", expected_source=trusted) == checkpoint
+    assert calls == ["PUT", "GET"]
+    for key in ("owner", "session", "workflow"):
+        with pytest.raises(sb.BlobCheckpointError, match="binding differs"):
+            sb.read_blob_checkpoint(store, "checkpoint", TEN, "uuid", expected_source={key: "foreign"})
 
 
 @pytest.mark.parametrize(("number", "name"), [(4, "step-04-sandbox-boundaries"), (5, "step-05-state-continuity")])
@@ -397,17 +556,32 @@ def test_tasks_and_inputs() -> None:
     document = json.loads((ROOT / ".vscode" / "tasks.json").read_text(encoding="utf-8"))
     tasks = {task["label"]: task for task in document["tasks"]}
     four, five = tasks[sb.STEP4_TASK_LABEL], tasks[sb.STEP5_TASK_LABEL]
-    assert four["args"][-8:] == [
+    for task in (four, five):
+        assert task["args"][task["args"].index("-m") + 1] == "scripts.run_scenario.story1_native"
+        assert "--options-toolbox" not in task["args"] and "--idle-wait" not in task["args"]
+    assert four["args"][-6:] == [
+        "--users",
+        "${input:authProfileUsers}",
         "--step",
         "4",
         "--environment",
         "${input:infraEnvironment}",
-        "--options-toolbox",
-        "${input:story1OptionsToolbox}",
-        "--idle-wait",
-        "${input:story1IdleWait}",
     ]
-    assert five["args"][-4:] == ["--step", "5", "--environment", "${input:infraEnvironment}"]
+    assert five["args"][-6:] == [
+        "--hosted-idle",
+        "${input:story1HostedIdle}",
+        "--step",
+        "5",
+        "--environment",
+        "${input:infraEnvironment}",
+    ]
     assert "dependsOn" not in four and "dependsOn" not in five
     inputs = {item["id"]: item for item in document["inputs"]}
-    assert inputs["story1OptionsToolbox"]["default"] == "probe" and inputs["story1IdleWait"]["default"] == "skip"
+    for name, options, default in (
+        ("story1Execution", ["preview", "run"], "preview"),
+        ("story1CapacityProfile", ["baseline", "pressure"], "baseline"),
+        ("story1HostedIdle", ["skip", "observe"], "skip"),
+    ):
+        assert inputs[name]["options"] == options
+        assert inputs[name]["default"] == default
+    assert "story1OptionsToolbox" not in inputs and "story1IdleWait" not in inputs

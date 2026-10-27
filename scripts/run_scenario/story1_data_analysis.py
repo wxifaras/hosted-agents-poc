@@ -2529,7 +2529,18 @@ def build_parser() -> argparse.ArgumentParser:
         "--blob-checkpoint",
         choices=["write", "skip"],
         default="write",
-        help="Step 5: write, read, and delete one synthetic checkpoint in the existing Blob container.",
+        help=(
+            "Historical Step 5: write and verify readback of one synthetic Blob checkpoint; skip cannot prove recovery."
+        ),
+    )
+    parser.add_argument(
+        "--lifecycle-mode",
+        choices=["observe", "destructive"],
+        default="observe",
+        help=(
+            "Historical Step 5: retain evidence by default; "
+            "destructive explicitly permits deleting this run's resources."
+        ),
     )
     add_output_arguments(parser)
     return parser

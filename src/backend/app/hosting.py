@@ -44,6 +44,7 @@ from app.services.orchestration import (
     delegate_turn,
     subtask_turn,
 )
+from app.services.story1_native import NATIVE_PREFIX, NativeRequest, NativeWorkflowDenied, native_turn
 from app.services.workflows import Child, Registry, WorkflowError
 
 
@@ -213,6 +214,21 @@ def build_host(
         if cancellation.is_set():
             raise asyncio.CancelledError
         text = await context.get_input_text() or ""
+        if text.startswith(NATIVE_PREFIX):
+            try:
+                if request.get("background") or context.is_recovery:
+                    raise WorkflowError("Native analysis does not support background or automatic recovery.")
+                native_request = NativeRequest.model_validate_json(text[len(NATIVE_PREFIX) :])
+                result = await native_turn(name, settings, native_request, context.conversation_id)
+            except NativeWorkflowDenied as error:
+                return failed_response(request, context, str(error), code="native_workflow_denied")
+            except WorkflowError as error:
+                return failed_response(request, context, str(error), code="server_error")
+            except ValidationError:
+                return failed_response(request, context, "Invalid native Story 1 command or output schema.")
+            except TimeoutError:
+                return failed_response(request, context, "Native analysis timed out; automatic replay is forbidden.")
+            return TextResponse(context, request, text=result)
         if text.startswith(DELEGATE_PREFIX):
             try:
                 if request.get("background") or context.is_recovery:
