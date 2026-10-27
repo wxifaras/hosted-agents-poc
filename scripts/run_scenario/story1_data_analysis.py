@@ -51,6 +51,7 @@ from scripts.common.reporting import (
     ValidationRun,
     add_output_arguments,
     index_entry,
+    status_icon,
     update_index,
 )
 from scripts.common.synthetic_data import (
@@ -382,7 +383,9 @@ class Step1:
     def record(self, step: str, status: Status, expected: str, observed: object) -> None:
         self.statuses[step] = status
         self.run.result(step, status, expected=expected, observed=observed)
-        self.report.table(["Check", "Status", "Expected", "Observed"], [[step, status, expected, observed]])
+        self.report.table(
+            ["Check", "Status", "Expected", "Observed"], [[step, status_icon(status), expected, observed]]
+        )
 
     def execute(self) -> None:
         self.report.paragraph(f"**AC1 (verbatim from GitHub issue #1):** {AC1}")
@@ -1276,7 +1279,9 @@ class ReusingStep:
 
     def record(self, step: str, status: Status, expected: str, observed: object) -> None:
         self.observe(step, status, expected, observed)
-        self.report.table(["Check", "Status", "Expected", "Observed"], [[step, status, expected, observed]])
+        self.report.table(
+            ["Check", "Status", "Expected", "Observed"], [[step, status_icon(status), expected, observed]]
+        )
 
     def execute(self) -> None:
         raise NotImplementedError
@@ -1593,7 +1598,10 @@ class Step3(ReusingStep):
             ],
         )
         if result.checks:
-            self.report.table(["Check", "Status", "Expected", "Observed"], result.checks)
+            self.report.table(
+                ["Check", "Status", "Expected", "Observed"],
+                [[name, status_icon(str(status)), *rest] for name, status, *rest in result.checks],
+            )
         if result.files:
             self.report.paragraph(
                 "Local copies: "
@@ -2218,7 +2226,7 @@ class Step2(ReusingStep):
             self.observe(name, status, FILE_EXPECTED, {"container": container, "checks": observed})
             data, content_type = downloaded.get(name, (b"", None))
             link = f"[{name}](outputs/{name})" if present else name
-            table.append([link, status, container, len(data) if present else "-", content_type, observed])
+            table.append([link, status_icon(status), container, len(data) if present else "-", content_type, observed])
         self.report.table(
             ["File (local copy)", "Status", "Sandbox container", "Bytes", "Content type", "Checks"], table
         )
@@ -2299,7 +2307,7 @@ class Step2(ReusingStep):
             rows.append(
                 [
                     f"[{name}](outputs/supervisor/{name})" if present else name,
-                    "PASS" if present and ok else "FAIL",
+                    status_icon("PASS" if present and ok else "FAIL"),
                     len(downloaded[name][0]) if present else "-",
                     details if present else "Not in the forwarded container",
                 ]
@@ -2319,7 +2327,7 @@ class Step2(ReusingStep):
         supervisor = self.statuses.get(SUPERVISOR_CHECK, "SKIP")
 
         def evidence(name: str, text: str) -> list[object]:
-            return [self.statuses.get(name, "SKIP"), text]
+            return [status_icon(self.statuses.get(name, "SKIP")), text]
 
         self.report.heading("Delivery paths")
         self.report.table(

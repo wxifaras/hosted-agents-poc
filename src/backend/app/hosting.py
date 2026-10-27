@@ -24,6 +24,15 @@ from pydantic import ValidationError
 from app.core.logger import Logger
 from app.core.settings import AgentName, Settings
 from app.services.code_interpreter import container_ids, with_artifacts
+from app.services.conversations import (
+    CONVERSE_PREFIX,
+    ConversationReport,
+    ConverseCommand,
+    converse_turn,
+)
+from app.services.conversations import (
+    PROTOCOL as CONVERSATION_PROTOCOL,
+)
 from app.services.delegation import (
     COMMAND_PREFIX,
     CONTEXT_PREFIX,
@@ -50,10 +59,20 @@ from app.services.workflows import Child, Registry, WorkflowError
 def _visible_text(text: str, role: str) -> str:
     if role == "user" and text.startswith(COMMAND_PREFIX):
         return Command.model_validate_json(text[len(COMMAND_PREFIX) :]).message
+    if role == "user" and text.startswith(CONVERSE_PREFIX):
+        try:
+            return ConverseCommand.model_validate_json(text[len(CONVERSE_PREFIX) :]).message
+        except ValidationError:
+            return text
     if role == "assistant" and text.startswith("{") and '"poc-workflow-v1"' in text:
         value: object = json.loads(text)
         if isinstance(value, dict) and value.get("protocol") == "poc-workflow-v1":
             return Report.model_validate(value).answer
+    if role == "assistant" and text.startswith("{") and f'"{CONVERSATION_PROTOCOL}"' in text:
+        try:
+            return ConversationReport.model_validate_json(text).final_answer
+        except ValidationError:
+            return text
     return text
 
 
@@ -227,6 +246,19 @@ def build_host(
             except ValidationError:
                 Logger(name).error("Invalid delegation schema", agent=name)
                 return failed_response(request, context, "Invalid POC delegation command.")
+            return TextResponse(context, request, text=result)
+        if text.startswith(CONVERSE_PREFIX):
+            try:
+                if request.get("background") or context.is_recovery:
+                    raise WorkflowError("Conversation commands run synchronously; background/recovery is not enabled.")
+                converse = ConverseCommand.model_validate_json(text[len(CONVERSE_PREFIX) :])
+                result = await converse_turn(name, settings, converse, context)
+            except WorkflowError as error:
+                Logger(name).error("Conversation command rejected", agent=name, reason=str(error))
+                return failed_response(request, context, str(error))
+            except ValidationError:
+                Logger(name).error("Invalid conversation command schema", agent=name)
+                return failed_response(request, context, "Invalid POC conversation command.")
             return TextResponse(context, request, text=result)
         if text.startswith(SUBTASK_PREFIX):
             try:

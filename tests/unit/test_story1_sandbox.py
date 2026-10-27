@@ -332,7 +332,8 @@ def test_step5_end_to_end_offline(monkeypatch: pytest.MonkeyPatch, tmp_path: Pat
     assert "| Conversation history | recalled | isolated |" in report
     assert "| `story1_state` variable | lost | lost | rebuilt from checkpoint |" in report
     assert "Customer-network placement" in report and "Tested (Blob)" in report
-    assert report.startswith("# t\n\n## Summary") and "**Acceptance verdict: Met.**" in report
+    assert report.startswith("# t\n\n## How to read this report") and "**Acceptance verdict: Met.**" in report
+    assert report.index("## How to read this report") < report.index("## Summary")
     for row in (line for line in report.splitlines() if "| Not supported |" in line):
         assert "](https://learn.microsoft.com/" in row, row
     assert "| ✅ PASS | Conversation history continues within a conversation" in report

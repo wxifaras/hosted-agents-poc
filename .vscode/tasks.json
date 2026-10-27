@@ -240,6 +240,51 @@
       "problemMatcher": []
     },
     {
+      "label": "Agents: Story 3 - 1 Demonstrate separate conversations",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story3_conversations", "--step", "1", "--environment", "${input:infraEnvironment}", "--mode", "${input:story3Step1Mode}"],
+      "detail": "AC1. verify = no changes. prepare-if-missing = once, azd deploy supervisor-agent so the Supervisor accepts POC_CONVERSE (same identity; Research and Data Analysis not redeployed). Paid: one Supervisor -> Research turn in a Supervisor-created Research conversation, then a model-free mapping re-read. Writes a report under step-01-separate-conversations\\ and the Story 3 baseline.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 3 - 2 Verify sub-agent follow-up history",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story3_conversations", "--step", "2", "--environment", "${input:infraEnvironment}"],
+      "detail": "AC2. Read-only reuse of the Story 3 baseline. Paid: two Supervisor -> Research turns in one mapped Research conversation (remember, then recall without resending), plus a model-free inspect of a new Supervisor conversation. Writes a report under step-02-follow-up-history\\.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 3 - 3 Assess conversation ownership and access",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story3_conversations", "--step", "3", "--environment", "${input:infraEnvironment}"],
+      "detail": "AC3. Read-only reuse of the Story 3 baseline; reads role assignments only. Paid: one Supervisor -> Research turn, then model-free client-to-agent and agent-to-agent conversation reads and Supervisor mapping denials. Writes a report under step-03-ownership-and-access\\.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 3 - 4 Evaluate shared conversation ID",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story3_conversations", "--step", "4", "--environment", "${input:infraEnvironment}"],
+      "detail": "AC4. Read-only reuse of the Story 3 baseline. Paid: one Supervisor seed turn, the Supervisor calling Research with its own conversation ID (agent and call-context identity), a model-free Supervisor history inspect, and one direct client -> Research control. Writes a report under step-04-shared-conversation-id\\.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 3 - 5 Compare shared and separate conversations",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story3_conversations", "--step", "5", "--environment", "${input:infraEnvironment}"],
+      "detail": "AC5. Read-only reuse of the Story 3 baseline. Paid: four variants in new Supervisor conversations (separate result/placeholder, shared agent/call-context), each followed by a model-free inspect; classifies result, placeholder, or full history. Writes a report under step-05-shared-vs-separate\\.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
       "label": "Agents: Story 4 - 1 Demonstrate Supervisor delegation",
       "type": "process",
       "command": "uv",
@@ -445,6 +490,13 @@
       "description": "skip = record the container expiry policy only; wait = idle about 21 minutes and check that the container expired",
       "options": ["skip", "wait"],
       "default": "skip"
+    },
+    {
+      "id": "story3Step1Mode",
+      "type": "pickString",
+      "description": "verify = no changes; prepare-if-missing = azd deploy only the EXISTING supervisor-agent once if it does not yet accept POC_CONVERSE",
+      "options": ["verify", "prepare-if-missing"],
+      "default": "verify"
     },
     {
       "id": "story4Step1Mode",

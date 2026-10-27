@@ -352,6 +352,36 @@ DOCS: dict[str, Doc] = {
         "Magentic: A manager agent dynamically coordinates specialized agents. (patterns table)",
         "Agent Framework also offers built-in multi-agent patterns, such as magentic, as alternatives.",
     ),
+    # Story 3 sources, verified on learn.microsoft.com on 2026-10-27.
+    "history_hydration": Doc(
+        "Hosted agent runtime contract: Responses protocol",
+        f"{CONTRACT}#responses-protocol",
+        "Hydrated automatically by the SDK adapter when `conversation.id` is present. (Responses protocol table, "
+        "Conversation history row)",
+        "Each agent's SDK adapter loads the history of the conversation ID it is called with, and no other.",
+    ),
+    "conversation_session": Doc(
+        "Hosted agents in Foundry Agent Service: Sessions, conversations, and the state store",
+        f"{HOSTED}#sessions-conversations-and-the-state-store",
+        "The platform manages conversation history automatically and associates a session ID with each conversation.",
+        "Foundry stores each conversation and its session. Linking one agent's conversation to another agent's is "
+        "not described, so that mapping is application code.",
+    ),
+    "state_store_users": Doc(
+        "Hosted agents in Foundry Agent Service: Sessions, conversations, and the state store",
+        f"{HOSTED}#sessions-conversations-and-the-state-store",
+        "A store can also partition its items per end user, so one store name is safe to share across the users of "
+        "a multitenant agent.",
+        "The Supervisor keeps its conversation mappings in a per-user partition of one store.",
+    ),
+    "conversation_privacy": Doc(
+        "Isolate hosted agent sessions per user: Understand per-user isolation",
+        "https://learn.microsoft.com/azure/foundry/agents/how-to/isolate-sessions-per-user"
+        "#understand-per-user-isolation",
+        "One user can't read or list another user's conversations.",
+        "Conversations are private to the caller that owns them. Story 3 tests what that means when the caller is "
+        "an agent identity.",
+    ),
 }
 
 Outcome = Literal["PASS", "FAIL", "PARTIAL", "BLOCKED", "NOT SUPPORTED", "LIMITATION", "DOCUMENTED", "NOT RUN"]
@@ -433,8 +463,9 @@ VERDICTS = (
     "agent changed unexpectedly. **Not evaluated** = the run was blocked before it could produce evidence."
 )
 CHECK_STATUSES = (
-    "In the detailed evidence below, each check is **PASS** (as expected), **FAIL** (not as expected), **BLOCKED** "
-    "(a prerequisite was missing; nothing was bypassed), or **SKIP** (not run)."
+    "In the detailed evidence below, each check's status is an icon: ✅ passed (as expected), ❌ failed (not as "
+    "expected), ⛔ blocked (a prerequisite was missing; nothing was bypassed), or ⏭️ skipped (not run). The run's "
+    "`results.jsonl` records the same statuses as PASS, FAIL, BLOCKED, and SKIP."
 )
 EVIDENCE = (
     "**Tested** = verified by this run. **Observed** = read from the platform during this run. **Documented** = "
@@ -449,11 +480,11 @@ OWNERSHIP = (
 
 
 def legend() -> str:
-    """How to read the summary: verdicts, finding outcomes, check statuses, evidence, and ownership."""
+    """How to read the report: verdicts, finding outcomes, check statuses, evidence, and ownership."""
     rows = [[outcome_label(name), meaning] for name, (_, meaning) in OUTCOMES.items()]
     return "\n\n".join(
         [
-            "### How to read this report",
+            "## How to read this report",
             f"**Acceptance verdict:** {VERDICTS}",
             "**Finding outcome:**",
             _table(["Outcome", "Meaning"], rows),
@@ -478,12 +509,12 @@ def render_summary(
     findings: Sequence[Finding],
     gaps: Sequence[str],
 ) -> str:
-    """Summary first: what was concluded, what was measured, what it means, and where Microsoft documents it."""
+    """Key first, then the summary: what was concluded, measured, and meant, and where Microsoft documents it."""
     used = list(dict.fromkeys(key for finding in findings for key in finding.docs))
     parts = [
+        legend(),
         "## Summary",
         f"**Acceptance verdict: {verdict}.** {conclusion}".strip(),
-        "Labels are explained in [How to read this report](#how-to-read-this-report) at the end of this summary.",
         "### Key results",
         "\n".join(f"- {line}" for line in results) or "- No results were recorded.",
         "### Findings",
@@ -520,5 +551,5 @@ def render_summary(
                 [[DOCS[key].link(), f'"{DOCS[key].quote}"', DOCS[key].meaning, numbers[key]] for key in used],
             ),
         ]
-    parts += [legend(), "---", "_Detailed evidence for every check follows below._"]
+    parts += ["---", "_Detailed evidence for every check follows below._"]
     return "\n\n".join(parts) + "\n"

@@ -40,6 +40,13 @@ No task currently proves crash recovery, filesystem restoration after idle,
 CSV/XLSX analysis capacity, Blob artifact authorization, or OAuth OBO permissions.
 Do not describe those as passing because another task completed.
 
+When reporting **NOT SUPPORTED**, name the attempted operation, the documented
+restriction or observed error, the affected configuration, and the practical
+consequence. Distinguish a documented platform restriction from a failure in one
+tested configuration. If the root cause is unknown, say so explicitly; an HTTP
+error alone does not establish a platform-wide prohibition. Identify a verified
+alternative when one exists, and keep untested behavior separate.
+
 ## Setup
 
 ### Setup: Sync dependencies
@@ -598,7 +605,7 @@ subprocess fallback for analysis.
 
 #### Step 1 output files
 
-Every Story 1 and Story 4 step uses the same naming convention:
+Every Story 1, Story 3, and Story 4 step uses the same naming convention:
 
 ```text
 artifacts\story-<n>\
@@ -641,8 +648,10 @@ also rendered in the task terminal.
 
 #### Report layout (all Story 1 and Story 4 steps)
 
-Every Story 1 and Story 4 report opens with a **Summary**, directly under the
-title. It contains:
+Every Story 1, Story 3, and Story 4 report opens, directly under the title,
+with **How to read this report**: a key for the verdicts, finding outcomes,
+check-status icons, evidence types, and owners used everywhere below it. The
+**Summary** follows. It contains:
 
 1. **Acceptance verdict** and a one-line conclusion: `Met`, `Met, with ...`
    (satisfied with a stated caveat), `Partially met`, `Not met`, or
@@ -678,12 +687,13 @@ title. It contains:
 5. **Microsoft documentation referenced:** for each quote, the linked page, the
    verbatim excerpt, what it means for this POC, and the numbers of the
    findings it supports.
-6. **How to read this report:** a legend for verdicts, outcomes, check
-   statuses, evidence, and ownership.
 
-Detailed check tables and raw evidence follow below the summary. Each check is
-`PASS`, `FAIL`, `BLOCKED` (a prerequisite was missing; nothing was bypassed),
-or `SKIP` (not run). The documentation sources live in
+Detailed check tables and raw evidence follow below the summary. Each check's
+status is shown as an icon: ✅ passed, ❌ failed, ⛔ blocked (a prerequisite was
+missing; nothing was bypassed), or ⏭️ skipped (not run). The same icons are used
+in the key results and the file, access-case, and delivery-path tables. The
+run's `results.jsonl` keeps the words `PASS`, `FAIL`, `BLOCKED`, and `SKIP`.
+The documentation sources live in
 [findings.py](../scripts/common/findings.py). Every link, section anchor, and
 quote was last checked against the live page on 2026-10-26.
 
@@ -1101,6 +1111,214 @@ Run folders are under `step-05-state-continuity\` and follow the
 the Standard agent setup; this POC uses Basic), private-endpoint residency
 (the POC storage uses a network security perimeter), or process-loss
 recovery (#7).
+
+### Agents: Story 3 - 1 Demonstrate separate conversations
+
+**Use case:** Story #3 AC1. Demonstrates a Supervisor conversation and a
+separate sub-agent (Research) conversation, and identifies who owns and stores
+their mapping. Reuses the three existing agents; it never creates an agent.
+
+**Inputs:** environment and mode.
+
+- `verify` (default): changes nothing. Reports `BLOCKED` if the Supervisor
+  doesn't accept `POC_CONVERSE`.
+- `prepare-if-missing`: only when missing, runs `azd deploy supervisor-agent`.
+  Only the Supervisor needs the Story 3 code: specialists already hydrate
+  history from the conversation they are called with. The Supervisor's
+  identity is preserved and checked, and Research must keep its version.
+  Afterwards, rerun **Agents: Story 4 - 1** and **Agents: Story 1 - 1** in
+  `verify` mode before the later steps of those stories, because both
+  baselines record the Supervisor's version.
+
+**Steps:** [story3_conversations.py](../scripts/run_scenario/story3_conversations.py) `--step 1`
+
+1. Snapshots the agents and probes protocol support without a model call: a
+   `POC_CONVERSE` request without a conversation must be rejected by the
+   Supervisor.
+2. The client creates conversation S on the Supervisor endpoint and sends
+   `POC_CONVERSE` (pattern `separate`) with a code word.
+3. The Supervisor creates conversation C on Research's endpoint with its own
+   agent identity, writes the mapping S -> C to its state store, and sends
+   Research the plain message (prefixed `[via supervisor-agent]`) in C.
+4. A model-free `inspect` re-reads the mapping, lists C, and reads C's
+   metadata (parent-conversation digest and correlation ID).
+5. Writes the "who owns and stores what" table and, when preparation succeeded
+   and the agents are unchanged, `artifacts\story-3\agents-baseline.json`.
+
+```mermaid
+sequenceDiagram
+    accTitle: Story 3 separate-conversation pattern
+    accDescr: The client talks to the Supervisor in conversation S. The Supervisor creates or reuses Research conversation C, stores the S to C mapping in its user-isolated state store, and invokes Research in C. Research hydrates C's history.
+    participant C as Client
+    participant S as Supervisor
+    participant ST as Supervisor state store (per user)
+    participant R as Research
+    C->>S: POC_CONVERSE in conversation S
+    S->>ST: Read mapping for digest(S)
+    alt No mapping yet
+        S->>R: conversations.create (metadata: parent digest, correlation)
+        S->>ST: Create mapping S to C
+    end
+    S->>R: Plain text in conversation C
+    R->>R: Hydrate C's history (SDK adapter)
+    R-->>S: Answer
+    S->>ST: Update turn count (ETag)
+    S-->>C: poc-conversation-v1 report
+```
+
+**Verdict:** `Met` when the Supervisor turn, separate conversation, mapping
+write, and mapping re-read all pass; `Met, with no Foundry-stored parent link`
+when only the conversation-metadata check fails.
+
+#### Story 3 output files
+
+Run folders are under `artifacts\story-3\step-<NN>-<slug>\` and follow the
+[Story 1 naming convention](#step-1-output-files): `step-01-separate-conversations`,
+`step-02-follow-up-history`, `step-03-ownership-and-access`,
+`step-04-shared-conversation-id`, and `step-05-shared-vs-separate`. Every report
+uses the [shared report layout](#report-layout-all-story-1-and-story-4-steps),
+with a **Requests sent** table and a **Reproduction** section. `index.md` links
+each run with its verdict; `agents-baseline.json` is the reuse guard for Steps
+2-5.
+
+The Supervisor reports conversation contents only as counts by origin: client
+inputs, `hop inputs` (messages starting with `[via supervisor-agent]`, which
+can only be a sub-agent's input), Supervisor `poc-conversation-v1` replies, and
+other assistant messages (a sub-agent's output). Probe results are reported as
+positional booleans and counts, so they never echo the tokens themselves. Only
+`result` delivery copies the sub-agent's answer, and any token in it, into the
+Supervisor's reply; `reply_token_hits` counts exactly that.
+
+### Agents: Story 3 - 2 Verify sub-agent follow-up history
+
+**Use case:** Story #3 AC2. Read-only reuse of the Step 1 baseline.
+
+1. Turn 1 through the Supervisor: "remember this code word". The Supervisor
+   creates and maps a Research conversation.
+2. Turn 2 through the Supervisor: "what code word?". The forwarded message
+   doesn't contain it. The Supervisor must reuse the mapped conversation, which
+   must already hold turn 1 (item counts before and after), and Research must
+   answer with the code word.
+3. The Supervisor's own hydrated history must contain no sub-agent turns.
+4. Control: a new Supervisor conversation has no mapping (model-free inspect).
+
+**Verdict:** `Met` when every check passes; `Partially met` when Research
+recalled the code word but another check failed.
+
+### Agents: Story 3 - 3 Assess conversation ownership and access
+
+**Use case:** Story #3 AC3. Reads role assignments (never grants), creates
+one Supervisor-mapped Research conversation with one paid turn, then runs
+model-free access cases:
+
+| Case | Invocation | Expected | Enforced by |
+|---|---|---|---|
+| Operator lists its Supervisor conversation | client-to-agent | Allowed | Foundry |
+| Operator lists its Supervisor conversation through Research's endpoint | client-to-agent | Recorded (endpoint scope) | Foundry |
+| Operator lists the Supervisor-created Research conversation | client-to-agent | Denied (another principal's conversation) | Foundry |
+| Supervisor lists it, `agent` identity | agent-to-agent | Allowed | Foundry |
+| Supervisor lists it, `call-context` identity (forwarded call ID) | agent-to-agent | Recorded (which principal Foundry binds) | Foundry |
+| Client supplies an unmapped Research conversation ID | client-to-agent | Denied, no outbound call | Supervisor application |
+| Another Supervisor conversation claims the Research conversation | client-to-agent | Denied | Supervisor application |
+| `POC_CONVERSE` without a Supervisor conversation | client-to-agent | Rejected | Supervisor application |
+
+It also checks that the Supervisor sees the operator as the platform user
+(salted fingerprint) and that the client's `x-client-correlation-id` reached
+the Supervisor and was recorded in the mapping, then writes the permissions,
+ownership/binding, and custom-correlation tables.
+
+**Boundary:** no second Entra user. Cross-user conversation and response
+denial on Research was established separately by **Agents: Test native Entra
+user isolation**.
+
+### Agents: Story 3 - 4 Evaluate shared conversation ID
+
+**Use case:** Story #3 AC4. Agent A is the Supervisor and Agent B is Research.
+
+1. The client seeds A's conversation S with a code word (plain Supervisor turn).
+2. For `agent` and then `call-context` identity, A calls B with
+   `conversation = S` and delivers only a placeholder, so any B content found
+   in S was written by B's own turn. Records whether B's call was allowed or
+   denied (HTTP status), whether B answered with the code word (read), and
+   whether B's input (`[via supervisor-agent]`) and output were appended to S
+   (client listing of S before and after).
+3. A model-free Supervisor `inspect` in S counts what A now hydrates: whether a
+   later A invocation sees B's messages.
+4. Control: the client calls Research directly with S (same principal), which
+   separates cross-endpoint scope from cross-principal ownership.
+
+```mermaid
+sequenceDiagram
+    accTitle: Story 3 shared conversation ID
+    accDescr: The Supervisor passes its own conversation ID S to Research. The test records whether Research can read S, whether Research's turn is appended to S, and whether the Supervisor later hydrates it.
+    participant C as Client
+    participant S as Supervisor (A)
+    participant R as Research (B)
+    C->>S: Plain turn in S (code word)
+    C->>S: POC_CONVERSE pattern shared, deliver placeholder
+    S->>R: Plain text with conversation S
+    R-->>S: Answer, or 4xx denial
+    S-->>C: Report (placeholder, booleans only)
+    C->>S: POC_CONVERSE inspect (no model call)
+    S-->>C: Counts of hop inputs and sub-agent outputs in S
+```
+
+**Verdict:** `Met` when both identity modes produce an explicit outcome
+(completed or a 4xx) and the later inspect ran. This criterion is an
+evaluation: denial is a valid recorded answer.
+
+### Agents: Story 3 - 5 Compare shared and separate conversations
+
+**Use case:** Story #3 AC5. Four variants, each in a new Supervisor
+conversation, each followed by a model-free inspect:
+
+| Variant | Supervisor ends up with (expected) |
+|---|---|
+| separate, deliver result | The sub-agent's **result** in its own reply |
+| separate, deliver placeholder | A **placeholder** reference only |
+| shared, deliver placeholder, `agent` | Recorded: **full history** if B's turn lands in S, otherwise a placeholder or nothing |
+| shared, deliver placeholder, `call-context` | Recorded as above |
+
+The classification comes from what the Supervisor conversation actually holds,
+not from the requested delivery mode. `result` means the sub-agent's token is in
+a Supervisor reply; `placeholder` means it isn't; `full history` means the
+sub-agent's own input and output items are in the Supervisor conversation.
+The comparison table shows the sub-agent call outcome, what the Supervisor
+received in the call, what persisted in the Supervisor conversation, and where
+the sub-agent history lives. **Verdict:** `Met` when each separate variant
+received the sub-agent's answer in the call and stored exactly what its mode
+requires, and the shared variants produce an explicit outcome (completed or a
+4xx; a 5xx is an error, never a denial).
+
+**Observed outcome (2026-10-27, run `a17b8f9067364b8c8c3067fdcc4a2a46`):**
+the [Step 5 report](../artifacts/story-3/step-05-shared-vs-separate/20261027T211427Z-a17b8f90/report.md)
+records:
+
+| Variant | Observed outcome | Why / consequence |
+|---|---|---|
+| separate, deliver result | Worked | The sub-agent call completed; the Supervisor stored the result in its own reply. Sub-agent turns stayed in the separate conversation. |
+| separate, deliver placeholder | Worked | The sub-agent call completed; the Supervisor stored only a reference, not the result or sub-agent history. |
+| shared, deliver placeholder, `agent` | Did not work in the tested configuration | Reusing the Supervisor's conversation ID for the sub-agent call returned HTTP 404 (`not_found`). No sub-agent result or history was delivered. |
+| shared, deliver placeholder, `call-context` | Did not work in the tested configuration | The same operation returned HTTP 404 (`not_found`), with no sub-agent result or history delivered. |
+
+**Why shared-ID reuse is labeled NOT SUPPORTED in that report:** neither tested
+identity mode completed the sub-agent call with the Supervisor's conversation
+ID. This label is scoped to the tested agents, identities, SDK versions, and
+synchronous calls, not every possible Foundry configuration. The recorded 404
+does not distinguish an unavailable conversation from one hidden by access or
+identity isolation; the underlying cause was **not established**. Documentation
+on conversation hydration and per-user isolation provides context, but does not
+by itself prove the cause of these errors or a universal ban on shared-ID reuse.
+
+**Verified alternative:** use separate sub-agent conversation IDs and explicitly
+deliver a result or placeholder to the Supervisor. Copying full sub-agent
+history by this alternative was not tested. Streaming, background delivery, and
+Data Analysis container artifacts in a shared conversation were also not tested.
+
+**Reading the verdict:** `Met` and passing shared-variant checks mean the
+comparison recorded and classified the outcomes. They do **not** mean shared-ID
+reuse succeeded. The Supervisor's outer requests completed and stored their own
+replies even though the nested sub-agent calls returned 404.
 
 ### Agents: Story 4 - 1 Demonstrate Supervisor delegation
 

@@ -151,6 +151,35 @@ container and writes, reads, and deletes one synthetic Blob checkpoint. See the
 and [Step 5](docs/tasks-detailed.md#agents-story-1---5-assess-state-continuity)
 task guides.
 
+### Story 3: multi-agent conversation management
+
+Story #3 validates conversation ownership and history hydration across the
+Supervisor and a sub-agent: a separate Supervisor-mapped sub-agent conversation,
+follow-up history, ownership/identity/access across client-to-agent and
+agent-to-agent boundaries, Agent A calling Agent B with A's own conversation ID,
+and the shared versus separate comparison. A Supervisor-only `POC_CONVERSE`
+command ([conversations.py](src/backend/app/services/conversations.py)) keeps the
+Supervisor -> sub-agent mapping in the Supervisor's user-isolated Foundry state
+store and sends the sub-agent plain text, so the sub-agent hydrates its own
+conversation history. Run the tasks in order:
+
+1. **Agents: Story 3 - 1 Demonstrate separate conversations** with
+   `prepare-if-missing` once per environment. It runs `azd deploy supervisor-agent`
+   (same identity; Research and Data Analysis are not redeployed) only when the
+   Supervisor doesn't yet accept `POC_CONVERSE`, then writes the Story 3
+   baseline. Use `verify` afterwards. Redeploying the Supervisor changes its
+   version, so rerun **Agents: Story 4 - 1** and **Agents: Story 1 - 1** (both
+   `verify`) before the later steps of those stories.
+2. **Agents: Story 3 - 2** through **Agents: Story 3 - 5** reuse that baseline and
+   never deploy, grant roles, or change agents.
+
+Reports are written to `artifacts\story-3\step-<NN>-<slug>\<run>\report.md` and linked from
+`artifacts\story-3\index.md`, in the same format as Story 1 and Story 4. Results
+are summarized in the
+[#3 status report](docs/issue-3-validate-multi-agent-conversation-management.md). See the
+[Story 3 task guides](docs/tasks-detailed.md#agents-story-3---1-demonstrate-separate-conversations)
+for each step's checks, outputs, and limitations.
+
 ### Story 4: representative hosted agent patterns
 
 Story #4 validates Supervisor -> sub-agent delegation, sync/async and failure
@@ -351,6 +380,7 @@ separates implementation from observed hosted results.
 | [Deployment guide](docs/deployment.md) | Detailed setup, local debugging, tasks, configuration/sizing, diagnostics, evidence, and teardown |
 | [Detailed task guide](docs/tasks-detailed.md) | Task purposes, prerequisites, side effects, test use cases, and Mermaid execution flows |
 | [Validate Hosted Agent Memory and Data Analysis Capacity (#1)](docs/issue-1-validate-hosted-agent-memory-and-data-analysis-capacity.md) | Status report: what works, what doesn't and why, and next steps |
+| [Validate Multi-Agent Conversation Management (#3)](docs/issue-3-validate-multi-agent-conversation-management.md) | Status report: what works, what doesn't and why, and next steps (hosted runs pending) |
 | [Validate Representative Hosted Agent Patterns (#4)](docs/issue-4-validate-representative-hosted-agent-patterns.md) | Status report: what works, what doesn't and why, and next steps |
 | [Infrastructure guide](infra/README.md) | Bicep contracts, NSP boundaries, outputs, and provisioning/RBAC details |
 
@@ -393,6 +423,11 @@ for setup, execution boundaries, and debugger details.
 | **Agents: Story 1 - 3 Evaluate dataset sizes** | Read-only reuse of the Step 1 agents and toolbox. One sequential paid request per size (1k/10k/100k rows), no retries, and stops at the first platform failure. Writes `03-capacity.md` with sandbox measurements and a scoped viability verdict |
 | **Agents: Story 1 - 4 Assess sandbox boundaries** | Paid benign sandbox probes (identity, filesystem, network, execution limit, per-call and toolbox-level options), one hosted confirmation, and an optional ~21-minute idle-expiry wait. Can create and then delete a separate probe-only toolbox. Writes `04-sandbox-boundaries.md` |
 | **Agents: Story 1 - 5 Assess state continuity** | Four paid hosted requests across three conversations, one sandbox container deletion, and a synthetic checkpoint written to, read from, and deleted in the existing Blob container. Writes `05-state-continuity.md` |
+| **Agents: Story 3 - 1 Demonstrate separate conversations** | AC1. `verify` changes nothing; `prepare-if-missing` runs `azd deploy supervisor-agent` once if needed. One paid Supervisor -> Research turn in a Supervisor-created conversation and a model-free mapping re-read. Writes a report under `step-01-separate-conversations\` and the Story 3 baseline |
+| **Agents: Story 3 - 2 Verify sub-agent follow-up history** | AC2. Two paid turns through the Supervisor into one mapped Research conversation; the follow-up never resends the code word. Writes a report under `step-02-follow-up-history\` |
+| **Agents: Story 3 - 3 Assess conversation ownership and access** | AC3. Reads (never grants) roles; one paid turn, then model-free allowed/denied conversation reads and Supervisor mapping denials. Writes a report under `step-03-ownership-and-access\` |
+| **Agents: Story 3 - 4 Evaluate shared conversation ID** | AC4. Paid: the Supervisor calls Research with its own conversation ID (`agent` and `call-context`), then a model-free history inspect and a direct client control. Writes a report under `step-04-shared-conversation-id\` |
+| **Agents: Story 3 - 5 Compare shared and separate conversations** | AC5. Up to four paid variants classified as result, placeholder, or full history. Writes a report under `step-05-shared-vs-separate\` |
 | **Agents: Story 4 - 1 Demonstrate Supervisor delegation** | AC1. `verify` changes nothing; `prepare-if-missing` creates the Research MCP toolbox and runs `azd deploy --all` once if needed. Two paid model-routed delegations. Writes `01-supervisor-delegation.md` and the Story 4 baseline |
 | **Agents: Story 4 - 2 Assess sync and async delegation** | AC2. Paid sync and background Supervisor -> Research delegation, each with a simulated sub-agent failure, plus one direct background request. Writes `02-sync-async-and-failure.md` |
 | **Agents: Story 4 - 3 Demonstrate Research tool call** | AC3. Direct toolbox probe plus a paid Supervisor -> Research MCP tool call; caller/target/permission/trust-boundary table. Writes `03-research-tool-call.md` |

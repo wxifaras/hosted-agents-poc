@@ -22,7 +22,7 @@ from openai import APIStatusError, OpenAIError
 from pydantic import JsonValue, ValidationError
 
 from scripts.common.findings import Finding, Outcome, checks_outcome, render_summary
-from scripts.common.reporting import MarkdownReport, Status, StepSpec, ValidationRun
+from scripts.common.reporting import MarkdownReport, Status, StepSpec, ValidationRun, status_icon
 from scripts.deploy.grant_agent_rbac import IMPERSONATION_ACTION
 from scripts.deploy.grant_local_rbac import CliError, az, object_value
 from scripts.run_scenario.hosted_smoke import SERVICES
@@ -222,6 +222,9 @@ class Story4Step:
     task_label = ""
     ac = ""
     scope_note = ""
+    issue = ISSUE
+    story_label = "Story 4"
+    module = "scripts.run_scenario.story4_agent_patterns"
 
     def __init__(self, args: argparse.Namespace, run: ValidationRun, report: MarkdownReport) -> None:
         self.args = args
@@ -255,7 +258,9 @@ class Story4Step:
 
     def record(self, step: str, status: Status, expected: str, observed: object) -> None:
         self.observe(step, status, expected, observed)
-        self.report.table(["Check", "Status", "Expected", "Observed"], [[step, status, expected, observed]])
+        self.report.table(
+            ["Check", "Status", "Expected", "Observed"], [[step, status_icon(status), expected, observed]]
+        )
 
     def check(self, step: str, ok: bool, expected: str, observed: object) -> bool:
         self.record(step, "PASS" if ok else "FAIL", expected, observed)
@@ -267,7 +272,7 @@ class Story4Step:
         return record
 
     def execute(self) -> None:
-        self.report.paragraph(f"**AC{self.number} (verbatim from GitHub issue {ISSUE}):** {self.ac}")
+        self.report.paragraph(f"**AC{self.number} (verbatim from GitHub issue {self.issue}):** {self.ac}")
         if self.scope_note:
             self.report.paragraph(self.scope_note)
         self.report.table(
@@ -309,7 +314,7 @@ class Story4Step:
 
     def command_line(self) -> str:
         return (
-            "uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story4_agent_patterns "
+            f"uv run --frozen --no-sync --group validation python -m {self.module} "
             f"--step {self.number} --environment {self.args.environment}"
         )
 
@@ -317,19 +322,20 @@ class Story4Step:
         raise NotImplementedError
 
     def guard_start(self) -> dict[str, AgentSnapshot] | None:
-        """Steps 2-7 reuse the Step 1 baseline unchanged; they never deploy or change an agent."""
-        baseline = load_baseline(self.args.output_dir / BASELINE_FILE, self.args.environment)
+        """Later steps reuse the Step 1 baseline unchanged; they never deploy or change an agent."""
+        story = self.story_label
+        baseline = load_baseline(self.args.output_dir / BASELINE_FILE, self.args.environment, story)
         self.report.heading("Agents reused - before")
         before = snapshot_agents(self.read)
         self.report.table(SNAPSHOT_HEADERS, [snapshot.row() for snapshot in before.values()])
         inactive = [s.name for s in before.values() if s.status != "active" or not s.latest_routing]
         if inactive:
-            raise Blocked(f"Agents not active with @latest routing: {', '.join(inactive)}. Run Story 4 Step 1.")
+            raise Blocked(f"Agents not active with @latest routing: {', '.join(inactive)}. Run {story} Step 1.")
         differences = reuse_differences(baseline, before, version_change=None)
         self.record(
             "Agents reused - before",
             "FAIL" if differences else "PASS",
-            "Identical to the Story 4 Step 1 baseline (versions, identities, toolbox wiring)",
+            f"Identical to the {story} Step 1 baseline (versions, identities, toolbox wiring)",
             differences or {name: snapshot.version for name, snapshot in before.items()},
         )
         return None if differences else before
@@ -459,18 +465,18 @@ class Story4Step:
         return checks_outcome(*statuses)
 
 
-def load_baseline(path: Path, environment: str) -> dict[str, AgentSnapshot]:
-    """The Story 4 Step 1 baseline; Steps 2-7 never recreate it."""
+def load_baseline(path: Path, environment: str, story: str = "Story 4") -> dict[str, AgentSnapshot]:
+    """The Step 1 baseline of a story; later steps never recreate it."""
     if not path.is_file():
-        raise Blocked(f"Story 4 baseline {path.name} is missing. Run Story 4 Step 1 first.")
+        raise Blocked(f"{story} baseline {path.name} is missing. Run {story} Step 1 first.")
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
         agents = {name: AgentSnapshot(**value) for name, value in data["agents"].items()}
         recorded = data["environment"]
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
-        raise Blocked(f"Story 4 baseline {path.name} is unreadable ({error}). Run Story 4 Step 1 again.") from error
+        raise Blocked(f"{story} baseline {path.name} is unreadable ({error}). Run {story} Step 1 again.") from error
     if recorded != environment:
-        raise Blocked(f"Story 4 baseline was recorded for '{recorded}', not '{environment}'. Run Step 1 for it.")
+        raise Blocked(f"{story} baseline was recorded for '{recorded}', not '{environment}'. Run Step 1 for it.")
     return agents
 
 
