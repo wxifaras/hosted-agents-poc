@@ -1,11 +1,17 @@
 # Validate Hosted Agent Memory and Data Analysis Capacity (#1)
 
+> **Disclaimer**
+>
+> This document is provided "as is" for general informational purposes and reflects a point-in-time reading of public Microsoft documentation. It is not official Microsoft guidance, a warranty, or a commitment.
+>
+> Azure features and GA/preview status are subject to change; verify capabilities against [Microsoft Learn](https://learn.microsoft.com/) before making any technical or purchasing decision, and treat those sources as authoritative if they conflict with this document. Service availability is governed solely by the applicable [SLAs for Microsoft Online Services](https://www.microsoft.com/licensing/docs/view/Service-Level-Agreements-SLA-for-Online-Services); nothing here constitutes an SLA or contractual commitment. No liability is accepted for any action taken, or not taken, based on this content.
+
 Status report: what works, what doesn't and why, and what to do next, for
 each requirement of issue #1 (Story 1 tasks in this repository).
 
 | Field | Value |
 |---|---|
-| Report date | 2026-10-26 |
+| Report date | 2026-10-26 (overview added and accuracy review 2026-10-27) |
 | Environment evaluated | `hosted-agents-poc-dev-001` (northcentralus, model `gpt-5-mini`) |
 | Agents at evaluation | `supervisor-agent` v3, `research-agent` v3, `data-analysis-agent` v4 (all active, `@latest` 100%) |
 | Hosted agent configuration | 0.5 vCPU / 1 GiB container, 120 s session idle timeout ([azure.yaml](../azure.yaml)) |
@@ -14,7 +20,112 @@ each requirement of issue #1 (Story 1 tasks in this repository).
 
 **Legend:** ✅ Works (tested in the evaluated environment) · ⚠️ Partial
 (works with gaps, or documented but not tested) · ❌ Gap (not
-demonstrated in the evaluated environment)
+demonstrated in the evaluated environment) · ℹ️ Reference (documented
+Microsoft guidance, not a test result)
+
+## 1. Overview: code execution and sandbox state - ℹ️ Reference
+
+This section summarizes Microsoft documentation; it isn't a test result.
+Where this POC has tested a point, the relevant section is linked. In this
+report, the **agent session sandbox** is where the hosted agent's own
+container runs, and the **Code Interpreter sandbox** is where model-written
+Python runs. Sections 2 to 8c test the Code Interpreter sandbox unless they
+say otherwise.
+
+There are **two separate execution environments**:
+
+1. **Hosted Agent session (agent session sandbox)**: Foundry runs the agent
+   container in a stateful, per-session VM-isolated sandbox. The platform
+   persists `$HOME` and files uploaded through `/files` across turns and
+   idle periods, and deletes a session after 30 days of inactivity.
+2. **Built-in Code Interpreter (Code Interpreter sandbox)**: Python runs in
+   a separate Microsoft-managed sandbox. Treat this environment as
+   temporary, not as the durable system of record. In this POC it keeps no
+   state between calls (tested, see 8b).
+
+### Where are the sandboxes created?
+
+- The **agent session sandbox** is provisioned and managed by Foundry Agent
+  Service for each agent session.
+- The **Code Interpreter sandbox** is Microsoft-managed: Hyper-V-isolated
+  ACA dynamic sessions in the project's region. Customers do not create or
+  manage its underlying session pool (see 8).
+- If more runtime control is required, Foundry also supports a **custom
+  code interpreter** (preview) using a customer-configured Azure Container
+  Apps environment.
+
+### Can Hosted Agents access ACA dynamic sessions or an ACA sandbox?
+
+- **ACA dynamic sessions:** Yes, as documented. A Hosted Agent can use a
+  customer-created session pool through the custom code interpreter
+  (preview; requires the Standard agent setup and the
+  `SessionPoolsSupportMCP` feature registration) or a custom integration
+  that calls the pool management API. Dynamic sessions provide isolated,
+  ephemeral execution environments allocated from a prewarmed session pool.
+  **Not tested here:** this POC uses the Basic setup (see 8a).
+- **Other ACA-hosted sandboxes:** the Foundry pages reviewed (hosted
+  agents, Code Interpreter, custom code interpreter) describe only ACA
+  dynamic session pools. Any other ACA-hosted execution endpoint needs a
+  custom integration (for example, exposed as an MCP tool). It isn't
+  attached to a Hosted Agent automatically.
+
+### How does state rehydration work?
+
+For an agent session sandbox, Foundry persists the filesystem and restores
+it when the same session is used again. However:
+
+- Sending `agent_session_id` binds a call to the same agent session
+  sandbox, which restores `$HOME` and `/files`. A Responses call without it
+  lands in a new sandbox, unless it passes a `conversation` ID, which binds
+  a session automatically.
+- Conversation continuity is maintained separately through
+  `previous_response_id` or a conversation ID.
+- In-memory variables, processes, and open connections should not be
+  treated as durable.
+- ACA dynamic sessions are ephemeral and are destroyed after their
+  lifecycle or cooldown period.
+- **Not tested here:** session filesystem idle/resume isn't validated yet.
+  This POC's 120 s idle timeout is the minimum allowed; the default is
+  15 minutes.
+
+For reliable recovery, store checkpoints, file references, and business
+state outside the execution sandbox (this POC's design is in 8b).
+
+### Can we store state in our own network?
+
+Use customer-owned services such as Azure Blob Storage, Cosmos DB, Azure
+SQL, or PostgreSQL as the durable system of record, secured with the
+appropriate private networking and identity controls.
+
+The storage behind the agent session sandbox and the Code Interpreter
+sandbox is platform-managed (see 8c). If customer control of the execution
+environment, network, packages, or compute is required, use a **custom code
+interpreter or customer-managed ACA dynamic sessions pool**.
+
+### Recommended pattern
+
+- Use **agent session storage** for resumable working files (documented;
+  not yet validated in this POC).
+- Use **customer-owned storage/database** for durable business state and
+  artifacts.
+- Use the **built-in Code Interpreter** for the simplest managed
+  experience.
+- Use **custom Code Interpreter / ACA dynamic sessions** when
+  customer-controlled runtime or networking is required.
+
+Detailed findings for these questions are in sections
+[8](#8-secured-code-execution-where-the-sandbox-is-created----works),
+[8a](#8a-can-hosted-agents-use-aca-dynamic-sessions-or-an-aca-sandbox----partial),
+[8b](#8b-state-consistency-and-sandbox-rehydration----gap), and
+[8c](#8c-can-state-be-stored-in-our-own-network----partial).
+
+### Microsoft documentation
+
+- [Hosted agents in Foundry Agent Service](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/hosted-agents)
+- [Manage hosted agent sessions](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/manage-hosted-sessions)
+- [Use Code Interpreter with Microsoft Foundry agents](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/code-interpreter)
+- [Configure a custom code interpreter for agents](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/custom-code-interpreter)
+- [Dynamic sessions in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/sessions)
 
 ## Status map
 
@@ -22,19 +133,21 @@ demonstrated in the evaluated environment)
 flowchart LR
     S1["Story 1<br/>Data Analysis on<br/>Hosted Agents"]
 
-    S1 --> R1["1. Deployed as<br/>Hosted Agent"]:::ok
-    S1 --> R2["2. Synthetic<br/>tabular data"]:::ok
-    S1 --> R3["3. Analysis via<br/>code execution"]:::partial
-    R3 --> R3a["3a. Visualizations"]:::ok
-    R3 --> R3b["3b. Output delivery to<br/>user / Supervisor"]:::partial
-    S1 --> R4["4. Larger datasets /<br/>memory pressure"]:::gap
-    S1 --> R5["5. Limits and failures<br/>documented"]:::ok
-    S1 --> R6["6. Viability<br/>conclusion"]:::partial
-    S1 --> R7["7. Secured code execution /<br/>sandbox location"]:::ok
-    R7 --> R7a["7a. ACA dynamic sessions /<br/>own ACA sandbox"]:::partial
-    R7 --> R7b["7b. State consistency /<br/>sandbox rehydration"]:::gap
-    R7 --> R7c["7c. State in<br/>customer network"]:::partial
+    S1 --> R1["1. Overview: code execution /<br/>sandbox state"]:::info
+    S1 --> R2["2. Deployed as<br/>Hosted Agent"]:::ok
+    S1 --> R3["3. Synthetic<br/>tabular data"]:::ok
+    S1 --> R4["4. Analysis via<br/>code execution"]:::partial
+    R4 --> R4a["4a. Visualizations"]:::ok
+    R4 --> R4b["4b. Output delivery to<br/>user / Supervisor"]:::partial
+    S1 --> R5["5. Larger datasets /<br/>memory pressure"]:::gap
+    S1 --> R6["6. Limits and failures<br/>documented"]:::ok
+    S1 --> R7["7. Viability<br/>conclusion"]:::partial
+    S1 --> R8["8. Secured code execution /<br/>sandbox location"]:::ok
+    R8 --> R8a["8a. ACA dynamic sessions /<br/>own ACA sandbox"]:::partial
+    R8 --> R8b["8b. State consistency /<br/>sandbox rehydration"]:::gap
+    R8 --> R8c["8c. State in<br/>customer network"]:::partial
 
+    classDef info fill:#d1ecf1,stroke:#17a2b8,color:#000
     classDef ok fill:#d4edda,stroke:#28a745,color:#000
     classDef partial fill:#fff3cd,stroke:#ffc107,color:#000
     classDef gap fill:#f8d7da,stroke:#dc3545,color:#000
@@ -42,31 +155,36 @@ flowchart LR
 
 ## Summary
 
+Section numbers are this report's own. Section 1 is reference material;
+sections 2 to 8c cover the issue #1 requirements.
+
 | # | Requirement | Status | What works | What isn't working, and why | Next step |
 |---|---|---|---|---|---|
-| 1 | Data Analysis Agent deployed as a Foundry Hosted Agent | ✅ | Agent v4 runs Python in managed Code Interpreter and returned the sandbox-computed SHA-256 | - | None |
-| 2 | Synthetic tabular data, no customer data | ✅ | Seeded synthetic sales CSVs (1k/10k/100k rows) whose content the sandbox verified by checksum | - | Optional: add XLSX |
-| 3 | Filter, group, summarize, analyze with code execution | ⚠️ | The agent ran the supplied fixed Python with exact results at every size (Step 3) | Model-written analysis (Step 2) has no valid run in this environment. Both attempts were blocked because they ran before the Step 1 baseline existed | Rerun Story 1 Step 2 |
-| 3a | Generating visualizations | ✅ | The sandbox generated a PNG chart at every size; each was downloaded and validated | - | None |
-| 3b | Output delivery to the Supervisor or user | ⚠️ | User path: text summary, JSON totals, and files retrieved by container ID | The stateful Supervisor path is blocked by the nested caller guard. Files expire after about 20 minutes, and any principal in the project can read them | Rerun Story 4 Step 6, add durable Blob delivery, resolve the guard |
-| 4 | Progressively larger datasets to exercise memory pressure | ❌ | 1k → 100k rows all passed | Peak memory was 160.5 MiB of the 2 GiB limit (8%), so memory pressure was never reached. `memory_limit` 4g was ignored | Add sizes that approach and exceed 2 GiB |
-| 5 | Resource limits, failures, constraints documented | ✅ | Step 3 and 4 runs and the ADR record the limits and constraints | Some ADR claims (Steps 2 and 5, 2026-10-24) come from an older environment and aren't reproduced here | Rerun Steps 2 and 5; record results in the ADR |
-| 6 | Clear viability conclusion | ⚠️ | Step 3 states: viable up to 100k rows (5.4 MiB) in the evaluated configuration | No overall verdict covering memory limits, Supervisor delivery, or multi-user use | Write one after the reruns |
-| 7 | Secured code execution: where the sandbox runs | ✅ | Microsoft-managed ACA dynamic sessions (documented). Non-root, no capabilities, read-only root, no egress (tested) | No per-user isolation. Network allowlist blocked by org policy | Test the isolation options |
-| 7a | Access to ACA dynamic sessions or an ACA sandbox | ⚠️ | The managed Code Interpreter already runs on Microsoft-owned ACA dynamic sessions | Bringing your own ACA session pool (custom code interpreter, preview) is documented only, not provisioned | Proof of concept: custom code interpreter on your own pool |
-| 7b | State consistency and sandbox rehydration | ❌ | Step 4 tested that sandbox state doesn't carry over between calls. The Step 5 checkpoint rehydration is fully coded | Step 5 has never run in this environment. The ADR's 10-24 "Met" has no retained report. Agent-framework checkpoints are not implemented | Run Story 1 Step 5 |
-| 7c | State storage location in the customer network | ⚠️ | Step 5 includes a placement assessment for each state layer | Placement is unverified here because Step 5 hasn't run. The sandbox can't. Files and conversations need the Standard setup (untested; POC uses Basic). Workflow state has no BYO option | Run Step 5. Test the Standard setup and a private endpoint |
+| 1 | Overview: code execution and sandbox state | ℹ️ | Summarizes Microsoft guidance on where code runs, sandbox state, and customer-network storage | Documented guidance, not test results; see 8 to 8c for what was tested | None |
+| 2 | Data Analysis Agent deployed as a Foundry Hosted Agent | ✅ | Agent v4 runs Python in managed Code Interpreter and returned the sandbox-computed SHA-256 | - | None |
+| 3 | Synthetic tabular data, no customer data | ✅ | Seeded synthetic sales CSVs (1k/10k/100k rows) whose content the sandbox verified by checksum | - | Optional: add XLSX |
+| 4 | Filter, group, summarize, analyze with code execution | ⚠️ | The agent ran the supplied fixed Python with exact results at every size (Step 3) | Model-written analysis (Step 2) has no valid run in this environment. Both attempts were blocked because they ran before the Step 1 baseline existed | Rerun Story 1 Step 2 |
+| 4a | Generating visualizations | ✅ | The sandbox generated a PNG chart at every size; each was downloaded and validated | - | None |
+| 4b | Output delivery to the Supervisor or user | ⚠️ | User path: text summary, JSON totals, and files retrieved by container ID | The stateful Supervisor path is blocked by the nested caller guard. Files expire after about 20 minutes, and any principal in the project can read them | Rerun Story 4 Step 6, add durable Blob delivery, resolve the guard |
+| 5 | Progressively larger datasets to exercise memory pressure | ❌ | 1k → 100k rows all passed | Peak memory was 160.5 MiB of the 2 GiB limit (8%), so memory pressure was never reached. `memory_limit` 4g was ignored | Add sizes that approach and exceed 2 GiB |
+| 6 | Resource limits, failures, constraints documented | ✅ | Step 3 and 4 runs and the ADR record the limits and constraints | Some ADR claims (Steps 2 and 5, 2026-10-24) come from an older environment and aren't reproduced here | Rerun Steps 2 and 5; record results in the ADR |
+| 7 | Clear viability conclusion | ⚠️ | Step 3 states: viable up to 100k rows (5.4 MiB) in the evaluated configuration | No overall verdict covering memory limits, Supervisor delivery, or multi-user use | Write one after the reruns |
+| 8 | Secured code execution: where the sandbox runs | ✅ | Microsoft-managed ACA dynamic sessions, Hyper-V isolated (documented). Non-root, no capabilities, read-only root, no egress (tested) | No per-user isolation. Network allowlist blocked by org policy | Test the isolation options |
+| 8a | Access to ACA dynamic sessions or an ACA sandbox | ⚠️ | The managed Code Interpreter already runs on Microsoft-owned ACA dynamic sessions (documented) | Bringing your own ACA session pool (custom code interpreter, preview) is documented only, not provisioned | Proof of concept: custom code interpreter on your own pool |
+| 8b | State consistency and sandbox rehydration | ❌ | Step 4 tested that sandbox state doesn't carry over between calls. The Step 5 checkpoint rehydration is fully coded | Step 5 has never run in this environment. The ADR records it as Met on 2026-10-24 in an older environment, but that report isn't retained. Agent-framework checkpoints are not implemented | Run Story 1 Step 5 |
+| 8c | State storage location in the customer network | ⚠️ | Step 5 includes a placement assessment for each state layer | Placement is unverified here because Step 5 hasn't run. The Code Interpreter sandbox can't be placed in our network. Files and conversations need the Standard setup (untested; POC uses Basic). Workflow state and the agent session filesystem have no bring-your-own option | Run Step 5. Test the Standard setup and a private endpoint |
 
 ---
 
-## 1. Data Analysis Agent deployed as a Foundry Hosted Agent - ✅ Works
+## 2. Data Analysis Agent deployed as a Foundry Hosted Agent - ✅ Works
 
 **What works**
 
 - `data-analysis-agent` v4 is active as a hosted agent with its own
   managed identity. It is wired to toolbox `story1-data-analysis-ci` v1
-  through the `TOOLBOX_ENDPOINT` setting. Only Data Analysis gets the toolbox
-  ([runtime.py](../src/backend/app/runtime.py)).
+  through the `TOOLBOX_ENDPOINT` setting. Only Data Analysis gets the Code
+  Interpreter toolbox; Research gets a separate Microsoft Learn MCP toolbox
+  for Story 4 ([runtime.py](../src/backend/app/runtime.py)).
 - Story 1 Step 1 on 2026-10-26 was **Met**. In
   23.49 s, the hosted agent returned the SHA-256 that the sandbox computed
   for the 1k-row input, plus a `poc-artifacts-v1` container reference.
@@ -79,7 +197,7 @@ flowchart LR
 **Next steps:** none. Rerun **Agents: Story 1 - 1** in `verify` mode after
 any redeploy to refresh the baseline.
 
-## 2. Synthetic tabular data - ✅ Works
+## 3. Synthetic tabular data - ✅ Works
 
 **What works**
 
@@ -106,7 +224,7 @@ any redeploy to refresh the baseline.
 **Next steps:** optional. Add an XLSX variant, which the ADR's CSV/XLSX
 capability row mentions.
 
-## 3. Representative analysis using code execution - ⚠️ Partial
+## 4. Representative analysis using code execution - ⚠️ Partial
 
 **What works**
 
@@ -136,7 +254,7 @@ capability row mentions.
    `hosted-agents-poc-dev-001`. It no longer blocks, because the baseline
    now exists.
 
-## 3a. Generating visualizations - ✅ Works
+## 4a. Generating visualizations - ✅ Works
 
 **What works**
 
@@ -153,7 +271,7 @@ relies on its own `poc-artifacts-v1` container reference instead.
 **Next steps:** none required. The Step 2 rerun also covers a chart drawn
 by model-written code.
 
-## 3b. How outputs reach the Supervisor or user - ⚠️ Partial
+## 4b. How outputs reach the Supervisor or user - ⚠️ Partial
 
 **How each output type is delivered (as built)**
 
@@ -162,8 +280,8 @@ by model-written code.
 | Text summary | Plain-language text in the agent's answer | ✅ Tested in Step 3 |
 | Structured results | A `json` fenced block in the answer. The authoritative copy is `story1-step3-result.json`, downloaded from the sandbox | ✅ Tested in Step 3 |
 | Files (CSV) and visuals (PNG) | Stay in the sandbox. The answer carries a `poc-artifacts-v1` block with container IDs, taken from tool results only, never from model-written text ([code_interpreter.py](../src/backend/app/services/code_interpreter.py)). The caller lists and downloads the files through the container files API | ✅ Tested in Steps 1 and 3 (user path) |
-| Files via Supervisor (`POC_WORKFLOW`) | Data Analysis puts container IDs in the `containers` field of its `poc-workflow-v1` report, and the Supervisor forwards them ([orchestration.py](../src/backend/app/services/orchestration.py)) | ⚠️ Unit-tested only, not end-to-end |
-| Files via Supervisor (`POC_DELEGATE`, Story 4 Step 6) | Stateless delegation to `data_analysis`. The operator downloads and validates the outputs | ⚠️ ADR records Met on earlier agent versions (Supervisor 2, Research 2, Data Analysis 3). No report retained |
+| Files via Supervisor (`POC_WORKFLOW`) | Data Analysis puts container IDs in the `containers` field of its `poc-workflow-v1` report, and the Supervisor forwards them ([delegation.py](../src/backend/app/services/delegation.py)) | ⚠️ Unit-tested only, not end-to-end |
+| Files via Supervisor (`POC_DELEGATE`, Story 4 Step 6) | Stateless delegation to `data_analysis` ([orchestration.py](../src/backend/app/services/orchestration.py)). The operator downloads and validates the outputs | ⚠️ ADR records Met on earlier agent versions (Supervisor 2, Research 2, Data Analysis 3). No report retained |
 
 **What isn't working and why**
 
@@ -173,9 +291,11 @@ by model-written code.
   not passing it through nested agent-to-agent calls. The guard is
   intentionally not bypassed. See
   [ADR-0001: Authorization contract](adr/0001-hosted-agents-poc.md#authorization-contract-and-proposed-alignment).
-- **Files are temporary.** Sandbox containers expire 20 minutes after last
-  activity (observed expiry at 21.5 min). Durable delivery to Blob
-  ("ArtifactStore") is not implemented.
+- **Files are temporary.** Sandbox containers report a 20-minute idle
+  expiry. The idle wait wasn't run here; in the older
+  `hosted-agents-poc-dev` environment (2026-10-24), a container expired
+  after 21.5 min idle. Durable delivery to Blob ("ArtifactStore") is not
+  implemented.
 - **No per-user file isolation.** Any principal with project access can
   read sandbox outputs through the containers API (tested in Step 4).
 
@@ -190,7 +310,7 @@ by model-written code.
 3. Resolve the nested caller guard (ADR next increment 1), then rerun
    Step 2 to show `containers` forwarding end to end.
 
-## 4. Progressively larger datasets to exercise memory pressure - ❌ Gap
+## 5. Progressively larger datasets to exercise memory pressure - ❌ Gap
 
 **What works**
 
@@ -227,12 +347,12 @@ by model-written code.
 2. Watch the 220 s per-execution limit and upload limits. They may be hit
    before memory.
 3. Ask Microsoft why `memory_limit` above 2 GiB isn't applied. If larger
-   memory is required, evaluate a custom code interpreter (see 7a).
+   memory is required, evaluate a custom code interpreter (see 8a).
 4. Record peak RSS against the limit and the first failure type for each
    size. Step 3 already stops at the first failure and writes a partial
    report.
 
-## 5. Observed resource limitations, failures, constraints documented - ✅ Works
+## 6. Observed resource limitations, failures, constraints documented - ✅ Works
 
 **What's documented (from Step 3 and Step 4 runs, 2026-10-26)**
 
@@ -242,7 +362,7 @@ by model-written code.
 | Sandbox CPU | 1 CPU enforced; Python reports 4 | - |
 | Sandbox disk | About 14.3 GiB free on `/mnt/data` | - |
 | Execution time | A 100 s run completed (101.84 s) | Tool description says 90 s; ACA documents 220 s |
-| Container lifetime | Expires 20 minutes after last activity (expiry observed at 21.5 min) | Code Interpreter page says 30 min idle, 1 h active; Responses API says 20 min |
+| Container lifetime | Containers report a 20 min idle-expiry policy; idle wait not run here. In the older `hosted-agents-poc-dev` environment (2026-10-24), a container expired after 21.5 min idle | Code Interpreter page says 30 min idle, 1 h active; Responses API says 20 min |
 | Container reuse | New container on every call; `container` reuse ignored | Separate sessions per conversation |
 | Network egress | No DNS or egress: public, raw IP, and customer storage all blocked | "Dynamic sessions can't make outbound network requests" |
 | Network allowlist | Rejected: "organization policy disables container network access" | `allowlist` is a supported value |
@@ -267,7 +387,7 @@ by model-written code.
 3. Ask Microsoft about three discrepancies: the 20 vs 30 min expiry,
    `memory_limit` not being applied, and the 90 s vs 220 s execution limit.
 
-## 6. Viability conclusion - ⚠️ Partial
+## 7. Viability conclusion - ⚠️ Partial
 
 **What works:** Step 3 states its conclusion scoped to what was tested:
 
@@ -277,32 +397,35 @@ by model-written code.
 
 **What isn't working and why:** no single conclusion yet covers:
 
-- How close a workload can get to the 2 GiB sandbox limit (see 4).
-- Model-written analysis in this environment (see 3).
-- Delivery through the Supervisor (see 3b).
+- How close a workload can get to the 2 GiB sandbox limit (see 5).
+- Model-written analysis in this environment (see 4).
+- Delivery through the Supervisor (see 4b).
 - Multi-user use. Shared sandbox access makes the managed toolbox setup
   **unsuitable for sensitive multi-tenant data** until an isolation option
-  is proven (see 7).
+  is proven (see 8).
 
 **Next steps:** after the Steps 2, 3 (extended sizes), and 5 reruns, add a
 final verdict to this report. State it per workload size, per delivery
 path, and per tenancy model.
 
-## 7. Secured code execution: where the sandbox is created - ✅ Works
+## 8. Secured code execution: where the sandbox is created - ✅ Works
 
 **How it works**
 
 - The hosted agent calls Code Interpreter as a tool through a Foundry
   toolbox (an MCP endpoint). The code doesn't run in the agent's container;
   there is no local `exec` or subprocess fallback.
-- Microsoft documents the sandbox as **Azure Container Apps dynamic
-  sessions (code interpreter sessions), each isolated by a Hyper-V
-  boundary**. The sessions are Microsoft-managed in Microsoft's
-  subscription, so no ACA resource exists in ours. They don't inherit the
-  agent's subnet.
+- The sandbox is **Microsoft-managed**. The
+  [Code Interpreter page](https://learn.microsoft.com/azure/foundry/agents/how-to/tools/code-interpreter#sandboxed-execution-environment)
+  documents it as **Azure Container Apps dynamic sessions (code interpreter
+  sessions), each isolated by a Hyper-V boundary**, running in the same
+  Azure region as the Foundry project. It doesn't inherit the agent's
+  subnet and can't make outbound network requests. No ACA resource for it
+  exists in our subscription.
 - The probe saw platform variable names `CAAS_PROXY_POOL_NAME`,
   `SESSIONS_INSTANCE`, and `CAAS_PROXY_MGMT_AUTH_ENABLED`. These are
-  consistent with ACA sessions but don't prove it.
+  consistent with the documented ACA sessions. Step 4 tests the observable
+  boundaries below, not the isolation technology itself.
 
 **Tested boundaries (Step 4, Met)**
 
@@ -337,12 +460,12 @@ path, and per tenancy model.
 Acceptance test: the Step 4 cross-principal probe, using two real Entra
 users.
 
-## 7a. Can hosted agents use ACA dynamic sessions or an ACA sandbox? - ⚠️ Partial
+## 8a. Can hosted agents use ACA dynamic sessions or an ACA sandbox? - ⚠️ Partial
 
 **What works**
 
-- Indirectly, yes: the managed Code Interpreter is ACA dynamic sessions,
-  owned and run by Microsoft (documented, see 7).
+- Indirectly, yes: the managed Code Interpreter runs on ACA dynamic
+  sessions owned and run by Microsoft (documented, see 8).
 
 **What isn't working and why**
 
@@ -354,7 +477,8 @@ users.
   - The `SessionPoolsSupportMCP` preview feature registration.
   - The Standard agent setup.
   - A paid ACA environment.
-  - The *Azure ContainerApps Session Executor* role.
+  - The *Azure ContainerApps Session Executor* and *Contributor* roles on
+    the session pool, for the calling identity.
 
   None of these are provisioned.
 - **Open question:** how the Foundry MCP path sets the ACA session
@@ -369,7 +493,7 @@ users.
 2. Rerun Steps 3, 4, and 5 against it: memory above 2 GiB, network
    allowlist, per-user isolation, and identifier behavior.
 
-## 7b. State consistency and sandbox rehydration - ❌ Gap
+## 8b. State consistency and sandbox rehydration - ❌ Gap
 
 **How sandbox state behaves (tested in Step 4)**
 
@@ -415,13 +539,14 @@ users.
 3. Plan the agent-framework checkpoint and process-loss experiments (ADR
    next increment 4).
 
-## 7c. Can state be stored in our own network? - ⚠️ Partial
+## 8c. Can state be stored in our own network? - ⚠️ Partial
 
 **Placement assessment (built into Step 5)**
 
 | State layer | Where it lives in this POC | Can it be in the customer network? | Basis |
 |---|---|---|---|
 | Code Interpreter sandbox (variables, `/mnt/data`) | Microsoft-managed sandbox | **No.** It doesn't inherit the agent's network and can't make outbound requests | Tested (Step 4) and documented |
+| Agent session sandbox (`$HOME`, `/files`) | Foundry-managed session storage; deleted after 30 days of inactivity | **No** bring-your-own option documented | Documented, not tested (session idle/resume not yet validated) |
 | Uploaded files (toolbox inputs) | Foundry project storage (Basic setup, Microsoft-managed) | **Yes, with the Standard agent setup** (bring-your-own Azure Storage) | Documented, not tested |
 | Conversations and responses | Foundry (Basic setup) | **Yes, with the Standard agent setup** (bring-your-own Cosmos DB). Whether the hosted-agent runtime uses it isn't stated | Documented, not tested |
 | Hosted workflow state (`POC_WORKFLOW` registry) | Foundry-managed hosted agent state store | **No** bring-your-own option documented | Documented |
@@ -451,16 +576,16 @@ users.
 
 | Priority | Action | Closes | Effort / cost |
 |---|---|---|---|
-| 1 | Run **Story 1 - 2** in `hosted-agents-poc-dev-001` | 3, 3a, 6 | Two paid hosted requests |
-| 2 | Run **Story 1 - 5** (Blob data role required) | 7b, 7c | Four paid requests and one Blob checkpoint |
-| 3 | Run **Story 4 - 6** (requires 1) | 3b | One paid request through the Supervisor |
-| 4 | Extend `DATASET_SIZES` toward and past 2 GiB, then rerun Step 1 `enable-if-missing` and Step 3 | 4, 6 | New uploads and toolbox version; code change |
-| 5 | Record rerun results in the ADR snapshot (environment, versions, date) | 5 | Documentation |
-| 6 | Durable Blob delivery for generated files (per-user prefix, ABAC) | 3b | Code change |
-| 7 | Proof of concept: custom code interpreter on our own ACA session pool (Standard setup) | 7, 7a, 4 | New paid infrastructure; preview registration |
-| 8 | Standard setup with bring-your-own Storage and Cosmos DB, plus a private endpoint for checkpoints | 7c | New infrastructure |
-| 9 | Resolve the nested caller guard for `POC_WORKFLOW` | 3b | Design work (ADR increment 1) |
-| 10 | Write the final viability verdict in this report | 6 | Documentation |
+| 1 | Run **Story 1 - 2** in `hosted-agents-poc-dev-001` | 4, 4a, 7 | Two paid hosted requests |
+| 2 | Run **Story 1 - 5** (Blob data role required) | 8b, 8c | Four paid requests and one Blob checkpoint |
+| 3 | Run **Story 4 - 6** (requires 1) | 4b | One paid request through the Supervisor |
+| 4 | Extend `DATASET_SIZES` toward and past 2 GiB, then rerun Step 1 `enable-if-missing` and Step 3 | 5, 7 | New uploads and toolbox version; code change |
+| 5 | Record rerun results in the ADR snapshot (environment, versions, date) | 6 | Documentation |
+| 6 | Durable Blob delivery for generated files (per-user prefix, ABAC) | 4b | Code change |
+| 7 | Proof of concept: custom code interpreter on our own ACA session pool (Standard setup) | 8, 8a, 5 | New paid infrastructure; preview registration |
+| 8 | Standard setup with bring-your-own Storage and Cosmos DB, plus a private endpoint for checkpoints | 8c | New infrastructure |
+| 9 | Resolve the nested caller guard for `POC_WORKFLOW` | 4b | Design work (ADR increment 1) |
+| 10 | Write the final viability verdict in this report | 7 | Documentation |
 
 ## Questions for Microsoft
 
