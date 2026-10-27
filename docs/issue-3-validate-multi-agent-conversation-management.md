@@ -6,22 +6,28 @@
 >
 > Azure features and GA/preview status are subject to change; verify capabilities against [Microsoft Learn](https://learn.microsoft.com/) before making any technical or purchasing decision, and treat those sources as authoritative if they conflict with this document. Service availability is governed solely by the applicable [SLAs for Microsoft Online Services](https://www.microsoft.com/licensing/docs/view/Service-Level-Agreements-SLA-for-Online-Services); nothing here constitutes an SLA or contractual commitment. No liability is accepted for any action taken, or not taken, based on this content.
 
-Status report: what works, what doesn't and why, and what to do next, for
-each requirement of issue #3 (Story 3 tasks in this repository).
+Status report: what was done, what worked, what didn't and why, and what to
+do next, for each requirement of issue #3 (Story 3 tasks in this repository).
 
 | Field | Value |
 |---|---|
-| Report date | 2026-10-27 (implementation complete; hosted runs pending) |
-| Environment to evaluate | `hosted-agents-poc-dev-001` (northcentralus, model `gpt-5-mini`) |
-| Agents before Story 3 | `supervisor-agent` v3, `research-agent` v3, `data-analysis-agent` v4 |
-| Agents when Story 3 ran | *To be recorded after **Agents: Story 3 - 1** (`prepare-if-missing` deploys a new Supervisor version only)* |
+| Report date | 2026-10-27; all five hosted steps completed |
+| Environment evaluated | `hosted-agents-poc-dev-001` (northcentralus, model `gpt-5-mini`) |
+| Agents at evaluation | `supervisor-agent` v4, `research-agent` v3, `data-analysis-agent` v4; all active, `@latest` 100% |
+| Agent reuse | Step 1 recorded the baseline; Steps 2-5 matched it. Versions, identities, and toolbox wiring were unchanged during the recorded runs |
 | Hosted agent configuration | Three separate hosted deployments of one image, each 0.5 vCPU / 1 GiB, 120 s session idle timeout ([azure.yaml](../azure.yaml)) |
-| Protocol tested | Supervisor-only `POC_CONVERSE` ([conversations.py](../src/backend/app/services/conversations.py)): `separate` and `shared` patterns, plus a model-free `inspect`. The stateless Story 4 `POC_DELEGATE` path and the blocked `POC_WORKFLOW` path are unchanged |
-| Evidence | Pending. Each task writes `artifacts\story-3\step-<NN>-<slug>\<run>\report.md` (local, sanitized). Summarize results here and in the dated [ADR-0001](adr/0001-hosted-agents-poc.md) entries (see [Evidence notes](#evidence-notes)) |
+| Protocol tested | Supervisor-only `POC_CONVERSE`: separate and shared conversation patterns, plus model-free inspection ([conversations.py](../src/backend/app/services/conversations.py)). Story 4's `POC_DELEGATE` and `POC_WORKFLOW` are separate paths |
+| Test scope | Synthetic messages and code words; Supervisor → Research. Data Analysis was included in baseline checks, not exercised as a specialist |
+| Evidence | Five local sanitized hosted-run reports and their recorded checks, summarized here so this document stands alone. Run identifiers and verdicts are in [Evidence notes](#evidence-notes) |
 
-**Legend:** ✅ Works (tested on hosted agents) · ⚠️ Partial (works with
-gaps, or documented but not tested) · ❌ Gap (not working or not
-demonstrated) · ⏳ Not yet run (implemented; no hosted evidence yet)
+**Legend:** ✅ Works (tested on hosted agents) · ⚠️ Partial (some behavior
+worked, but a discrepancy or support question remains) · ❌ Did not work
+(tested operation failed in this configuration).
+
+**Acceptance verdicts are not capability statuses.** Steps 1, 2, 4, and 5
+were **Met**; Step 3 was **Partially met**. Steps 4 and 5 required evaluating
+and recording shared-ID outcomes, so they were Met even though every tested
+shared-ID sub-agent call returned HTTP 404 (`not_found`).
 
 ## Status map
 
@@ -29,315 +35,369 @@ demonstrated) · ⏳ Not yet run (implemented; no hosted evidence yet)
 flowchart LR
     S3["Validate multi-agent<br/>conversation management"]
 
-    S3 --> R1["1. Supervisor and separate<br/>sub-agent conversation; mapping owner"]:::pending
-    S3 --> R2["2. Follow-up to the same<br/>sub-agent conversation"]:::pending
-    S3 --> R3["3. Ownership, identity binding,<br/>permissions, access"]:::pending
-    S3 --> R4["4. Agent A invokes Agent B<br/>with the same conversation ID"]:::pending
-    S3 --> R5["5. Shared versus separate:<br/>result, placeholder, or history"]:::pending
+    S3 --> R1["1. Separate conversations<br/>application-owned mapping"]:::ok
+    S3 --> R2["2. Follow-up reuses Research history<br/>without copying its turns"]:::ok
+    S3 --> R3["3. Access checks: 7 of 8 matched<br/>operator read unexpectedly allowed"]:::partial
+    S3 --> R4["4. Shared ID: both modes and<br/>same-principal control returned 404"]:::gap
+    S3 --> R5["5. Separate result / reference worked<br/>shared calls did not complete"]:::partial
 
     classDef ok fill:#d4edda,stroke:#28a745,color:#000
     classDef partial fill:#fff3cd,stroke:#ffc107,color:#000
     classDef gap fill:#f8d7da,stroke:#dc3545,color:#000
-    classDef pending fill:#e2e3e5,stroke:#6c757d,color:#000
 ```
-
-When a step runs, change its node class to `ok`, `partial`, or `gap`.
 
 ## Summary
 
 | # | Requirement | Status | What works | What isn't working, and why | Next step |
 |---|---|---|---|---|---|
-| 1 | Supervisor conversation and a separate sub-agent conversation; who owns and stores the mapping | ⏳ | Implemented: the Supervisor creates the Research conversation and stores the mapping in its user-isolated Foundry state store | Not yet run on hosted agents | Run **Agents: Story 3 - 1** (`prepare-if-missing`) |
-| 2 | Follow-up to the same sub-agent conversation; prior history independently available | ⏳ | Implemented. Related prior evidence: Research recalled earlier history in its own conversation (Story 4 Step 7) | Not yet run through the Supervisor mapping | Run **Agents: Story 3 - 2** |
-| 3 | Ownership, user/principal binding, permissions, access enforcement; client-to-agent vs agent-to-agent; custom correlation | ⏳ | Implemented: 8 allowed/denied access cases, role readback, correlation check | Not yet run. Known risk: Research sees no user context on agent-to-agent calls (Story 4) | Run **Agents: Story 3 - 3** |
-| 4 | Agent A invokes Agent B with the same conversation ID: can B read/append, does A later see B's messages | ⏳ | Implemented for `agent` and `call-context` identity, with a model-free history count | Not yet run. Not described in Microsoft documentation | Run **Agents: Story 3 - 4** |
-| 5 | Shared vs separate IDs: does the Supervisor get the result, a placeholder, or full history | ⏳ | Implemented: four variants, classified from what the Supervisor conversation actually holds | Not yet run | Run **Agents: Story 3 - 5** |
+| 1 | Supervisor and separate sub-agent conversations; mapping ownership and storage | ✅ | Distinct conversations; Supervisor wrote and re-read their mapping in a user-isolated Foundry state store; custom parent metadata returned | Conversation creation and mapping write are separate operations; interrupted creation can leave an unmapped conversation | Add recovery and cleanup before production use |
+| 2 | Follow-up to the same sub-agent conversation; independent prior history | ✅ | Supervisor reused the mapped Research conversation; Research recalled the earlier code word without it being forwarded again; history grew from 2 to 4 items | Crash recovery was not tested; model recall alone is not deterministic evidence, so item counts were checked too | Retain separate histories; test interruption and recovery |
+| 3 | Ownership, principal binding, permissions, access, and correlation | ⚠️ | 7 of 8 access cases matched expectations; Supervisor user binding, mapping guards, and correlation checks passed | Operator read the Supervisor-created Research conversation when denial was expected. Operator had elevated project roles; the run did not establish the reason for access | Reproduce with least-privileged, distinct users and confirm the access contract |
+| 4 | Invoke B with A's conversation ID; read, append, and later hydration | ❌ (evaluation Met) | Both identity modes and a same-principal control produced explicit outcomes; later Supervisor history was inspected | All calls using the Supervisor ID on Research returned 404 (`not_found`); no Research turns were appended. Exact cause unverified | Use separate IDs; confirm cross-endpoint conversation scope with Microsoft |
+| 5 | Compare shared and separate IDs: result, placeholder, or full history | ⚠️ (comparison Met) | Separate IDs delivered a result or placeholder as selected; Research history stayed separate | Shared-ID calls failed in both identity modes; no sub-agent result or history was delivered | Use explicit result/reference delivery; do not rely on shared-ID history |
 
 ---
 
-## 1. Supervisor conversation and a separate sub-agent conversation - ⏳ Not yet run
+## 1. Supervisor conversation and a separate sub-agent conversation - ✅ Works
 
 **Question (AC1):** Demonstrate a supervisor conversation and a separate
 sub-agent conversation. Identify who owns and stores their mapping.
 
-**How it is tested** (**Agents: Story 3 - 1**, `step-01-separate-conversations`)
+**What was done:** **Agents: Story 3 - 1 Demonstrate separate conversations**
+ran in `prepare-if-missing` mode. The client created a Supervisor conversation
+S and sent `POC_CONVERSE` with the separate pattern. The Supervisor created a
+Research conversation C with `agent` identity, stored S → C, and invoked
+Research in C. A later model-free inspect re-read the mapping and C's metadata.
+Supervisor v4 already supported the protocol; the recorded before/after agent
+snapshots showed no changes.
 
-- The client creates conversation S on the Supervisor endpoint and sends
-  `POC_CONVERSE` (`separate`).
-- The Supervisor creates conversation C on Research's endpoint with its own
-  agent identity. It writes the mapping S → C to its state store under a
-  digest of S, then sends Research the plain message in C.
-- A model-free `inspect` re-reads the mapping, lists C, and reads C's
-  metadata (parent digest and correlation ID).
+**Answer: separate conversations and an application-owned mapping worked.**
+Acceptance verdict: **Met**.
 
-**Ownership by design (to be confirmed by the run)**
-
-| Item | Created by | Stored in | Classification |
-|---|---|---|---|
-| Supervisor conversation S | Client (operator) | Foundry conversations | Foundry-managed |
-| Sub-agent conversation C | Supervisor application, Supervisor agent identity | Foundry conversations | Foundry-managed storage; Custom implementation (creation) |
-| Mapping S → C | Supervisor application | Foundry state store `hosted-agents-poc-supervisor-registry-v1`, the calling user's partition | Custom implementation (Dev Team) on Foundry-managed storage |
-| Parent link on C | Supervisor application | Foundry conversation metadata | Custom implementation (Dev Team) on Foundry-managed storage |
-| History hydration | SDK adapter (`context.get_history()`) | - | Agent Framework / SDK-managed |
-
-**Documented:** Microsoft documents that the platform
-[associates a session ID with each conversation](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sessions-conversations-and-the-state-store)
-and that a state store
-[can partition its items per end user](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sessions-conversations-and-the-state-store).
-No parent/child relationship between agents' conversations is described.
-
-**Results:** *To be added after the run.*
-
-| Check | Result |
+| Check | Finding |
 |---|---|
-| Supervisor turn in the Supervisor conversation | ⏳ |
-| Separate sub-agent conversation | ⏳ |
-| Mapping owned and stored by the Supervisor | ⏳ |
-| Mapping re-read from the state store | ⏳ |
-| Parent link stored on the sub-agent conversation | ⏳ |
+| Supervisor turn | Completed in the client-created Supervisor conversation |
+| Separate Research conversation | Different ID from S; Research's first turn produced 2 stored items |
+| Mapping ownership | Supervisor application created and maintained the record |
+| Mapping persistence | Later inspect found the same C and listed its 2 history items |
+| Parent metadata | Foundry returned the application-written parent digest, correlation ID, creator, and target |
 
-**Known risks**
+### Who owns and stores what
 
-- The mapping needs verified caller context at the Supervisor: user, call,
-  and session IDs. Story 4 observed that the Supervisor sees the original
-  user, so this is expected to work. If it doesn't, Step 1 fails with
-  "Stateful commands require verified Foundry hosted caller/session context".
-- Creating C and writing the mapping are two operations. A failure between
-  them leaves an unmapped conversation; retries and cleanup are not
-  implemented.
+| Item | Created / controlled by | Stored in | Binding / classification |
+|---|---|---|---|
+| Supervisor conversation S | Client using the operator's Entra token | Foundry conversations | Operator caller on the Supervisor endpoint; Foundry-managed storage |
+| Research conversation C | Supervisor application using agent identity | Foundry conversations | Created through the Supervisor's agent call on Research; exact access semantics require the AC3 qualification below |
+| S → C mapping | Supervisor application | Foundry state store `hosted-agents-poc-supervisor-registry-v1` | User-isolated partition; key `conversation-map/<digest of S>`; custom schema and lookup |
+| Parent link on C | Supervisor application | Free-form conversation metadata | Custom correlation, not evidence of a native parent/child relationship |
+| History hydration | Each agent's SDK adapter (`context.get_history()`) | History supplied for the request's conversation | Agent Framework / SDK-managed |
 
-**Next steps:** run **Agents: Story 3 - 1** with `prepare-if-missing`, then
-rerun **Agents: Story 1 - 1** and **Agents: Story 4 - 1** in `verify` mode to
-refresh their baselines.
+**What isn't working or remains unproven**
 
-## 2. Follow-up to the same sub-agent conversation - ⏳ Not yet run
+- Creating C and writing its mapping are separate operations. A failure between
+  them can leave an unmapped conversation; retries and cleanup are not implemented.
+- This demonstrates the application's mapping, not a platform-managed
+  parent/child conversation feature. No such native feature was demonstrated;
+  absence from the cited documentation is not proof that none can exist.
+- The same specialist code path exists for Data Analysis, but only Research was
+  exercised in Story 3.
+
+**Next step:** add interrupted-creation recovery and orphan cleanup; keep the
+mapping under application control.
+
+## 2. Follow-up to the same sub-agent conversation - ✅ Works
 
 **Question (AC2):** Send a follow-up request to the same sub-agent
 conversation and verify that its prior history is independently available.
 
-**How it is tested** (**Agents: Story 3 - 2**, `step-02-follow-up-history`)
+**What was done:** **Agents: Story 3 - 2 Verify sub-agent follow-up history**
+sent a "remember this code word" turn through the Supervisor, followed by a
+question asking for that word. Only the new message was forwarded on the
+second turn; it did not include the word. The run checked mapping reuse,
+Research's stored item counts, recall, and the Supervisor's hydrated history.
+A new Supervisor conversation was inspected as a control.
 
-1. Turn 1 through the Supervisor: "remember this code word".
-2. Turn 2 through the Supervisor: "what code word?". The forwarded message
-   doesn't contain the code word. Turn 2 checks four things:
-   - The Supervisor reuses the mapped conversation.
-   - That conversation already holds turn 1 (item counts before and after).
-   - Research answers with the code word.
-   - The Supervisor's own hydrated history contains no Research turns.
-3. Control: a new Supervisor conversation has no mapping.
+**Answer: the mapped conversation and its independent history were reused.**
+Acceptance verdict: **Met**.
 
-**Related prior evidence**
+| Check | Finding |
+|---|---|
+| First Research turn | Created C, stored its mapping, and added 2 items |
+| Follow-up routing | Found the mapping and reused the same C; no new Research conversation |
+| Stored history | 2 items before the follow-up, 4 after |
+| Recall | Research answered with the first turn's code word despite it being absent from the forwarded follow-up |
+| Supervisor history | No Research hop inputs or Research-authored outputs found; Research's own turns were not copied |
+| New Supervisor conversation | No mapping and no inherited Research history |
 
-| Observation | Source | Result |
-|---|---|---|
-| Client → Research directly, in Research's own conversation, recalls an earlier message | Story 4 Step 7, 2026-10-26 (Research v2) | Passed |
-| Supervisor → Research continuity with explicit conversations (`POC_WORKFLOW` diagnostics) | ADR, 2026-10-21 (`hosted-agents-poc-dev`) | A-continuity passed; nested user isolation failed |
+**What remains unproven:** recall is model-based, while item counts provide
+the deterministic persistence check. This was normal multi-turn continuity,
+not recovery after a crash, deployment, or interrupted mapping write.
 
-**Documented:** for the Responses protocol, history is
-[hydrated automatically by the SDK adapter when `conversation.id` is present](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agent-contract#responses-protocol).
+**Next step:** retain the separate-conversation pattern and test recovery
+explicitly rather than infer it from successful follow-up.
 
-**Results:** *To be added after the run.*
-
-**Next steps:** run **Agents: Story 3 - 2**.
-
-## 3. Ownership, identity binding, permissions, and access - ⏳ Not yet run
+## 3. Ownership, identity binding, permissions, and access - ⚠️ Partial
 
 **Question (AC3):** Document conversation-ID ownership, authenticated
 user/principal binding, required permissions, and access enforcement across
-supervisor/sub-agent boundaries. Exercise representative allowed/denied
-conversation access and distinguish client-to-agent from agent-to-agent
-invocation; identify custom correlation required.
+supervisor/sub-agent boundaries. Exercise representative allowed/denied access,
+distinguish client-to-agent from agent-to-agent calls, and identify custom
+correlation required.
 
-**How it is tested** (**Agents: Story 3 - 3**, `step-03-ownership-and-access`)
+**What was done:** **Agents: Story 3 - 3 Assess conversation ownership and
+access** created a mapped Research conversation with one paid turn. It then
+ran eight access cases without further model inference, compared the
+Supervisor's salted user fingerprint with the operator, checked correlation,
+and read project role assignments without granting anything.
 
-One paid turn creates a Supervisor-mapped Research conversation. Every
-access case after it makes no model call:
+**Answer: application guards and correlation worked, but the expected
+principal-isolation result did not.** Acceptance verdict: **Partially met**;
+7 of 8 access cases matched their expectations.
 
-| Case | Invocation | Expected | Enforced by | Result |
+### Actual access results
+
+| Case | Invocation | Expected | Observed | Enforcement / interpretation |
 |---|---|---|---|---|
-| Operator lists its Supervisor conversation | client-to-agent | Allowed | Foundry | ⏳ |
-| Operator lists its Supervisor conversation through Research's endpoint | client-to-agent | Recorded (endpoint scope) | Foundry | ⏳ |
-| Operator lists the Supervisor-created Research conversation | client-to-agent | Denied | Foundry | ⏳ |
-| Supervisor lists it, `agent` identity | agent-to-agent | Allowed | Foundry | ⏳ |
-| Supervisor lists it, `call-context` identity | agent-to-agent | Recorded (which principal Foundry binds) | Foundry | ⏳ |
-| Client supplies an unmapped Research conversation ID | client-to-agent | Denied, no outbound call | Supervisor application | ⏳ |
-| Another Supervisor conversation claims the Research conversation | client-to-agent | Denied | Supervisor application | ⏳ |
-| `POC_CONVERSE` without a Supervisor conversation | client-to-agent | Rejected | Supervisor application | ⏳ |
+| Operator lists its Supervisor conversation | Client → Supervisor endpoint | Allowed | Allowed, 2 items | Foundry |
+| Operator lists the same conversation through Research's endpoint | Client → Research endpoint | Record endpoint scope | HTTP 404 (`not_found`) | Observed cross-endpoint failure |
+| Operator lists the Supervisor-created Research conversation | Client → Research endpoint | Denied | **Allowed, 2 items; failed expectation** | Platform access was broader than the test assumed |
+| Supervisor lists C with `agent` identity | Agent → Research endpoint | Allowed | Allowed, 2 items | Foundry |
+| Supervisor lists C with forwarded `call-context` | Agent + forwarded call ID → Research endpoint | Record binding behavior | Allowed, 2 items | Does not by itself identify the effective owning principal |
+| Client supplies an unmapped Research ID | Client → Supervisor | Denied before outbound call | Denied; no outbound call | Supervisor mapping guard |
+| Another Supervisor conversation claims C | Client → Supervisor, same operator | Denied | Denied; no outbound call | Mapping is specific to the Supervisor conversation |
+| `POC_CONVERSE` without a Supervisor conversation | Client → Supervisor | Rejected before state/outbound work | Rejected with explicit-conversation error | Supervisor request guard |
 
-The step also checks that the Supervisor sees the operator as the platform
-user, using a salted fingerprint. It checks that the client's
-`x-client-correlation-id` reached the Supervisor and was recorded in the
-mapping, and reads the role assignments of the operator, the Supervisor,
-and Research.
+### Principal binding and permissions
 
-**Custom correlation required (by design)**
+- The Supervisor's platform-user fingerprint matched the operator; a call ID
+  was present.
+- C was created using the Supervisor's agent identity. However, both the
+  Supervisor and the operator could list it. **Creation identity is not proof
+  of exclusive access**, and forwarding a call ID plus observing a successful
+  list does not prove which identity Foundry used for authorization.
+- The mapping was stored in the calling user's state-store partition.
 
-| Link | Native in Foundry? | Implemented by |
+| Principal | Project roles observed | Purpose in this test |
 |---|---|---|
-| Supervisor conversation → sub-agent conversation | No | Supervisor mapping in the state store |
-| Sub-agent conversation → Supervisor conversation | No (metadata is free-form) | Conversation metadata written by the Supervisor |
-| Client request → every hop | Only `x-client-*` header forwarding | `x-client-correlation-id` |
-| Original user → sub-agent | Not observed on the agent-to-agent path (Story 4) | Not implemented |
+| Operator | Foundry User, Owner, User Access Administrator | Invoke agents and perform client access checks |
+| Supervisor agent identity | Foundry User | Invoke Research, create/list C, access mapping state |
+| Research agent identity | Foundry User | Model inference |
 
-**Documented:** Microsoft states that
-[one user can't read or list another user's conversations](https://learn.microsoft.com/azure/foundry/agents/how-to/isolate-sessions-per-user#understand-per-user-isolation).
-What that means when the "user" is an agent identity is what this step
-tests.
+These are role-assignment readbacks, **not a minimum-permission proof**.
+The operator's elevated roles are a relevant confounder, not an established
+explanation for the unexpected read. The run did not determine whether roles,
+caller resolution, or another platform rule caused access to be allowed.
 
-**Related prior evidence**
+### Correlation findings
 
-- Two genuine Entra users calling Research directly were isolated:
-  continuing the other user's response chain got 404 and using the other
-  user's session got 403. This was 22/22 assertions, on Research 6 in
-  `hosted-agents-poc-dev`, 2026-10-21.
-- On the agent-to-agent path, Research saw **no user context** in `agent`,
-  `call-context`, or `delegated-user` mode (Story 4, Steps 4 and 5). The
-  sub-agent conversation is therefore expected to be bound to the
-  Supervisor's identity, not the end user.
+The client's `x-client-correlation-id` reached the Supervisor and matched the
+value stored in the mapping. The application also wrote correlation and parent
+information into C's metadata.
 
-**Results:** *To be added after the run.*
+| Relationship | What the POC used |
+|---|---|
+| S → C routing and reuse | Supervisor-owned state-store mapping |
+| C → S parent reference | Application-written parent digest in conversation metadata |
+| Client request → mapping | `x-client-correlation-id`, checked against the mapping record |
+| Original user → Research execution | Not established by this step; successful access with forwarded context is insufficient proof |
 
-**Known gaps**
+**What isn't working and why**
 
-- No second Entra user in this step; cross-user denial relies on the
-  native-user isolation evidence above.
-- `delegated-user` (`x-ms-user-identity`) conversation ownership is not
-  tested. Story 4 recorded that the header neither took effect nor was
-  rejected on the hosted-agent path.
-- Required roles are read from assignments, not checked per call.
+- The expected denial of the operator's direct read of C failed. Do not claim
+  that a Supervisor-created conversation is readable only by the Supervisor.
+  The reason for the broader access remains unverified.
+- No second Entra user or least-privileged comparison was used in this run.
+  Earlier native-user isolation evidence is separate, not a replacement for
+  this missing control.
+- Delegated-user (`x-ms-user-identity`) conversation ownership was not tested.
+  Required roles were read, not varied to establish authorization boundaries.
 
-**Next steps:** run **Agents: Story 3 - 3**.
+**Next steps:** reproduce with two distinct, minimally privileged users;
+vary role scope and forwarded context separately; ask Microsoft to confirm
+the ownership and authorization contract before relying on it for isolation.
+Retain the application's mapping guards, but do not describe them as protection
+against direct calls to Research.
 
-## 4. Agent A invokes Agent B with the same conversation ID - ⏳ Not yet run
+## 4. Agent A invokes Agent B with the same conversation ID - ❌ Did not work
 
 **Question (AC4):** Evaluate Agent A invoking Agent B through the Responses
 API with the same conversation ID. Record whether B can read and append
 history and whether a later A invocation sees B's messages.
 
-**How it is tested** (**Agents: Story 3 - 4**, `step-04-shared-conversation-id`)
+**What was done:** **Agents: Story 3 - 4 Evaluate shared conversation ID**
+seeded the Supervisor's conversation S with a code word. The Supervisor then
+invoked Research with `conversation = S`, once with `agent` identity and once
+with forwarded `call-context`, requesting placeholder delivery. A later
+model-free inspect counted the Supervisor's history. Finally, the operator
+called Research directly with S as a same-principal control.
 
-1. The client seeds A's (Supervisor's) conversation S with a code word.
-2. For `agent` and then `call-context` identity, A calls B (Research) with
-   `conversation = S`, delivering only a placeholder. Any B content later
-   found in S was therefore written by B's own turn.
-3. A model-free Supervisor `inspect` counts what A now hydrates.
-4. Control: the client calls Research directly with S. This uses the same
-   principal, so it separates endpoint scope from principal ownership.
+| Invocation | Research call | Research read S | Research input / output appended to S |
+|---|---|---|---|
+| Supervisor → Research, `agent` | HTTP 404 (`not_found`) | Not observed; call failed | Neither |
+| Supervisor → Research, `call-context` | HTTP 404 (`not_found`) | Not observed; call failed | Neither |
+| Operator → Research with S (same-principal control) | HTTP 404 (`not_found`) | Not observed; call rejected | No successful Research turn |
 
-**Results:** *To be added after the run.*
+The error identified S as not found on the Research path. Later Supervisor
+inspection found **0 Research hop inputs and no Research turns**. Its 6
+history items were the 3 client messages and 3 Supervisor replies, including
+the Supervisor's reports of the failed nested calls.
 
-| Identity | B call outcome | B read A's history | B's input appended to A | B's output appended to A | A later sees B's messages |
-|---|---|---|---|---|---|
-| `agent` | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| `call-context` | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| Control: client → Research with S | ⏳ | ⏳ | - | - | - |
+**Why it did not work:** Foundry did not resolve/accept the Supervisor's
+conversation ID for those Research operations and returned 404 before a
+successful Research turn. The same-principal control also failed, so changing
+from an agent caller to the original operator did not make S usable on
+Research. This is evidence of a cross-endpoint limitation in the tested setup,
+not proof of the exact internal scoping or authorization rule.
 
-**What to expect**
+**Support boundary:** run-report labels such as NOT SUPPORTED mean the
+operation did not work with these endpoints, identities, and SDK versions.
+The 404 alone does not distinguish an unavailable conversation from one hidden
+by access rules. The cited hydration and user-isolation documentation does not
+establish a universal prohibition on shared IDs. Research's ability to read S
+was **not observed**, rather than successfully tested and shown false.
 
-- This criterion is an evaluation, so a denial is a valid answer.
-- S is owned by the operator. A call from the Supervisor's own identity may
-  be denied, given that conversations are private per caller.
-- A concurrent in-progress Supervisor response on S may also produce a
-  conflict. Locking and steering are covered by #7.
+**Acceptance verdict: Met**, because both identity modes produced explicit
+outcomes and later history was inspected. This is an evaluation verdict,
+not a successful shared-history capability.
 
-**Next steps:** run **Agents: Story 3 - 4**.
+**Next steps:** use separate IDs. Confirm the cross-endpoint support contract
+with Microsoft using both the agent-to-agent failures and same-principal
+control. Concurrent shared turns, locking/steering, and delegated-user identity
+were not tested here.
 
-## 5. Shared versus separate conversation IDs - ⏳ Not yet run
+## 5. Shared versus separate conversation IDs - ⚠️ Separate works; shared calls fail
 
 **Question (AC5):** Compare shared and separate conversation IDs. Record
 whether the supervisor receives the sub-agent's result, a placeholder, or
 full history.
 
-**How it is tested** (**Agents: Story 3 - 5**, `step-05-shared-vs-separate`)
+**What was done:** **Agents: Story 3 - 5 Compare shared and separate
+conversations** ran four variants, each in a new Supervisor conversation and
+each followed by a model-free inspect. Classification used persisted
+Supervisor content, not merely the requested delivery mode.
 
-- Four variants run, each in a new Supervisor conversation and each
-  followed by a model-free `inspect`.
-- The classification comes from what the Supervisor conversation actually
-  holds, not from the requested delivery mode:
-  - `result`: the sub-agent's token is in a Supervisor reply.
-  - `placeholder`: it isn't.
-  - `full history`: the sub-agent's own input and output items are in the
-    Supervisor conversation.
+| Pattern / delivery / identity | Sub-agent call | Received by Supervisor in the call | Persisted in Supervisor conversation | Research history |
+|---|---|---|---|---|
+| separate / result / `agent` | Allowed | Research's answer | Result in Supervisor's own reply | Separate Research conversation |
+| separate / placeholder / `agent` | Allowed | Research's answer | Placeholder reference, not the answer | Separate Research conversation |
+| shared / placeholder / `agent` | HTTP 404 (`not_found`) | No Research result | Supervisor's own failure report; no Research turns | No Research history added to Supervisor conversation |
+| shared / placeholder / `call-context` | HTTP 404 (`not_found`) | No Research result | Supervisor's own failure report; no Research turns | No Research history added to Supervisor conversation |
 
-**Results:** *To be added after the run.*
+**Answer:** with separate IDs, the Supervisor receives Research's answer in
+both delivery modes. Whether it keeps that answer or only a reference in its
+own reply is an **application choice**, not a Foundry setting. Foundry stores
+the content the Supervisor writes. Neither separate variant copied Research's
+own input/output turns into the Supervisor conversation.
 
-| Variant | Sub-agent call | Supervisor ends up with | Sub-agent history lives in |
-|---|---|---|---|
-| separate / result / `agent` | ⏳ | ⏳ (expected: result) | ⏳ |
-| separate / placeholder / `agent` | ⏳ | ⏳ (expected: placeholder) | ⏳ |
-| shared / placeholder / `agent` | ⏳ | ⏳ | ⏳ |
-| shared / placeholder / `call-context` | ⏳ | ⏳ | ⏳ |
+Shared IDs did not deliver a sub-agent result, placeholder from a completed
+sub-agent call, or full Research history: the nested calls returned 404.
+The Supervisor's outer requests still completed. The failure and its uncertain
+root cause have the same scope as [Section 4](#4-agent-a-invokes-agent-b-with-the-same-conversation-id----did-not-work).
 
-**By design:** in the separate pattern, whether the Supervisor keeps the
-result or only a reference is an application choice (Custom
-implementation). Foundry stores whatever the Supervisor's reply contains.
+**Acceptance verdict: Met**, because the comparison recorded each outcome.
+Passing shared-variant checks mean the failures were classified, not that
+the shared-ID pattern succeeded.
 
-**Next steps:** run **Agents: Story 3 - 5**.
+**Verified alternative:** give Research a separate conversation ID, maintain
+the mapping, and explicitly deliver a result or reference to the Supervisor.
+Copying full Research history as an alternative was not tested. Streaming,
+background delivery, and Data Analysis container artifacts in a shared
+conversation were also not tested.
+
+**Next step:** use the demonstrated separate-ID flow for further evaluation;
+do not design around automatic cross-agent full-history sharing.
 
 ---
 
 ## Capability classification
 
-Mark each row Tested, Documented, or Unverified as evidence arrives. Untested
-does not mean unsupported.
-
-| Capability | Classification | Basis |
+| Capability | Owner / classification | Evidence and limit |
 |---|---|---|
-| Durable per-agent conversation history | Foundry-managed | Documented; Story 4 Step 7 tested on Research |
-| History hydration from the request's conversation ID | Agent Framework / SDK-managed | Documented |
-| Supervisor → sub-agent conversation mapping | Custom implementation (Dev Team) | Implemented; ⏳ Step 1 |
-| Mapping storage, per-user partition | Foundry-managed (state store, preview) | Documented; ⏳ Step 1 |
-| Reuse of the mapped sub-agent conversation | Custom implementation (Dev Team) | Implemented; ⏳ Step 2 |
-| Conversation access enforcement between principals | Foundry-managed | Documented; ⏳ Step 3 |
-| Mapping-based denial of unmapped conversations | Custom implementation (Dev Team) | Implemented; ⏳ Step 3 |
-| Cross-agent correlation | Custom implementation (Dev Team) | Implemented; ⏳ Step 3 |
-| Native parent/child links between agents' conversations | Not supported | No Microsoft documentation describes one |
-| One conversation shared by several hosted agents | Unverified | ⏳ Step 4 |
+| Distinct durable conversations | Foundry-managed | Tested, Steps 1-2: separate IDs and stored history |
+| Request history hydration | Agent Framework / SDK-managed | Research recall and item counts; Supervisor model-free inspection |
+| Supervisor → Research mapping and reuse | Custom implementation (Dev Team) | Tested, Steps 1-2; not an automatic platform relationship |
+| Mapping storage and user partition | Foundry-managed state store (preview), custom keys/schema | Written and re-read in Step 1; not a new two-user isolation test |
+| Parent/correlation metadata | Custom implementation on Foundry-managed storage | Written and returned in Step 1; correlation matched in Step 3 |
+| Mapping-based access guards | Custom implementation (Dev Team) | Step 3 rejected unmapped and cross-conversation claims before outbound calls |
+| Conversation access between principals | Foundry-managed; incompletely characterized | Step 3: operator read unexpectedly allowed; elevated roles and caller resolution not isolated |
+| Result versus placeholder persistence | Custom implementation (Dev Team) | Step 5: both separate-ID modes worked |
+| One conversation ID reused across these agent endpoints | Did not work in evaluated configuration | Steps 3-5: cross-endpoint 404s; same-principal control failed too; general support unverified |
+| Native parent/child conversation feature | Unverified, not demonstrated | POC used custom mapping/metadata; no explicit prohibition established by the cited documentation |
 
 ## Prioritized next steps
 
-| Priority | Action | Closes | Effort / cost |
-|---|---|---|---|
-| 1 | **Agents: Story 3 - 1** with `prepare-if-missing` (deploys the Supervisor only), then `verify` | 1 | Deployment; paid hosted requests |
-| 2 | Rerun **Agents: Story 1 - 1** and **Agents: Story 4 - 1** in `verify` mode to refresh their baselines | - | Paid hosted requests |
-| 3 | **Agents: Story 3 - 2** to **Story 3 - 5** | 2, 3, 4, 5 | Paid hosted requests; no deployment |
-| 4 | Fill in this report and add a dated Story 3 results entry to the ADR (environment, versions, date) | All | Documentation |
-| 5 | Add the open questions below to the Microsoft support case opened for Story 4 | 3, 4 | Support case |
+| Priority | Action | Why |
+|---|---|---|
+| 1 | Reproduce Step 3 with distinct least-privileged users and controlled role/context changes | Resolve unexpected read access before relying on a conversation ownership boundary |
+| 2 | Ask Microsoft to confirm cross-endpoint ID scope and supported caller/context combinations | Shared-ID calls and same-principal control returned 404; exact platform contract remains unknown |
+| 3 | Continue with separate conversations and explicit result/reference delivery | This is the end-to-end pattern demonstrated by Steps 1, 2, and 5 |
+| 4 | Add interrupted-creation recovery, retry policy, and orphan cleanup | Mapping write and conversation creation are not atomic |
+| 5 | Extend validation to Data Analysis, recovery, and delivery modes as needed | These results do not cover artifacts, crash recovery, streaming, or background delivery |
 
-## Questions for Microsoft
+### Questions for Microsoft
 
-1. Is there a supported way to link one hosted agent's conversation to
-   another's (a parent/child relationship), or must the application own that
-   mapping?
-2. Who owns a conversation that a hosted agent creates on another agent's
-   endpoint: the calling agent's identity, or the original end user when
-   `x-agent-foundry-call-id` is forwarded?
-3. Is a conversation scoped to the agent endpoint that created it, or to the
-   project?
-4. Is calling a second hosted agent with the first agent's conversation ID a
-   supported pattern? If it is, how are concurrent responses on that
-   conversation handled?
+1. What governs access to a conversation created by a hosted agent on another
+   agent's endpoint? Why could the operator read it in Step 3, and what roles
+   and effective caller identity authorize that operation?
+2. Is a conversation scoped to its creating agent endpoint, caller, project,
+   or a combination? Why did even the original operator receive 404 when
+   using the Supervisor conversation ID on Research?
+3. Is cross-agent conversation-ID reuse supported? If so, which endpoint and
+   identity/context combinations are required, and how are concurrent turns
+   handled?
+4. Is there a platform-managed parent/child conversation relationship, or is
+   an application-owned mapping the intended pattern?
+
+## Microsoft documentation context
+
+These references explain the platform concepts used by the POC. They are
+not substitutes for the observed results and do not establish the cause of
+the unexpected access or 404 responses.
+
+| Microsoft reference | Relevance / evidence boundary |
+|---|---|
+| [Hosted agents: sessions, conversations, and the state store](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents#sessions-conversations-and-the-state-store) | Conversation/session management and per-user state-store partitions; the POC supplied its own cross-conversation mapping |
+| [Durable state store (preview)](https://learn.microsoft.com/azure/foundry/agents/concepts/agent-state-store) | Managed storage used for the Supervisor's mapping |
+| [Hosted agent contract: Responses protocol](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agent-contract#responses-protocol) | Automatic conversation-history hydration by the SDK adapter; not proof that another agent endpoint accepts the same ID |
+| [Hosted agent contract: platform request headers](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agent-contract#platform-request-headers-container-protocol-200) | Forwarded call-context identity resolution; Step 3 did not fully characterize authorization from that context |
+| [Per-user isolation](https://learn.microsoft.com/azure/foundry/agents/how-to/isolate-sessions-per-user#understand-per-user-isolation) | Documents user isolation; Step 3's privileged operator/agent case does not establish that boundary for distinct end users |
+| [Agent identity concepts](https://learn.microsoft.com/azure/foundry/agents/concepts/agent-identity) | Default agent-identity tokens; creation identity alone does not explain all observed access |
+| [Forward custom request headers](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agent-contract#forward-custom-request-headers-to-your-container) | `x-client-*` forwarding; correlation values and their meaning are application-defined |
 
 ## Evidence notes
 
-Per [ADR-0001](adr/0001-hosted-agents-poc.md#recovery-and-validation),
-generated run reports stay local and sanitized, and this report must not
-depend on them. When a step runs, record here the verdict, the date, the
-environment, and the agent versions. Also add a dated Story 3 entry to the
-ADR.
-
-| Source | Date | What it records |
-|---|---|---|
-| ADR "Story 3 conversation management, implementation" | 2026-10-27 | Design of `POC_CONVERSE`; hosted runs pending |
-| ADR "Story 4 representative patterns" | 2026-10-26 | Direct client → Research conversation continuity passed; Research sees no user context in any identity mode |
-| ADR "Genuine native-Entra-user Research control" | 2026-10-21 | Direct two-user isolation passed (22/22) on Research 6, `hosted-agents-poc-dev` |
-| ADR nested delegated-label entries | 2026-10-21 | Supervisor → Research with explicit conversations: A-continuity passed, nested user isolation failed |
+This report summarizes all five completed hosted runs, not an implementation
+plan. Local generated reports remain sanitized and uncommitted by design
+([ADR-0001](adr/0001-hosted-agents-poc.md#recovery-and-validation)); the essential
+results are preserved above without requiring those files to be available.
+No new hosted calls or role changes were made to produce this summary.
 
 ### Run log
 
-| Date | Step | Verdict | Environment | Agent versions (S / R / DA) | Notes |
-|---|---|---|---|---|---|
-| | | | | | |
+All runs were on 2026-10-27 in `hosted-agents-poc-dev-001`, with Supervisor v4 /
+Research v3 / Data Analysis v4. Times below are recorded UTC start times.
+
+| Step | UTC start | Run ID | Acceptance verdict | Finding |
+|---|---|---|---|---|
+| 1 | 21:01:18 | `90af4a8b1cff40ff868475ff7f8c209e` | Met | Separate conversations, persisted mapping, returned parent metadata |
+| 2 | 21:02:42 | `ba4dd9104027498280dca484ace8fbd4` | Met | Same Research conversation reused; history 2 → 4 items; code word recalled |
+| 3 | 21:05:08 | `cde064ac09bc48d0a5853727cb6dff3c` | Partially met | 7/8 access cases matched; operator's direct read unexpectedly allowed |
+| 4 | 21:12:19 | `27e58231fdad4817b8bc4a5ea569ab9d` | Met (evaluation) | Shared-ID calls and same-principal control returned 404; no Research turns appended |
+| 5 | 21:14:27 | `a17b8f9067364b8c8c3067fdcc4a2a46` | Met (comparison) | Separate result/reference worked; shared calls returned 404 |
+
+Recorded toolchain: azd 1.37.1; `agent-framework-core` 1.19.0;
+`agent-framework-foundry` 1.13.1; `agent-framework-foundry-hosting`
+1.0.0b260918; `azure-ai-projects` 2.6.1;
+`azure-ai-agentserver-responses` 2.2.0b1; Toolbox MCP API v1.
+
+**Related prior evidence, not rerun by Story 3:** the 2026-10-21 native-user
+Research isolation control in `hosted-agents-poc-dev` passed 22/22 assertions
+on Research v6 (another user's response chain returned 404; another user's
+session returned 403). Earlier Story 4 experiments found no user context at
+Research on the nested path. Those different versions and scenarios do not
+resolve Step 3's unexpected access. See the dated entries in
+[ADR-0001](adr/0001-hosted-agents-poc.md) and the
+[Issue 4 report](issue-4-validate-representative-hosted-agent-patterns.md).
 
 Task procedures:
 [Detailed task guide - Story 3](tasks-detailed.md#agents-story-3---1-demonstrate-separate-conversations).
