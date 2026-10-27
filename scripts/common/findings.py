@@ -462,11 +462,6 @@ VERDICTS = (
     "verdict. **Partially met** = some required checks failed. **Not met** = the criterion is not satisfied, or an "
     "agent changed unexpectedly. **Not evaluated** = the run was blocked before it could produce evidence."
 )
-CHECK_STATUSES = (
-    "In the detailed evidence below, each check's status is an icon: ✅ passed (as expected), ❌ failed (not as "
-    "expected), ⛔ blocked (a prerequisite was missing; nothing was bypassed), or ⏭️ skipped (not run). The run's "
-    "`results.jsonl` records the same statuses as PASS, FAIL, BLOCKED, and SKIP."
-)
 EVIDENCE = (
     "**Tested** = verified by this run. **Observed** = read from the platform during this run. **Documented** = "
     "stated by Microsoft, not tested here. **Unverified** = neither tested nor documented. Other text explains "
@@ -480,7 +475,7 @@ OWNERSHIP = (
 
 
 def legend() -> str:
-    """How to read the report: verdicts, finding outcomes, check statuses, evidence, and ownership."""
+    """How to read the report: verdicts, finding outcomes, evidence, and ownership."""
     rows = [[outcome_label(name), meaning] for name, (_, meaning) in OUTCOMES.items()]
     return "\n\n".join(
         [
@@ -488,7 +483,6 @@ def legend() -> str:
             f"**Acceptance verdict:** {VERDICTS}",
             "**Finding outcome:**",
             _table(["Outcome", "Meaning"], rows),
-            f"**Check status:** {CHECK_STATUSES}",
             f"**Evidence:** {EVIDENCE}",
             f"**Owner:** {OWNERSHIP}",
             "**Microsoft documentation:** every link was checked against the quoted text. "

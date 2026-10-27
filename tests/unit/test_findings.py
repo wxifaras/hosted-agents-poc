@@ -104,6 +104,8 @@ def test_summary_renders_in_reading_order_with_links_and_explicit_gaps() -> None
     assert DOCS["ci_isolation"].quote in text and DOCS["ci_isolation"].meaning in text
     assert f"| {DOCS['ci_isolation'].meaning} | 3 |" in text
     legend = text[: text.index("## Summary")]
+    assert "**Check status:**" not in text
+    assert "each check's status is an icon" not in text
     for name, (_, meaning) in OUTCOMES.items():
         assert name in legend and meaning in legend
     for label in ("Not evaluated", "BLOCKED", "Tested", "Custom implementation (Dev Team)"):
