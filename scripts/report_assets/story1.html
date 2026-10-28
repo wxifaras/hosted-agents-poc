@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>{{ title }}</title>
+<style>
+:root { color-scheme:light; --ink:#19314b; --muted:#516477; --line:#d5dfeb; --paper:#fff; --back:#edf2f8; }
+* { box-sizing:border-box; } body { margin:0; color:var(--ink); background:var(--back); font:16px/1.55 system-ui,sans-serif; }
+header { background:#102d4d; color:#fff; padding:34px max(5vw,20px); } h1 { margin:0 0 8px; font-size:2rem; }
+main { max-width:1250px; margin:24px auto; padding:0 20px 40px; }
+nav,section { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:24px; margin-bottom:22px; }
+h2 { margin:0 0 14px; font-size:1.45rem; } h3 { margin:20px 0 8px; } a { color:#14548a; text-underline-offset:3px; }
+a:focus-visible { outline:3px solid #ac5a00; outline-offset:3px; }
+pre { white-space:pre-wrap; overflow-wrap:anywhere; background:#f3f6fa; padding:12px; font-size:.85rem; }
+table { border-collapse:collapse; width:100%; margin:12px 0; } caption { text-align:left; font-weight:bold; }
+th,td { border-bottom:1px solid var(--line); text-align:left; padding:9px; vertical-align:top; overflow-wrap:anywhere; }
+th { background:#e9f0f7; } .scroll { overflow-x:auto; } .muted { color:var(--muted); } .notice { border-left:5px solid #b47500; padding:12px; background:#fff5da; }
+.badge { font-weight:bold; padding:2px 6px; border:1px solid currentColor; border-radius:4px; display:inline-block; }
+.PASS { color:#176538; } .FAIL { color:#a51b26; } .BLOCKED,.SKIP { color:#805000; }
+.source { font:12px/1.5 ui-monospace,monospace; overflow-wrap:anywhere; } img { max-width:100%; height:auto; }
+.bar { display:block; height:12px; background:#c9d6e7; width:100%; } .bar span { display:block; height:100%; background:#25629f; }
+.architecture { width:100%; height:auto; } .architecture text { fill:#19314b; font:16px system-ui,sans-serif; }
+.architecture .label { font-weight:bold; } .architecture .small { font-size:13px; }
+.architecture .node { fill:#e9f0f7; stroke:#516477; stroke-width:2; }
+.architecture .blocked { fill:#fff5da; stroke:#805000; stroke-width:2; stroke-dasharray:7 5; }
+.architecture .arrow { fill:none; stroke:#25629f; stroke-width:2; marker-end:url(#native-arrow); }
+details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary { cursor:pointer; font-weight:bold; }
+@media(max-width:650px) { main { padding:0 10px 24px; } section,nav { padding:14px; } th,td { min-width:110px; } }
+@media print { body { background:#fff; font-size:10pt; } header { color:#000; background:#fff; padding:12px 0; } main { max-width:none; padding:0; } section { break-inside:auto; border:0; padding:10px 0; } h2,h3 { break-after:avoid; } tr,details { break-inside:avoid; } .scroll { overflow:visible; } }
+</style>
+</head>
+<body>
+<header>
+<h1>{{ title }}</h1><p>{{ environment_label }} · {{ generated_at }}</p>
+<p>{{ acceptance }}</p>
+</header>
+<main>
+<nav aria-label="Table of contents">
+<h2>Contents</h2>
+<a href="#summary">Summary and interpretation</a> · <a href="#traceability">Requirement traceability</a> ·
+<a href="#decisions">Sponsor decisions</a> · <a href="#memory">Numerical memory evidence</a> ·
+<a href="#architecture">Native trust boundaries</a> · <a href="#native-api">Current SDK/API reference</a> ·
+<a href="#lifecycle">Hosted lifecycle timeline</a> ·
+<a href="#runs">Detailed recorded runs</a> · <a href="#provenance">Provenance and downloads</a>
+<ol>{% for run in runs %}<li><a href="#run-{{ run.key }}">{{ run.label }}</a></li>{% endfor %}</ol>
+</nav>
+<section id="summary">
+<h2>Summary and interpretation</h2>
+<p class="notice">Recorded check statuses remain the original evidence. No combined COMPLETE, no inferred finish event, no inferred execution duration, and no inferred Supervisor acceptance are produced.</p>
+<p>Measured results and sponsor-accepted envelopes are separate. A 75% pressure target not reached remains <strong>not evaluated at 75%</strong>; accepting a lower measured envelope does not relabel an original BLOCKED check.</p>
+<p>Blob authentication and Hosted/native execution are different boundaries. Authenticated public Blob access does not prove a private endpoint or private-network equivalence. Hosted runtime memory is not native interpreter memory. Supervisor remains blocked unless separately evidenced.</p>
+<p>{{ runs|length }} bound evidence runs. {% if errors %}<strong>Invalid inputs: {{ errors|join(', ') }}. These inputs are not evaluated.</strong>{% else %}All bound inputs parsed; this is not an acceptance verdict.{% endif %}</p>
+<p>Duplicate JSONL records are counted once. Results mirrored into events are not counted twice. Unknown observed fields and identity fingerprints are excluded from exports.</p>
+</section>
+<section id="traceability">
+<h2>Requirement traceability</h2>
+<p>Curated requirement-level assessments below are supplied separately from original per-check verdicts.</p>
+<div class="scroll"><table><caption>Story 1 summary rows</caption><thead><tr><th scope="col">Requirement</th><th scope="col">Curated status</th><th scope="col">What works</th><th scope="col">Limitations</th><th scope="col">Next step</th><th scope="col">Evidence bindings</th></tr></thead><tbody>
+{% for row in traceability %}<tr><th scope="row">{{ row.requirement }}</th><td>{{ row.status }}</td><td>{{ row.summary }}</td><td>{{ row.limitations|default('Not supplied') }}</td><td>{{ row.next_step|default('Not supplied') }}</td><td>{% for key in row.run_keys %}<a href="#run-{{ key }}">{{ key }}</a>{% if not loop.last %}<br>{% endif %}{% endfor %}</td></tr>{% else %}<tr><td colspan="6">No requirement assessments supplied; not evaluated.</td></tr>{% endfor %}
+</tbody></table></div>
+{% if summary_sha256 %}<p class="source">Current Summary source SHA256: {{ summary_sha256 }}</p>{% endif %}
+</section>
+<section id="decisions">
+<h2>Sponsor decisions — not measured results</h2>
+{% for item in sponsor_decisions %}<h3>{{ item.topic }}</h3><p><strong>{{ item.decision }}</strong></p><p>{{ item.rationale }}</p><p>{% for key in item.run_keys %}<a href="#run-{{ key }}">{{ key }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>{% else %}<p>No sponsor decisions supplied.</p>{% endfor %}
+{% if chart %}
+<h3>User-approved representative chart</h3>
+<p>Exact retained synthetic PNG, not a reconstruction or a new model result. <a href="#run-{{ chart.run_key }}">Original analysis binding</a>. Larger-case structural PNG checks are not additional human reviews.</p>
+<img src="{{ chart.data_uri }}" alt="User-approved revenue by category chart; exact category values are in the following table">
+<table><caption>Approved original chart values</caption><thead><tr><th scope="col">Category</th><th scope="col">Revenue (integer cents)</th></tr></thead><tbody>{% for value in chart['values'] %}<tr><th scope="row">{{ value.category }}</th><td>{{ value.revenue_cents }}</td></tr>{% endfor %}</tbody></table>
+<p>{{ chart.review_source }}</p><p class="source">PNG SHA256 {{ chart.sha256 }}<br>Approval receipt SHA256 {{ chart.review_sha256 }}</p>
+<p><a href="{{ chart.download }}">Download approved synthetic PNG</a></p>
+{% endif %}
+</section>
+<section id="memory">
+<h2>Numerical memory evidence</h2>
+<p>Each row is one recorded check, not a sum across runs. Pressure is the recorded fraction × 100; native cgroup peak and process RSS remain distinct. End-to-end seconds appear only when recorded explicitly. Bars show pressure on a 0–100% scale; the target is 75%, not an observed result.</p>
+<div class="scroll"><table><caption>Recorded native-interpreter measurements (bytes and seconds)</caption><thead><tr><th scope="col">Binding / check</th><th scope="col">Status</th><th scope="col">Peak RSS bytes</th><th scope="col">Memory limit bytes</th><th scope="col">Cgroup peak bytes</th><th scope="col">Pressure %</th><th scope="col">End-to-end seconds</th></tr></thead><tbody>
+{% for row in memory %}<tr><th scope="row"><a href="#run-{{ row.run_key }}">{{ row.run_key }}</a><br>{{ row.check }}</th><td>{{ row.status }}</td><td>{{ row.peak_rss_bytes if row.peak_rss_bytes is not none else 'Not recorded' }}</td><td>{{ row.memory_limit_bytes if row.memory_limit_bytes is not none else 'Not recorded' }}</td><td>{{ row.cgroup_memory_peak_bytes if row.cgroup_memory_peak_bytes is not none else 'Not recorded' }}</td><td>{{ row.pressure_percent if row.pressure_percent is not none else 'Not recorded' }}{% if row.pressure_percent is not none %}<span class="bar" aria-hidden="true"><span style="width:{{ row.bar_percent }}%"></span></span>{% endif %}</td><td>{{ row.end_to_end_seconds if row.end_to_end_seconds is not none else 'Not recorded' }}</td></tr>{% else %}<tr><td colspan="7">No numerical interpreter-memory observations supplied.</td></tr>{% endfor %}
+</tbody></table></div>
+</section>
+<section id="architecture">
+<h2>Native architecture and trust boundaries — code/reference context</h2>
+<p class="notice">This diagram explains the reviewed application design, not platform observations or physical sandbox-isolation proof. It adds no fourth agent and does not establish a working Supervisor handoff.</p>
+<svg class="architecture" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 590" role="img" aria-labelledby="native-architecture-title native-architecture-description">
+<title id="native-architecture-title">Scoped native Story 1 trust boundaries</title>
+<desc id="native-architecture-description">An authenticated caller and validation runner bind a Hosted session and conversation to the existing Data Analysis agent. Trusted backend guards mediate native Code Interpreter analysis and original output delivery through session files. Supervisor integration is blocked and Research is unchanged. The runner's authenticated Blob checkpoint track is separate from Hosted lifecycle metadata and managed interpreter memory.</desc>
+<defs><marker id="native-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 Z" fill="#25629f"/></marker></defs>
+<rect class="node" x="20" y="75" width="220" height="245" rx="10"/>
+<text class="label" x="35" y="105">Authenticated caller</text><text x="35" y="132">and validation runner</text>
+<text class="small" x="35" y="171">Own session + conversation</text><text class="small" x="35" y="197">Version-pinned binding</text>
+<text class="small" x="35" y="245">Owner/foreign controls</text><text class="small" x="35" y="271">Metadata-only lifecycle reads</text>
+<rect class="node" x="330" y="75" width="300" height="245" rx="10"/>
+<text class="label" x="345" y="105">Existing Data Analysis agent</text><text class="small" x="345" y="137">Hosted backend: POC_STORY1_NATIVE</text>
+<text class="small" x="345" y="165">Trusted caller/session/conversation guards</text><text class="small" x="345" y="193">Authorize before native side effects</text>
+<text class="small" x="345" y="245">SessionFiles-mediated originals</text><text class="small" x="345" y="273">Hosted HOME sentinel != interpreter RAM</text>
+<rect class="node" x="720" y="75" width="260" height="245" rx="10"/>
+<text class="label" x="735" y="105">Managed Code Interpreter</text><text class="small" x="735" y="137">Native response + auto container tool</text>
+<text class="small" x="735" y="165">Model-written analysis</text><text class="small" x="735" y="193">Native files: backend privilege only</text>
+<text class="small" x="735" y="245">Cited original output bytes</text><text class="small" x="735" y="273">Separate memory/lifecycle boundary</text>
+<path class="arrow" d="M240 160 H330"/><text class="small" x="245" y="147">Hosted turn</text>
+<path class="arrow" d="M330 245 H240"/><text class="small" x="248" y="233">Originals</text>
+<path class="arrow" d="M630 160 H720"/><text class="small" x="635" y="147">Analyze</text>
+<path class="arrow" d="M720 245 H630"/><text class="small" x="640" y="233">Bytes</text>
+<rect class="node" x="20" y="385" width="220" height="115" rx="10"/>
+<text class="label" x="35" y="415">Existing Research agent</text><text class="small" x="35" y="445">Unchanged; not this direct path</text><text class="small" x="35" y="474">No extra deployment or agent</text>
+<rect class="blocked" x="330" y="385" width="300" height="115" rx="10"/>
+<text class="label" x="345" y="415">Existing Supervisor — BLOCKED</text><text class="small" x="345" y="445">Trusted nested session/file contract missing</text><text class="small" x="345" y="474">No authorization bypass or inferred success</text>
+<path class="arrow" stroke-dasharray="7 5" d="M480 385 V320"/>
+<rect class="node" x="720" y="385" width="260" height="115" rx="10"/>
+<text class="label" x="735" y="415">Customer-owned Blob checkpoint</text><text class="small" x="735" y="445">Authenticated public endpoint</text><text class="small" x="735" y="474">Not private-network equivalence</text>
+<path class="arrow" d="M45 320 V550 H850 V500"/><text class="small" x="260" y="573">Separate runner PUT/GET + verified checkpoint; fresh authorized recomputation</text>
+</svg>
+<p>The original native files remain backend-mediated. Owning users receive approved session-file paths and verified original bytes, not backend native-file privileges. The runner's Blob recovery experiment is separate from metadata-only Hosted idle/resume observations.</p>
+</section>
+<section id="native-api">
+<h2>Current native SDK/API catalog — code/reference context</h2>
+<p>Reviewed call shapes use symbolic placeholders, not actual requests, endpoints, identities, or execution receipts. Only per-check recorded observations establish measured outcomes. The current native protocol is <code>POC_STORY1_NATIVE</code> / <code>poc-story1-native-v1</code>; no legacy Consumer protocol is assumed.</p>
+<div class="scroll"><table><caption>Caller, model activity, and backend privilege distinctions</caption><thead><tr><th scope="col">Operation / source</th><th scope="col">Acting boundary</th><th scope="col">Model activity</th><th scope="col">Reviewed SDK/request shape</th><th scope="col">Scope and limitation</th></tr></thead><tbody>
+{% for api in native_api_catalog %}<tr><th scope="row">{{ api.operation }}<br><span class="source">{{ api.source }}</span></th><td>{{ api.caller }}</td><td>{{ api.activity }}</td><td><pre>{{ api.shape }}</pre></td><td>{{ api.scope }}</td></tr>{% endfor %}
+</tbody></table></div>
+</section>
+<section id="lifecycle">
+<h2>Hosted lifecycle timeline — recorded observations</h2>
+<p>Only bindings explicitly marked <code>kind: lifecycle</code> contribute here; partial earlier runs remain separately visible below. Rows are derived from saved check observations, not fixed quiet-time expectations. <strong>Runner quiet seconds and server-provided Unix timestamps are different clocks.</strong> No subtraction across clocks, exact transition time, causal recycle claim, or native interpreter RAM-survival claim is inferred.</p>
+{% for timeline in lifecycle_timeline %}
+<h3><a href="#run-{{ timeline.run_key }}">{{ timeline.run_key }}</a> — {{ timeline.status }}</h3>
+<div class="scroll"><table><caption>Recorded state sequence for one binding, not a combined completion verdict</caption><thead><tr><th scope="col">Observation</th><th scope="col">Runner quiet seconds</th><th scope="col">Platform state</th><th scope="col">Agent version</th><th scope="col">Server metadata (Unix seconds; null = not recorded)</th></tr></thead><tbody>
+{% for row in timeline.rows %}<tr><th scope="row">{{ row.phase }}</th><td>{{ row.quiet_seconds if row.quiet_seconds is not none else 'Not recorded for this observation' }}</td><td>{{ row.status }}</td><td>{{ row.agent_version if row.agent_version is not none else 'Not recorded' }}</td><td><pre>{{ row.server_metadata|json_pretty }}</pre></td></tr>{% else %}<tr><td colspan="5">No valid platform-state observations recorded.</td></tr>{% endfor %}
+</tbody></table></div>
+<p><strong>Post-resume marker observations, not platform state:</strong> process changed = {{ timeline.markers.process_changed if timeline.markers.process_changed is not none else 'Not recorded' }}; HOME retained = {{ timeline.markers.home_retained if timeline.markers.home_retained is not none else 'Not recorded' }}.</p>
+{% for note in timeline.notes %}<p class="notice">{{ note }}</p>{% endfor %}
+{% else %}<p class="notice">No explicit final lifecycle binding supplied. Timeline remains not evaluated.</p>{% endfor %}
+</section>
+<section id="runs">
+<h2>Detailed recorded runs</h2>
+{% for run in runs %}
+<article id="run-{{ run.key }}">
+<h3>{{ run.label }}</h3><p><strong>Scope:</strong> {{ run.scope }}<br><strong>Declared version:</strong> {{ run.agent_version }} · <strong>Kind:</strong> {{ run.kind }}</p>
+<p><strong>Run ID:</strong> {{ run.run_id }}<br><strong>Completion evidence:</strong> {{ run.completion }}<br><strong>Evidence span:</strong> {{ run.evidence_span }}</p>
+{% if run.error %}<p class="notice"><strong>Input error:</strong> {{ run.error }}</p>{% endif %}
+<pre>{{ run.provenance|json_pretty }}</pre>
+<p>Unique recorded check counts: {{ run.counts|json_pretty }}. Additional non-mirrored events: {{ run.additional_event_count }}.</p>
+{% for warning in run.warnings %}<p class="notice">{{ warning }}</p>{% endfor %}
+<p><a href="{{ run.download }}">Download sanitized binding evidence (JSON)</a></p>
+{% for check in run.checks %}
+<details open id="check-{{ run.key }}-{{ check.ordinal }}">
+<summary>{{ check.ordinal }}. {{ check.name }} — <span class="badge {{ check.status }}">{{ check.status }}</span></summary>
+<p><strong>Recorded timestamp:</strong> {{ check.timestamp if check.timestamp is not none else 'Not recorded' }}</p>
+<h4>Expected</h4><pre>{{ check.expected|json_pretty }}</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{{ check.observed|json_pretty }}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{{ check.explanation|json_pretty }}</pre>
+</details>
+{% endfor %}
+{% if run.additional_events %}<h4>Additional recorded timeline events — not counted as checks</h4><pre>{{ run.additional_events|json_pretty }}</pre>{% endif %}
+<h4>Original evidence source hashes</h4><ul>{% for source in run.sources %}<li class="source">{{ source.name }} · SHA256 {{ source.sha256 }}</li>{% endfor %}</ul>
+</article>
+{% endfor %}
+</section>
+<section id="provenance">
+<h2>Provenance and downloads</h2>
+<p>Reusable standalone renderer and shared report assets were reused from local branch <code>feature/native-code-interpreter</code>, commit <code>{{ report_source_commit }}</code>. This bundle adapter uses the same strict, autoescaped Jinja2 rendering and offline layout principles, not Consumer-specific acceptance assumptions.</p>
+<p class="source">Bundle source fingerprint: {{ source_fingerprint }}</p>
+<p><a href="sanitized-evidence.json">Download complete sanitized evidence bundle (JSON)</a></p>
+<p>No raw evidence, CSV payloads, model source code, credentials, endpoints, private paths, identity fingerprints, external assets, JavaScript, or live calls are exported. Only the explicitly approved synthetic PNG original may be included with its exact hash. Source hashes are provenance, not proof of unrecorded execution. Native files and charts are not fetched or recreated.</p>
+</section>
+</main>
+</body>
+</html>
