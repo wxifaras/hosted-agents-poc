@@ -5,7 +5,7 @@
   "agent_version": "9",
   "kind": "lifecycle",
   "download": "evidence/hosted.json",
-  "run_id": "0cfaf4c106924294a57df6430ba12044",
+  "run_id": "{reference-19}",
   "provenance": {
     "scenario": "story-1-step-5",
     "mode": "hosted",
@@ -13,7 +13,9 @@
     "python": "3.14.8",
     "project_version": "0.1.0",
     "maf_version": "1.19.0",
-    "agentserver_version": "2.2.0b1"
+    "agentserver_version": "2.2.0b1",
+    "variant": "native-hosted-only",
+    "step": "step-05-state-continuity"
   },
   "sources": [
     {
@@ -61,7 +63,7 @@
         "api_family": "Read-only metadata and local comparison",
         "method": "Not applicable",
         "route_template": "Not applicable",
-        "{native-reference}": "See explicit metadata/role receipts; exact legacy calls are not reconstructed.",
+        "{reference-1}": "See explicit metadata/role receipts; exact legacy calls are not reconstructed.",
         "authentication_context": "Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.",
         "prompt_applicability": "Not applicable: this check does not invoke a model.",
         "prompt": "No prompt is sent by this operation.",
@@ -88,7 +90,7 @@
         "api_family": "Local evidence verification",
         "method": "Not applicable",
         "route_template": "Not applicable",
-        "{native-reference}": "No network request for this local comparison.",
+        "{reference-1}": "No network request for this local comparison.",
         "authentication_context": "No credential needed for the local comparison.",
         "prompt_applicability": "Not applicable: this check does not invoke a model.",
         "prompt": "No prompt is sent by this operation.",
@@ -117,7 +119,7 @@
         "api_family": "Local evidence verification",
         "method": "Not applicable",
         "route_template": "Not applicable",
-        "{native-reference}": "No network request for this local comparison.",
+        "{reference-1}": "No network request for this local comparison.",
         "authentication_context": "No credential needed for the local comparison.",
         "prompt_applicability": "Not applicable: this check does not invoke a model.",
         "prompt": "No prompt is sent by this operation.",
@@ -161,7 +163,7 @@
         "api_family": "Local evidence verification",
         "method": "Not applicable",
         "route_template": "Not applicable",
-        "{native-reference}": "No network request for this local comparison.",
+        "{reference-1}": "No network request for this local comparison.",
         "authentication_context": "No credential needed for the local comparison.",
         "prompt_applicability": "Not applicable: this check does not invoke a model.",
         "prompt": "No prompt is sent by this operation.",
@@ -188,7 +190,7 @@
         "api_family": "Local evidence verification",
         "method": "Not applicable",
         "route_template": "Not applicable",
-        "{native-reference}": "No network request for this local comparison.",
+        "{reference-1}": "No network request for this local comparison.",
         "authentication_context": "No credential needed for the local comparison.",
         "prompt_applicability": "Not applicable: this check does not invoke a model.",
         "prompt": "No prompt is sent by this operation.",
@@ -235,7 +237,7 @@
         "api_family": "Local evidence verification",
         "method": "Not applicable",
         "route_template": "Not applicable",
-        "{native-reference}": "No network request for this local comparison.",
+        "{reference-1}": "No network request for this local comparison.",
         "authentication_context": "No credential needed for the local comparison.",
         "prompt_applicability": "Not applicable: this check does not invoke a model.",
         "prompt": "No prompt is sent by this operation.",
@@ -260,7 +262,7 @@
         "api_family": "Local evidence verification",
         "method": "Not applicable",
         "route_template": "Not applicable",
-        "{native-reference}": "No network request for this local comparison.",
+        "{reference-1}": "No network request for this local comparison.",
         "authentication_context": "No credential needed for the local comparison.",
         "prompt_applicability": "Not applicable: this check does not invoke a model.",
         "prompt": "No prompt is sent by this operation.",
@@ -276,6 +278,136 @@
   },
   "additional_event_count": 0,
   "additional_events": [],
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-1-step-5-hosted",
+    "title": "Story 1 Step 5: Metadata-only Hosted idle/resume",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story1_native.NativeValidation.hosted_only",
+      "scripts.run_scenario.story1_native.NativeValidation.hosted_observation"
+    ],
+    "notes": [
+      "The diagram describes the current controller, not the historical timing or proof of older runs.",
+      "Quiet time alone is not an idle witness. This track has zero native analyses and no Blob reconstruction."
+    ],
+    "nodes": [
+      {
+        "key": "baseline",
+        "title": "Verify native deployment and version binding",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Native deployment binding",
+            "status": "PASS",
+            "anchor": "check-hosted-1"
+          }
+        ]
+      },
+      {
+        "key": "prepare",
+        "title": "Prepare an owned workflow without native analysis",
+        "actor": "Backend synthetic fixture",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Metadata-only preparation",
+            "status": "PASS",
+            "anchor": "check-hosted-2"
+          }
+        ]
+      },
+      {
+        "key": "active",
+        "title": "Observe process/HOME and read platform active state",
+        "actor": "Agent observe + SDK session metadata",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Platform state before quiet interval",
+            "status": "PASS",
+            "anchor": "check-hosted-3"
+          }
+        ]
+      },
+      {
+        "key": "idle",
+        "title": "Wait, then check SDK idle state and a fresh stop before resume",
+        "actor": "Bounded read-only metadata polling",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Platform state before resume",
+            "status": "PASS",
+            "anchor": "check-hosted-4"
+          }
+        ]
+      },
+      {
+        "key": "resume",
+        "title": "Resume the same binding and compare process/HOME",
+        "actor": "Agent observe",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Optional Hosted marker observation",
+            "status": "PASS",
+            "anchor": "check-hosted-5"
+          }
+        ]
+      },
+      {
+        "key": "witness",
+        "title": "Verify ordered platform active / idle / active metadata",
+        "actor": "Independent SDK lifecycle witness",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Platform idle boundary witness",
+            "status": "PASS",
+            "anchor": "check-hosted-6"
+          }
+        ]
+      },
+      {
+        "key": "unchanged",
+        "title": "Check that the deployed versions did not change",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Deployed versions unchanged",
+            "status": "PASS",
+            "anchor": "check-hosted-7"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 1068\" role=\"img\" aria-labelledby=\"flow-hosted-title flow-hosted-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-hosted-title\">Story 1 Step 5: Metadata-only Hosted idle/resume</title><desc id=\"flow-hosted-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-hosted-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-hosted-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-hosted-arrow)\" /><path d=\"M460 462 V501\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-hosted-arrow)\" /><path d=\"M460 602 V641\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-hosted-arrow)\" /><path d=\"M460 742 V781\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-hosted-arrow)\" /><path d=\"M460 882 V921\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-hosted-arrow)\" /><g id=\"flow-hosted-baseline\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify native deployment and version binding</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-hosted-prepare\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Prepare an owned workflow without native analysis</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Backend synthetic fixture</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-hosted-active\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Observe process/HOME and read platform active state</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Agent observe + SDK session metadata</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-hosted-idle\"><rect x=\"70\" y=\"508\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"537\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Wait, then check SDK idle state and a fresh stop before resume</text><text x=\"88\" y=\"560\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Bounded read-only metadata polling</text><text x=\"88\" y=\"584\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-hosted-resume\"><rect x=\"70\" y=\"648\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"677\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Resume the same binding and compare process/HOME</text><text x=\"88\" y=\"700\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Agent observe</text><text x=\"88\" y=\"724\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-hosted-witness\"><rect x=\"70\" y=\"788\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"817\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">6. Verify ordered platform active / idle / active metadata</text><text x=\"88\" y=\"840\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Independent SDK lifecycle witness</text><text x=\"88\" y=\"864\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-hosted-unchanged\"><rect x=\"70\" y=\"928\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"957\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">7. Check that the deployed versions did not change</text><text x=\"88\" y=\"980\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"1004\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
   "warnings": [],
   "error": null
 }

@@ -33,15 +33,16 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 </head>
 <body>
 <header>
-<h1>Story 1 - Native Hosted Agent Validation</h1><p>hosted-agents-poc-dev · 2026-10-28T00:43:54.035125+00:00</p>
+<h1>Story 1 - Native Hosted Agent Validation</h1><p>hosted-agents-poc-dev · 2026-10-28T15:48:16.536439+00:00</p>
 <p>RECORDED EVIDENCE — NOT A COMBINED COMPLETION VERDICT</p>
 </header>
 <main>
 <nav aria-label="Table of contents">
 <h2>Contents</h2>
 <a href="#summary">Summary and interpretation</a> · <a href="#traceability">Requirement traceability</a> ·
-<a href="#decisions">Sponsor decisions</a> · <a href="#memory">Numerical memory evidence</a> ·
-<a href="#architecture">Native trust boundaries</a> · <a href="#native-api">Current SDK/API reference</a> ·
+<a href="#decisions">Sponsor decisions</a> ·
+<a href="#memory">Numerical memory evidence</a> ·
+<a href="#architecture">Architecture reference</a> · <a href="#native-api">Current SDK/API reference</a> ·
 <a href="#lifecycle">Hosted lifecycle timeline</a> ·
 <a href="#runs">Detailed recorded runs</a> · <a href="#provenance">Provenance and downloads</a>
 <ol><li><a href="#run-readiness">Native v9 deployment readiness</a></li><li><a href="#run-analysis">Representative analysis and original files</a></li><li><a href="#run-chart-review">User-approved offline chart review</a></li><li><a href="#run-baseline-capacity">Native v8 baseline dataset ladder</a></li><li><a href="#run-pressure">Native v9 bounded pressure ladder</a></li><li><a href="#run-isolation">Two-real-user application/session isolation</a></li><li><a href="#run-blob">Authenticated public Blob reconstruction</a></li><li><a href="#run-hosted-original">Initial Hosted marker observation - partial</a></li><li><a href="#run-hosted-short">Fixed short Hosted observation - partial</a></li><li><a href="#run-hosted-five-minute">Fixed five-minute Hosted observation - partial</a></li><li><a href="#run-hosted">Platform-witnessed Hosted idle/resume</a></li><li><a href="#run-supervisor">Supervisor native-contract preflight - blocked</a></li></ol>
@@ -49,18 +50,20 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <section id="summary">
 <h2>Summary and interpretation</h2>
 <p class="notice">Recorded check statuses remain the original evidence. No combined COMPLETE, no inferred finish event, no inferred execution duration, and no inferred Supervisor acceptance are produced.</p>
+
 <p>Measured results and sponsor-accepted envelopes are separate. A 75% pressure target not reached remains <strong>not evaluated at 75%</strong>; accepting a lower measured envelope does not relabel an original BLOCKED check.</p>
 <p>Blob authentication and Hosted/native execution are different boundaries. Authenticated public Blob access does not prove a private endpoint or private-network equivalence. Hosted runtime memory is not native interpreter memory. Supervisor remains blocked unless separately evidenced.</p>
+
 <p>12 bound evidence runs. All bound inputs parsed; this is not an acceptance verdict.</p>
 <p>Duplicate JSONL records are counted once. Results mirrored into events are not counted twice. Unknown observed fields and identity fingerprints are excluded from exports.</p>
 </section>
 <section id="traceability">
 <h2>Requirement traceability</h2>
 <p>Curated requirement-level assessments below are supplied separately from original per-check verdicts.</p>
-<div class="scroll"><table><caption>Story 1 summary rows</caption><thead><tr><th scope="col">Requirement</th><th scope="col">Curated status</th><th scope="col">What works</th><th scope="col">Limitations</th><th scope="col">Next step</th><th scope="col">Evidence bindings</th></tr></thead><tbody>
+<div class="scroll"><table><caption>Story 1 requirement assessments</caption><thead><tr><th scope="col">Requirement</th><th scope="col">Curated status</th><th scope="col">What works</th><th scope="col">Limitations</th><th scope="col">Next step</th><th scope="col">Evidence bindings</th></tr></thead><tbody>
 <tr><th scope="row">1. Overview: code execution and sandbox state</th><td>ℹ️ Reference</td><td>Distinguishes Hosted session compute/filesystem from managed Code Interpreter and customer-owned checkpoints</td><td>Platform architecture guidance is not itself a test result</td><td>Use the scoped evidence below; do not infer RAM survival from filesystem continuity</td><td></td></tr><tr><th scope="row">2. Data Analysis Agent deployed as a Foundry Hosted Agent</th><td>✅ Works</td><td>Existing native Data Analysis v9 passed refreshed readiness; Supervisor v14 and Research v9 remained the same three agents</td><td>No remaining readiness gap; native and historical toolbox baselines are distinct</td><td>Refresh Step 1 only after a future deployment/version change</td><td><a href="#run-readiness">readiness</a></td></tr><tr><th scope="row">3. Synthetic tabular data, no customer data</th><td>✅ Works</td><td>Seeded CSVs from 1k through 1M rows passed checksum and independent-oracle checks</td><td>Coverage is the fixed synthetic CSV workload, not arbitrary customer datasets or XLSX</td><td>No additional fixture work required for the accepted POC</td><td><a href="#run-analysis">analysis</a><br><a href="#run-baseline-capacity">baseline-capacity</a><br><a href="#run-pressure">pressure</a></td></tr><tr><th scope="row">4. Filter, group, summarize, analyze with code execution</th><td>✅ Works</td><td>Native v8 Step 2 model-written analysis passed; v9 size runs through 1M passed row/cell/group/integer-cents checks</td><td>General-purpose analytics beyond the selected case is not claimed</td><td>Preserve the oracle and version-bound evidence; no blanket Step 2 rerun is pending</td><td><a href="#run-analysis">analysis</a><br><a href="#run-pressure">pressure</a></td></tr><tr><th scope="row">4a. Generating visualizations</th><td>✅ Works, scoped</td><td>Native v8&#39;s representative chart received user approval tied to its original hash; v9 size-run PNG originals passed structural checks</td><td>Larger-case PNGs were not additional human chart-meaning reviews</td><td>Review new chart meanings only if the scope requires them; do not equate PNG validity with semantic approval</td><td><a href="#run-analysis">analysis</a><br><a href="#run-chart-review">chart-review</a><br><a href="#run-pressure">pressure</a></td></tr><tr><th scope="row">4b. Output delivery to the Supervisor or user</th><td>⚠️ Partial</td><td>Native user delivery returns authorized original CSV/PNG session files; v8 two-user owner/foreign controls passed</td><td>Supervisor lacks the trusted native session/file contract. Long-term output archiving is deferred; a Blob checkpoint is not a full artifact archive</td><td>Approve the minimal stateless Supervisor adapter and validate its authorized end-to-end file delivery</td><td><a href="#run-analysis">analysis</a><br><a href="#run-isolation">isolation</a><br><a href="#run-supervisor">supervisor</a></td></tr><tr><th scope="row">5. Progressively larger datasets to exercise memory pressure</th><td>✅ Accepted for POC</td><td>All approved sizes through 1M rows / 54.68 MiB input passed; highest process peak was 805.59 MiB, 39.34% of the observed 2 GiB limit</td><td>The original 75% target and an OOM/failure boundary were not reached; the sponsor explicitly accepted this measured envelope</td><td>No further pressure escalation for the current POC; preserve the original diagnostic verdict and limitation</td><td><a href="#run-baseline-capacity">baseline-capacity</a><br><a href="#run-pressure">pressure</a></td></tr><tr><th scope="row">6. Resource limits, failures, constraints documented</th><td>✅ Works</td><td>Native measurements, fixed ceilings, failed/partial runs, SDK lifecycle snapshots, and acceptance decisions are recorded with version/run bindings</td><td>Historical toolbox runtime/network/4g-option findings are not automatically native findings or resolved platform discrepancies</td><td>Keep bindings current and retain original evidence; no broad retest is pending</td><td><a href="#run-pressure">pressure</a><br><a href="#run-hosted-original">hosted-original</a><br><a href="#run-hosted-short">hosted-short</a><br><a href="#run-hosted-five-minute">hosted-five-minute</a><br><a href="#run-hosted">hosted</a></td></tr><tr><th scope="row">7. Clear viability conclusion</th><td>⚠️ Partial overall</td><td>Direct native analysis/user delivery is viable in the accepted tested envelope; scoped isolation and both recovery tracks have evidence</td><td>A combined conclusion including Supervisor delivery is still pending; production multi-tenant certification is outside scope</td><td>Finalize per-workload/per-delivery-path viability after the Supervisor result or explicit deferral</td><td><a href="#run-pressure">pressure</a><br><a href="#run-blob">blob</a><br><a href="#run-hosted">hosted</a><br><a href="#run-supervisor">supervisor</a></td></tr><tr><th scope="row">8. Secured code execution: where the sandbox runs</th><td>✅ Works, scoped</td><td>Python executes in managed Code Interpreter, not a local fallback; v8 native application/session isolation passed with two genuine Consumer callers</td><td>This does not establish privileged project-user native-file confidentiality. Hyper-V/ACA implementation is documented, not physically verified by the POC</td><td>Preserve owner/session guards and review effective role context before future authorization-sensitive changes</td><td><a href="#run-isolation">isolation</a></td></tr><tr><th scope="row">8a. Access to ACA dynamic sessions or an ACA sandbox</th><td>ℹ️ Deferred</td><td>Managed Code Interpreter already uses Microsoft&#39;s documented execution service; no customer session pool is needed for this POC</td><td>Customer-managed ACA/custom interpreter is not provisioned and is intentionally outside the current scope</td><td>No new infrastructure; revisit only for an approved runtime/network/compute requirement</td><td></td></tr><tr><th scope="row">8b. State consistency and sandbox rehydration</th><td>✅ Works, scoped</td><td>Native v8 Blob write/readback and recomputation passed in a new binding/interpreter; v9 Hosted active/idle/active metadata, changed process, and retained HOME sentinel passed</td><td>These separate proofs do not establish native interpreter RAM survival, indefinite storage, or full crash/fault recovery</td><td>Reuse Step 5&#39;s Blob and metadata-only tracks; no additional recovery test is required for the accepted scope</td><td><a href="#run-blob">blob</a><br><a href="#run-hosted">hosted</a></td></tr><tr><th scope="row">8c. State storage location in the customer network</th><td>✅ Works, accepted for POC</td><td>Customer-owned Azure Blob checkpoint write/readback and reconstruction passed using an authenticated public endpoint; the sponsor accepts this storage scope for the POC</td><td>This proves customer-owned persistence, not private-network placement. Private endpoints and Standard setup/BYO files/conversations remain untested and deferred; public endpoint access does not mean anonymous Blob access</td><td>No additional storage/network work for the accepted POC; validate private connectivity separately only if later required</td><td><a href="#run-blob">blob</a></td></tr>
 </tbody></table></div>
-<p class="source">Current Summary source SHA256: d7d120581b271e6fff2d5a9a3258635da97d809fa58a36133d30b6da95fdf64c</p>
+<p class="source">Current Summary source SHA256: 7935e7908dbd5239765eacf674ca09122fcb6bc2c678c92d2333af87ea2c8466</p>
 </section>
 <section id="decisions">
 <h2>Sponsor decisions — not measured results</h2>
@@ -81,6 +84,8 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <tr><th scope="row"><a href="#run-baseline-capacity">baseline-capacity</a><br>1,000 rows: interpreter memory</th><td>PASS</td><td>124911616</td><td>2147483648</td><td>362790912</td><td>5.8167<span class="bar" aria-hidden="true"><span style="width:5.8167%"></span></span></td><td>43.551</td></tr><tr><th scope="row"><a href="#run-baseline-capacity">baseline-capacity</a><br>10,000 rows: interpreter memory</th><td>PASS</td><td>133300224</td><td>2147483648</td><td>371703808</td><td>6.2073<span class="bar" aria-hidden="true"><span style="width:6.2073%"></span></span></td><td>39.019</td></tr><tr><th scope="row"><a href="#run-baseline-capacity">baseline-capacity</a><br>100,000 rows: interpreter memory</th><td>PASS</td><td>261029888</td><td>2147483648</td><td>505753600</td><td>12.1552<span class="bar" aria-hidden="true"><span style="width:12.1552%"></span></span></td><td>44.62</td></tr><tr><th scope="row"><a href="#run-pressure">pressure</a><br>250,000 rows: interpreter memory</th><td>PASS</td><td>352161792</td><td>2147483648</td><td>607338496</td><td>16.3988<span class="bar" aria-hidden="true"><span style="width:16.3988%"></span></span></td><td>49.414</td></tr><tr><th scope="row"><a href="#run-pressure">pressure</a><br>500,000 rows: interpreter memory</th><td>PASS</td><td>354680832</td><td>2147483648</td><td>625885184</td><td>16.5161<span class="bar" aria-hidden="true"><span style="width:16.5161%"></span></span></td><td>60.408</td></tr><tr><th scope="row"><a href="#run-pressure">pressure</a><br>1,000,000 rows: interpreter memory</th><td>PASS</td><td>844718080</td><td>2147483648</td><td>1140195328</td><td>39.3353<span class="bar" aria-hidden="true"><span style="width:39.3353%"></span></span></td><td>77.702</td></tr>
 </tbody></table></div>
 </section>
+
+
 <section id="architecture">
 <h2>Native architecture and trust boundaries — code/reference context</h2>
 <p class="notice">This diagram explains the reviewed application design, not platform observations or physical sandbox-isolation proof. It adds no fourth agent and does not establish a working Supervisor handoff.</p>
@@ -115,13 +120,16 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 </svg>
 <p>The original native files remain backend-mediated. Owning users receive approved session-file paths and verified original bytes, not backend native-file privileges. The runner's Blob recovery experiment is separate from metadata-only Hosted idle/resume observations.</p>
 </section>
+
+
 <section id="native-api">
-<h2>Current native SDK/API catalog — code/reference context</h2>
+<h2>Current SDK/API catalog — code/reference context</h2>
 <p>Reviewed call shapes use symbolic placeholders, not actual requests, endpoints, identities, or execution receipts. Only per-check recorded observations establish measured outcomes. The current native protocol is <code>POC_STORY1_NATIVE</code> / <code>poc-story1-native-v1</code>; no legacy Consumer protocol is assumed.</p>
 <div class="scroll"><table><caption>Caller, model activity, and backend privilege distinctions</caption><thead><tr><th scope="col">Operation / source</th><th scope="col">Acting boundary</th><th scope="col">Model activity</th><th scope="col">Reviewed SDK/request shape</th><th scope="col">Scope and limitation</th></tr></thead><tbody>
 <tr><th scope="row">Hosted session binding<br><span class="source">scripts.run_scenario.story1_native.create_actor</span></th><td>Caller / runner</td><td>Metadata; no model submission</td><td><pre>project.agents.create_session(&#34;data-analysis-agent&#34;, version_indicator=VersionRefIndicator(agent_version=version))</pre></td><td>Explicit version and caller-owned session; not an agent deployment.</td></tr><tr><th scope="row">Hosted conversation binding<br><span class="source">scripts.run_scenario.story1_native.create_actor</span></th><td>Caller / runner</td><td>State creation; no model submission</td><td><pre>hosted.conversations.create()</pre></td><td>Keep the returned conversation bound to the same authorized Hosted session.</td></tr><tr><th scope="row">Native application command<br><span class="source">scripts.run_scenario.story1_native.send</span></th><td>Caller / runner</td><td>Hosted turn; analyze alone triggers native analysis</td><td><pre>hosted.responses.with_raw_response.create(input=&#34;POC_STORY1_NATIVE &#34; + json.dumps(command), conversation=own_conversation, extra_body={&#34;agent_session_id&#34;: own_session}, stream=False)</pre></td><td>poc-story1-native-v1 operations prepare / inspect / observe do not submit native analysis. Caller, Hosted session and conversation are checked before privileged backend work.</td></tr><tr><th scope="row">Native synthetic input upload<br><span class="source">app.services.story1_native.NativeWorkflow.analyze</span></th><td>Authorized backend only</td><td>File upload; no model submission</td><td><pre>native.files.create(purpose=&#34;assistants&#34;, file=(filename, verified_bytes, &#34;text/csv&#34;))</pre></td><td>Only the fixed synthetic fixture is uploaded after owner/session and byte-integrity checks.</td></tr><tr><th scope="row">Native Code Interpreter analysis<br><span class="source">app.services.story1_native.NativeWorkflow.analyze</span></th><td>Authorized backend only</td><td>Model call with one interpreter tool</td><td><pre>native.responses.create(model=model, store=False, stream=False, max_output_tokens=8000, max_tool_calls=1, tools=[{&#34;type&#34;:&#34;code_interpreter&#34;,&#34;container&#34;:{&#34;type&#34;:&#34;auto&#34;,&#34;file_ids&#34;:[uploaded_file]}}], input=ANALYSIS_PROMPT)</pre></td><td>Model-written analysis executes in managed Code Interpreter, not the Hosted Python process. Ambiguous submissions are not automatically replayed.</td></tr><tr><th scope="row">Native original output retrieval<br><span class="source">app.services.story1_native.original_outputs</span></th><td>Authorized backend only</td><td>Byte retrieval; no model submission</td><td><pre>native.containers.files.content.with_streaming_response.retrieve(file_id=cited_file, container_id=cited_container)</pre></td><td>Retrieve only cited original outputs within byte ceilings, then stage authorized session files. This backend privilege is not granted to the calling user by this design.</td></tr><tr><th scope="row">Original user delivery<br><span class="source">scripts.run_scenario.story1_native.download_originals</span></th><td>Authorized owning caller / runner</td><td>Session file download; no model submission</td><td><pre>project.agents.download_session_file(&#34;data-analysis-agent&#34;, own_session, path=approved_relative_path)</pre></td><td>SessionFiles-mediated delivery checks original length/hash. Foreign callers and clean-session access are separate denial controls, not evidence of privileged native-project-file confidentiality.</td></tr><tr><th scope="row">Hosted lifecycle metadata<br><span class="source">scripts.run_scenario.story1_native.NativeValidation.lifecycle_snapshot</span></th><td>Caller / runner</td><td>Read-only metadata; no model submission</td><td><pre>project.agents.get_session(&#34;data-analysis-agent&#34;, own_session)</pre></td><td>Read status/version/server lifecycle fields. Reading metadata does not force stop/resume or independently prove native interpreter RAM survival.</td></tr><tr><th scope="row">Customer-owned Blob checkpoint<br><span class="source">scripts.run_scenario.story1_native.NativeValidation.recovery</span></th><td>Authenticated validation runner</td><td>Storage I/O; no model submission</td><td><pre>Authenticated PUT(checkpoint_bytes); GET(same_checkpoint); verify original bytes and binding</pre></td><td>Separate runner-driven persistence, followed by recomputation in a new authorized binding. Authenticated public Blob access does not establish private networking or full-session snapshots.</td></tr>
 </tbody></table></div>
 </section>
+
 <section id="lifecycle">
 <h2>Hosted lifecycle timeline — recorded observations</h2>
 <p>Only bindings explicitly marked <code>kind: lifecycle</code> contribute here; partial earlier runs remain separately visible below. Rows are derived from saved check observations, not fixed quiet-time expectations. <strong>Runner quiet seconds and server-provided Unix timestamps are different clocks.</strong> No subtraction across clocks, exact transition time, causal recycle claim, or native interpreter RAM-survival claim is inferred.</p>
@@ -150,12 +158,13 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 
 </section>
+
 <section id="runs">
 <h2>Detailed recorded runs</h2>
 
 <article id="run-readiness">
 <h3>Native v9 deployment readiness</h3><p><strong>Scope:</strong> One 1k-row analysis; active native-only Data Analysis v9 with Supervisor v14 and Research v9. Refreshed baseline.<br><strong>Declared version:</strong> 9 · <strong>Kind:</strong> readiness</p>
-<p><strong>Run ID:</strong> e042959119b346e99d84e08b8e6b8a3e<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T21:32:50.255326+00:00 — 2026-10-27T21:34:02.587304+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-3}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T21:32:50.255326+00:00 — 2026-10-27T21:34:02.587304+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-1-step-1&#34;,
@@ -164,13 +173,58 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native&#34;,
+  &#34;step&#34;: &#34;step-01-code-interpreter&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 3
 }. Additional non-mirrored events: 0.</p>
 
 <p><a href="evidence/readiness.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 1 Step 1: Native readiness</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 928" role="img" aria-labelledby="flow-readiness-title flow-readiness-description" style="width:100%;height:auto;display:block"><title id="flow-readiness-title">Story 1 Step 1: Native readiness</title><desc id="flow-readiness-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-readiness-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-readiness-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-readiness-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-readiness-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-readiness-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-readiness-arrow)" /><g id="flow-readiness-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify native deployment and version binding</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-readiness-prepare"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Prepare an owned seeded fixture</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Native owner/session/workflow guard</text><text x="88" y="304" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-readiness-analysis"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Analyze the seeded CSV and check original outputs</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Native interpreter + independent runner oracle</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-readiness-files"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Retrieve session-scoped originals and verify receipts</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Caller + runner</text><text x="88" y="584" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-readiness-unchanged"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Check that the deployed versions did not change</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="724" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-readiness-baseline-write"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Write a new baseline only after required checks pass</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="864" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify native deployment and version binding<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-readiness-1">Native deployment binding — PASS</a></td></tr>
+
+<tr><th scope="row">Prepare an owned seeded fixture<br><small>Native owner/session/workflow guard</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Analyze the seeded CSV and check original outputs<br><small>Native interpreter + independent runner oracle</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-readiness-2">1,000 rows: analytical originals — PASS</a></td></tr>
+
+<tr><th scope="row">Retrieve session-scoped originals and verify receipts<br><small>Caller + runner</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Check that the deployed versions did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-readiness-3">Deployed versions unchanged — PASS</a></td></tr>
+
+<tr><th scope="row">Write a new baseline only after required checks pass<br><small>Validation runner</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+</tbody></table></div>
+
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.NativeValidation.execute</code>; <code>app.services.story1_native</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-readiness-1">
 <summary>1. Native deployment binding — <span class="badge PASS">PASS</span></summary>
@@ -199,7 +253,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Read-only metadata and local comparison&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
+  &#34;{reference-1}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
   &#34;authentication_context&#34;: &#34;Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -217,7 +271,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 1000,
   &#34;bytes&#34;: 54449,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-2}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -234,7 +288,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -258,7 +312,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -275,7 +329,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 <article id="run-analysis">
 <h3>Representative analysis and original files</h3><p><strong>Scope:</strong> Native v8, 1k synthetic rows. Numerical and original-file checks passed; chart approval was pending in this original run.<br><strong>Declared version:</strong> 8 · <strong>Kind:</strong> analysis</p>
-<p><strong>Run ID:</strong> aea1fafe94f047788effde44ef18850b<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:21:14.327232+00:00 — 2026-10-27T20:22:26.513628+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-5}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:21:14.327232+00:00 — 2026-10-27T20:22:26.513628+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-1-step-2&#34;,
@@ -284,7 +338,9 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native&#34;,
+  &#34;step&#34;: &#34;step-02-analysis-and-outputs&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 3,
@@ -292,6 +348,45 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 }. Additional non-mirrored events: 0.</p>
 
 <p><a href="evidence/analysis.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 1 Step 2: Analysis and chart review</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 788" role="img" aria-labelledby="flow-analysis-title flow-analysis-description" style="width:100%;height:auto;display:block"><title id="flow-analysis-title">Story 1 Step 2: Analysis and chart review</title><desc id="flow-analysis-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-analysis-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-analysis-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-analysis-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-analysis-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-analysis-arrow)" /><g id="flow-analysis-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify native deployment and version binding</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-analysis-prepare"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Prepare the fixed owned input</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Backend fixture / ownership checks</text><text x="88" y="304" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-analysis-analysis"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Analyze the seeded CSV and check original outputs</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Native interpreter + independent runner oracle</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-analysis-chart"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Review the exact original chart separately</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: User-approved hash-bound receipt</text><text x="88" y="584" fill="#805000" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: BLOCKED (BLOCKED: 1)</text></g><g id="flow-analysis-unchanged"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Check that the deployed versions did not change</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="724" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify native deployment and version binding<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-analysis-1">Native deployment binding — PASS</a></td></tr>
+
+<tr><th scope="row">Prepare the fixed owned input<br><small>Backend fixture / ownership checks</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Analyze the seeded CSV and check original outputs<br><small>Native interpreter + independent runner oracle</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-analysis-2">1,000 rows: analytical originals — PASS</a></td></tr>
+
+<tr><th scope="row">Review the exact original chart separately<br><small>User-approved hash-bound receipt</small></th>
+<td>BLOCKED<br>BLOCKED: 1</td>
+<td><a href="#check-analysis-3">Chart meaning — BLOCKED</a></td></tr>
+
+<tr><th scope="row">Check that the deployed versions did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-analysis-4">Deployed versions unchanged — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> PNG format validity is not semantic chart approval. Missing human review remains blocked.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.NativeValidation.analyze</code>; <code>scripts.run_scenario.story1_native.NativeValidation.chart_review</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-analysis-1">
 <summary>1. Native deployment binding — <span class="badge PASS">PASS</span></summary>
@@ -320,7 +415,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Read-only metadata and local comparison&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
+  &#34;{reference-1}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
   &#34;authentication_context&#34;: &#34;Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -338,7 +433,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 1000,
   &#34;bytes&#34;: 54449,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-2}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -355,7 +450,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -371,7 +466,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <p><strong>Recorded timestamp:</strong> 2026-10-27T20:22:25.046511+00:00</p>
 <h4>Expected</h4><pre>&#34;Human review of original PNG labels/values, bound to its SHA-256&#34;</pre>
 <h4>Observed — sanitized allowlist</h4><pre>{
-  &#34;png_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;png_sha256&#34;: &#34;{reference-4}&#34;,
   &#34;reviewed&#34;: false,
   &#34;next&#34;: &#34;Review the original PNG; use --review-run and --chart-review offline, without new inference.&#34;
 }</pre>
@@ -381,7 +476,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -405,7 +500,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -422,7 +517,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 <article id="run-chart-review">
 <h3>User-approved offline chart review</h3><p><strong>Scope:</strong> Rechecked retained original hashes and independent oracle; user approved original category labels and values. No new model analysis.<br><strong>Declared version:</strong> 8 · <strong>Kind:</strong> review</p>
-<p><strong>Run ID:</strong> 3411caf3d75b4c6fb732d350cae8e233<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:49:40.448540+00:00 — 2026-10-27T20:49:40.459703+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-6}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:49:40.448540+00:00 — 2026-10-27T20:49:40.459703+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-1-step-2&#34;,
@@ -431,13 +526,46 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native&#34;,
+  &#34;step&#34;: &#34;step-02-analysis-and-outputs&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 2
 }. Additional non-mirrored events: 0.</p>
 
 <p><a href="evidence/chart-review.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 1 Step 2: Offline retained-chart review</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 508" role="img" aria-labelledby="flow-chart-review-title flow-chart-review-description" style="width:100%;height:auto;display:block"><title id="flow-chart-review-title">Story 1 Step 2: Offline retained-chart review</title><desc id="flow-chart-review-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-chart-review-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-chart-review-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-chart-review-arrow)" /><g id="flow-chart-review-originals"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Recheck retained original hashes and independent oracle</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Local validation only</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-chart-review-chart"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Check the user receipt against the exact original PNG</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: User review / chart hash</text><text x="88" y="304" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-chart-review-record"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Record the offline assessment without another analysis</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Local evidence writer</text><text x="88" y="444" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Recheck retained original hashes and independent oracle<br><small>Local validation only</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-chart-review-1">Retained analytical originals — PASS</a></td></tr>
+
+<tr><th scope="row">Check the user receipt against the exact original PNG<br><small>User review / chart hash</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-chart-review-2">Chart meaning — PASS</a></td></tr>
+
+<tr><th scope="row">Record the offline assessment without another analysis<br><small>Local evidence writer</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> This is an offline review of prior originals, not a new native execution.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.offline_chart_review</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-chart-review-1">
 <summary>1. Retained analytical originals — <span class="badge PASS">PASS</span></summary>
@@ -458,7 +586,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -483,7 +611,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -500,7 +628,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 <article id="run-baseline-capacity">
 <h3>Native v8 baseline dataset ladder</h3><p><strong>Scope:</strong> 1k, 10k, 100k analytical originals passed; the diagnostic 75 percent process-memory target was not reached.<br><strong>Declared version:</strong> 8 · <strong>Kind:</strong> capacity</p>
-<p><strong>Run ID:</strong> 02a3fabafa6b472c9aadc29b479031a4<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:22:51.356373+00:00 — 2026-10-27T20:25:16.185622+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-9}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:22:51.356373+00:00 — 2026-10-27T20:25:16.185622+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-1-step-3&#34;,
@@ -509,7 +637,9 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native&#34;,
+  &#34;step&#34;: &#34;step-03-dataset-sizes&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 8,
@@ -517,6 +647,49 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 }. Additional non-mirrored events: 0.</p>
 
 <p><a href="evidence/baseline-capacity.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 1 Step 3: Finite dataset ladder</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 928" role="img" aria-labelledby="flow-baseline-capacity-title flow-baseline-capacity-description" style="width:100%;height:auto;display:block"><title id="flow-baseline-capacity-title">Story 1 Step 3: Finite dataset ladder</title><desc id="flow-baseline-capacity-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-baseline-capacity-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-baseline-capacity-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-baseline-capacity-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-baseline-capacity-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-baseline-capacity-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-baseline-capacity-arrow)" /><g id="flow-baseline-capacity-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify native deployment and version binding</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-baseline-capacity-profile"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Select the approved baseline or pressure profile</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Runner + backend limits</text><text x="88" y="304" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-baseline-capacity-analysis"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Analyze the seeded CSV and check original outputs</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Native interpreter + independent runner oracle</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 3)</text></g><g id="flow-baseline-capacity-memory"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Record interpreter RSS, cgroup limit, and timings</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Interpreter readings; runner records</text><text x="88" y="584" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 3)</text></g><g id="flow-baseline-capacity-target"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Stop at the target, first failure, or finite case ceiling</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: No automatic retry or limit increase</text><text x="88" y="724" fill="#805000" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: BLOCKED (BLOCKED: 1)</text></g><g id="flow-baseline-capacity-unchanged"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Check that the deployed versions did not change</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="864" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify native deployment and version binding<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-baseline-capacity-1">Native deployment binding — PASS</a></td></tr>
+
+<tr><th scope="row">Select the approved baseline or pressure profile<br><small>Runner + backend limits</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Analyze the seeded CSV and check original outputs<br><small>Native interpreter + independent runner oracle</small></th>
+<td>PASS<br>PASS: 3</td>
+<td><a href="#check-baseline-capacity-2">1,000 rows: analytical originals — PASS</a><br><a href="#check-baseline-capacity-4">10,000 rows: analytical originals — PASS</a><br><a href="#check-baseline-capacity-6">100,000 rows: analytical originals — PASS</a></td></tr>
+
+<tr><th scope="row">Record interpreter RSS, cgroup limit, and timings<br><small>Interpreter readings; runner records</small></th>
+<td>PASS<br>PASS: 3</td>
+<td><a href="#check-baseline-capacity-3">1,000 rows: interpreter memory — PASS</a><br><a href="#check-baseline-capacity-5">10,000 rows: interpreter memory — PASS</a><br><a href="#check-baseline-capacity-7">100,000 rows: interpreter memory — PASS</a></td></tr>
+
+<tr><th scope="row">Stop at the target, first failure, or finite case ceiling<br><small>No automatic retry or limit increase</small></th>
+<td>BLOCKED<br>BLOCKED: 1</td>
+<td><a href="#check-baseline-capacity-8">Memory-pressure target — BLOCKED</a></td></tr>
+
+<tr><th scope="row">Check that the deployed versions did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-baseline-capacity-9">Deployed versions unchanged — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> Accepting the POC envelope does not change an unreached 75% diagnostic check to PASS.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.NativeValidation.capacity</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-baseline-capacity-1">
 <summary>1. Native deployment binding — <span class="badge PASS">PASS</span></summary>
@@ -545,7 +718,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Read-only metadata and local comparison&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
+  &#34;{reference-1}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
   &#34;authentication_context&#34;: &#34;Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -563,7 +736,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 1000,
   &#34;bytes&#34;: 54449,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-2}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -580,7 +753,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -608,7 +781,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -626,7 +799,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 10000,
   &#34;bytes&#34;: 553113,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-7}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -643,7 +816,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -671,7 +844,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -689,7 +862,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 100000,
   &#34;bytes&#34;: 5633261,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-8}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -706,7 +879,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -734,7 +907,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -759,7 +932,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -783,7 +956,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -800,7 +973,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 <article id="run-pressure">
 <h3>Native v9 bounded pressure ladder</h3><p><strong>Scope:</strong> 250k, 500k, 1M numerical/original-file checks passed. Highest process RSS 39.34 percent of observed 2 GiB. Original target remains BLOCKED; measured envelope subsequently accepted for POC.<br><strong>Declared version:</strong> 9 · <strong>Kind:</strong> capacity</p>
-<p><strong>Run ID:</strong> 3f842cb4d68646f4b36de0fa57a2749a<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T21:34:17.992658+00:00 — 2026-10-27T21:37:49.648118+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-13}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T21:34:17.992658+00:00 — 2026-10-27T21:37:49.648118+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-1-step-3&#34;,
@@ -809,7 +982,9 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native&#34;,
+  &#34;step&#34;: &#34;step-03-dataset-sizes&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 8,
@@ -817,6 +992,49 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 }. Additional non-mirrored events: 0.</p>
 
 <p><a href="evidence/pressure.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 1 Step 3: Finite dataset ladder</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 928" role="img" aria-labelledby="flow-pressure-title flow-pressure-description" style="width:100%;height:auto;display:block"><title id="flow-pressure-title">Story 1 Step 3: Finite dataset ladder</title><desc id="flow-pressure-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-pressure-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-pressure-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-pressure-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-pressure-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-pressure-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-pressure-arrow)" /><g id="flow-pressure-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify native deployment and version binding</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-pressure-profile"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Select the approved baseline or pressure profile</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Runner + backend limits</text><text x="88" y="304" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-pressure-analysis"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Analyze the seeded CSV and check original outputs</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Native interpreter + independent runner oracle</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 3)</text></g><g id="flow-pressure-memory"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Record interpreter RSS, cgroup limit, and timings</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Interpreter readings; runner records</text><text x="88" y="584" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 3)</text></g><g id="flow-pressure-target"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Stop at the target, first failure, or finite case ceiling</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: No automatic retry or limit increase</text><text x="88" y="724" fill="#805000" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: BLOCKED (BLOCKED: 1)</text></g><g id="flow-pressure-unchanged"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Check that the deployed versions did not change</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="864" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify native deployment and version binding<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-pressure-1">Native deployment binding — PASS</a></td></tr>
+
+<tr><th scope="row">Select the approved baseline or pressure profile<br><small>Runner + backend limits</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Analyze the seeded CSV and check original outputs<br><small>Native interpreter + independent runner oracle</small></th>
+<td>PASS<br>PASS: 3</td>
+<td><a href="#check-pressure-2">250,000 rows: analytical originals — PASS</a><br><a href="#check-pressure-4">500,000 rows: analytical originals — PASS</a><br><a href="#check-pressure-6">1,000,000 rows: analytical originals — PASS</a></td></tr>
+
+<tr><th scope="row">Record interpreter RSS, cgroup limit, and timings<br><small>Interpreter readings; runner records</small></th>
+<td>PASS<br>PASS: 3</td>
+<td><a href="#check-pressure-3">250,000 rows: interpreter memory — PASS</a><br><a href="#check-pressure-5">500,000 rows: interpreter memory — PASS</a><br><a href="#check-pressure-7">1,000,000 rows: interpreter memory — PASS</a></td></tr>
+
+<tr><th scope="row">Stop at the target, first failure, or finite case ceiling<br><small>No automatic retry or limit increase</small></th>
+<td>BLOCKED<br>BLOCKED: 1</td>
+<td><a href="#check-pressure-8">Memory-pressure target — BLOCKED</a></td></tr>
+
+<tr><th scope="row">Check that the deployed versions did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-pressure-9">Deployed versions unchanged — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> Accepting the POC envelope does not change an unreached 75% diagnostic check to PASS.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.NativeValidation.capacity</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-pressure-1">
 <summary>1. Native deployment binding — <span class="badge PASS">PASS</span></summary>
@@ -845,7 +1063,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Read-only metadata and local comparison&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
+  &#34;{reference-1}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
   &#34;authentication_context&#34;: &#34;Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -863,7 +1081,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 250000,
   &#34;bytes&#34;: 14250540,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-10}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -880,7 +1098,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -908,7 +1126,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -926,7 +1144,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 500000,
   &#34;bytes&#34;: 28613347,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-11}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -943,7 +1161,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -971,7 +1189,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -989,7 +1207,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 1000000,
   &#34;bytes&#34;: 57340679,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-12}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -1006,7 +1224,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1034,7 +1252,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1059,7 +1277,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1083,7 +1301,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1100,7 +1318,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 <article id="run-isolation">
 <h3>Two-real-user application/session isolation</h3><p><strong>Scope:</strong> Native v8: both owners&#39; analyses/downloads passed; foreign workflow/file requests denied with owner controls, and a clean same-user session denied. Not privileged native-project-file confidentiality.<br><strong>Declared version:</strong> 8 · <strong>Kind:</strong> isolation</p>
-<p><strong>Run ID:</strong> 377476892e5c492c8acc9ec6652b00cf<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:44:19.930979+00:00 — 2026-10-27T20:47:01.881090+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-14}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:44:19.930979+00:00 — 2026-10-27T20:47:01.881090+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-1-step-4&#34;,
@@ -1109,13 +1327,58 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native&#34;,
+  &#34;step&#34;: &#34;step-04-sandbox-boundaries&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 9
 }. Additional non-mirrored events: 0.</p>
 
 <p><a href="evidence/isolation.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 1 Step 4: Two-user application isolation</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 928" role="img" aria-labelledby="flow-isolation-title flow-isolation-description" style="width:100%;height:auto;display:block"><title id="flow-isolation-title">Story 1 Step 4: Two-user application isolation</title><desc id="flow-isolation-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-isolation-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-isolation-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-isolation-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-isolation-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-isolation-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-isolation-arrow)" /><g id="flow-isolation-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify native deployment and version binding</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-isolation-users"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Verify two genuine caller profiles</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Existing isolated CLI profiles</text><text x="88" y="304" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-isolation-analysis"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Analyze the seeded CSV and check original outputs</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Native interpreter + independent runner oracle</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-isolation-foreign"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Try foreign workflow/file access with owner controls</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Named Consumer callers / application and Session Files</text><text x="88" y="584" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 4)</text></g><g id="flow-isolation-clean"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Try the original workflow from a clean same-user session</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Fresh owned session</text><text x="88" y="724" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-isolation-unchanged"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Check that the deployed versions did not change</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="864" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify native deployment and version binding<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-isolation-1">Native deployment binding — PASS</a></td></tr>
+
+<tr><th scope="row">Verify two genuine caller profiles<br><small>Existing isolated CLI profiles</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Analyze the seeded CSV and check original outputs<br><small>Native interpreter + independent runner oracle</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-isolation-2">1,000 rows: analytical originals — PASS</a><br><a href="#check-isolation-3">1,000 rows: analytical originals — PASS</a></td></tr>
+
+<tr><th scope="row">Try foreign workflow/file access with owner controls<br><small>Named Consumer callers / application and Session Files</small></th>
+<td>PASS<br>PASS: 4</td>
+<td><a href="#check-isolation-4">Owner 1: foreign workflow denied — PASS</a><br><a href="#check-isolation-5">Owner 1: foreign session file denied — PASS</a><br><a href="#check-isolation-6">Owner 2: foreign workflow denied — PASS</a><br><a href="#check-isolation-7">Owner 2: foreign session file denied — PASS</a></td></tr>
+
+<tr><th scope="row">Try the original workflow from a clean same-user session<br><small>Fresh owned session</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-isolation-8">Same user, clean session — PASS</a></td></tr>
+
+<tr><th scope="row">Check that the deployed versions did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-isolation-9">Deployed versions unchanged — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> This does not prove universal native-file confidentiality against privileged project users.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.NativeValidation.isolation</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-isolation-1">
 <summary>1. Native deployment binding — <span class="badge PASS">PASS</span></summary>
@@ -1144,7 +1407,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Read-only metadata and local comparison&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
+  &#34;{reference-1}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
   &#34;authentication_context&#34;: &#34;Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1162,7 +1425,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 1000,
   &#34;bytes&#34;: 54449,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-2}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -1179,7 +1442,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1197,7 +1460,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 1000,
   &#34;bytes&#34;: 54449,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-2}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -1214,7 +1477,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1239,7 +1502,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1264,7 +1527,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1289,7 +1552,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1314,7 +1577,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1338,7 +1601,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1362,7 +1625,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1379,7 +1642,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 <article id="run-blob">
 <h3>Authenticated public Blob reconstruction</h3><p><strong>Scope:</strong> Native v8: runner-driven checkpoint write/readback and recomputation into a new authorized session/distinct native interpreter. No container/checkpoint deletion. Not whole-session snapshots or RAM recovery.<br><strong>Declared version:</strong> 8 · <strong>Kind:</strong> recovery</p>
-<p><strong>Run ID:</strong> 435a6d1fc15a4042b67c53093a276557<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:27:41.832195+00:00 — 2026-10-27T20:29:55.233274+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-15}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:27:41.832195+00:00 — 2026-10-27T20:29:55.233274+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-1-step-5&#34;,
@@ -1388,13 +1651,58 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native&#34;,
+  &#34;step&#34;: &#34;step-05-state-continuity&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 5
 }. Additional non-mirrored events: 0.</p>
 
 <p><a href="evidence/blob.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 1 Step 5: Blob-backed reconstruction</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 928" role="img" aria-labelledby="flow-blob-title flow-blob-description" style="width:100%;height:auto;display:block"><title id="flow-blob-title">Story 1 Step 5: Blob-backed reconstruction</title><desc id="flow-blob-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-blob-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-blob-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-blob-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-blob-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-blob-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-blob-arrow)" /><g id="flow-blob-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify native deployment and version binding</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-blob-analysis"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Analyze the seeded CSV and check original outputs</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Native interpreter + independent runner oracle</text><text x="88" y="304" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-blob-blob"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Write the checkpoint and require verified Blob readback</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Authenticated runner -&gt; customer Blob</text><text x="88" y="444" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-blob-fresh"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Recompute in a fresh authorized session and interpreter</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Native analysis + independently checked originals</text><text x="88" y="584" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-blob-compare"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Compare input, aggregates, and distinct interpreter binding</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="724" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-blob-unchanged"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Check that the deployed versions did not change</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="864" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify native deployment and version binding<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-blob-1">Native deployment binding — PASS</a></td></tr>
+
+<tr><th scope="row">Analyze the seeded CSV and check original outputs<br><small>Native interpreter + independent runner oracle</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-blob-2">1,000 rows: analytical originals — PASS</a><br><a href="#check-blob-3">1,000 rows: analytical originals — PASS</a></td></tr>
+
+<tr><th scope="row">Write the checkpoint and require verified Blob readback<br><small>Authenticated runner -&gt; customer Blob</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Recompute in a fresh authorized session and interpreter<br><small>Native analysis + independently checked originals</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Compare input, aggregates, and distinct interpreter binding<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-blob-4">Blob-backed reconstruction — PASS</a></td></tr>
+
+<tr><th scope="row">Check that the deployed versions did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-blob-5">Deployed versions unchanged — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> The readback helper has no standalone PASS on success; downstream reconstruction evidence is separate.</p><p><strong>Scope:</strong> Blob checkpoint reconstruction is not an entire Hosted-session or interpreter-RAM restore. No deletion by default.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.NativeValidation.recovery</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-blob-1">
 <summary>1. Native deployment binding — <span class="badge PASS">PASS</span></summary>
@@ -1423,7 +1731,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Read-only metadata and local comparison&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
+  &#34;{reference-1}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
   &#34;authentication_context&#34;: &#34;Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1441,7 +1749,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 1000,
   &#34;bytes&#34;: 54449,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-2}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -1458,7 +1766,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1476,7 +1784,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <h4>Observed — sanitized allowlist</h4><pre>{
   &#34;rows&#34;: 1000,
   &#34;bytes&#34;: 54449,
-  &#34;input_sha256&#34;: &#34;{fingerprint-omitted}&#34;,
+  &#34;input_sha256&#34;: &#34;{reference-2}&#34;,
   &#34;checks&#34;: {
     &#34;input_sha256&#34;: true,
     &#34;filtered_rows&#34;: true,
@@ -1493,7 +1801,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1523,7 +1831,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1547,7 +1855,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1564,7 +1872,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 <article id="run-hosted-original">
 <h3>Initial Hosted marker observation - partial</h3><p><strong>Scope:</strong> Native v8: process changed and HOME retained after 180 quiet seconds, without an independent same-cycle platform boundary witness. Original partial result retained.<br><strong>Declared version:</strong> 8 · <strong>Kind:</strong> historical-observation</p>
-<p><strong>Run ID:</strong> b842688cde8e4ad084feb12d81c439e1<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:47:44.941107+00:00 — 2026-10-27T20:50:58.749692+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-16}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:47:44.941107+00:00 — 2026-10-27T20:50:58.749692+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-1-step-5&#34;,
@@ -1573,7 +1881,9 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native-hosted-observation&#34;,
+  &#34;step&#34;: &#34;step-05-state-continuity&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 3,
@@ -1581,6 +1891,53 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 }. Additional non-mirrored events: 0.</p>
 
 <p><a href="evidence/hosted-original.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 1 Step 5: Metadata-only Hosted idle/resume</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1068" role="img" aria-labelledby="flow-hosted-original-title flow-hosted-original-description" style="width:100%;height:auto;display:block"><title id="flow-hosted-original-title">Story 1 Step 5: Metadata-only Hosted idle/resume</title><desc id="flow-hosted-original-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-hosted-original-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-original-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-original-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-original-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-original-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-original-arrow)" /><path d="M460 882 V921" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-original-arrow)" /><g id="flow-hosted-original-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify native deployment and version binding</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-hosted-original-prepare"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Prepare an owned workflow without native analysis</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Backend synthetic fixture</text><text x="88" y="304" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-original-active"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Observe process/HOME and read platform active state</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Agent observe + SDK session metadata</text><text x="88" y="444" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-hosted-original-idle"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Wait, then check SDK idle state and a fresh stop before resume</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Bounded read-only metadata polling</text><text x="88" y="584" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-hosted-original-resume"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Resume the same binding and compare process/HOME</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Agent observe</text><text x="88" y="724" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-original-witness"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Verify ordered platform active / idle / active metadata</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Independent SDK lifecycle witness</text><text x="88" y="864" fill="#805000" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: BLOCKED (BLOCKED: 1)</text></g><g id="flow-hosted-original-unchanged"><rect x="70" y="928" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="957" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">7. Check that the deployed versions did not change</text><text x="88" y="980" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="1004" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify native deployment and version binding<br><small>Validation runner</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Prepare an owned workflow without native analysis<br><small>Backend synthetic fixture</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-original-1">Metadata-only preparation — PASS</a></td></tr>
+
+<tr><th scope="row">Observe process/HOME and read platform active state<br><small>Agent observe + SDK session metadata</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Wait, then check SDK idle state and a fresh stop before resume<br><small>Bounded read-only metadata polling</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Resume the same binding and compare process/HOME<br><small>Agent observe</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-original-2">Optional Hosted marker observation — PASS</a></td></tr>
+
+<tr><th scope="row">Verify ordered platform active / idle / active metadata<br><small>Independent SDK lifecycle witness</small></th>
+<td>BLOCKED<br>BLOCKED: 1</td>
+<td><a href="#check-hosted-original-3">Platform idle boundary witness — BLOCKED</a></td></tr>
+
+<tr><th scope="row">Check that the deployed versions did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-original-4">Deployed versions unchanged — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> The diagram describes the current controller, not the historical timing or proof of older runs.</p><p><strong>Scope:</strong> Quiet time alone is not an idle witness. This track has zero native analyses and no Blob reconstruction.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.NativeValidation.hosted_only</code>; <code>scripts.run_scenario.story1_native.NativeValidation.hosted_observation</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-hosted-original-1">
 <summary>1. Metadata-only preparation — <span class="badge PASS">PASS</span></summary>
@@ -1597,7 +1954,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1623,7 +1980,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1647,7 +2004,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1671,7 +2028,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1688,7 +2045,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 <article id="run-hosted-short">
 <h3>Fixed short Hosted observation - partial</h3><p><strong>Scope:</strong> Native v9: still active at 184.036 quiet seconds, no stop visible. Stopped safely without attempting resume. Zero native analyses.<br><strong>Declared version:</strong> 9 · <strong>Kind:</strong> historical-observation</p>
-<p><strong>Run ID:</strong> 4950fd16cc0342abac32a1396e9613cf<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T22:50:52.838013+00:00 — 2026-10-27T22:54:20.486736+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-17}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T22:50:52.838013+00:00 — 2026-10-27T22:54:20.486736+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-1-step-5&#34;,
@@ -1697,7 +2054,9 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native-hosted-only&#34;,
+  &#34;step&#34;: &#34;step-05-state-continuity&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 4,
@@ -1705,6 +2064,53 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 }. Additional non-mirrored events: 0.</p>
 
 <p><a href="evidence/hosted-short.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 1 Step 5: Metadata-only Hosted idle/resume</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1068" role="img" aria-labelledby="flow-hosted-short-title flow-hosted-short-description" style="width:100%;height:auto;display:block"><title id="flow-hosted-short-title">Story 1 Step 5: Metadata-only Hosted idle/resume</title><desc id="flow-hosted-short-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-hosted-short-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-short-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-short-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-short-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-short-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-short-arrow)" /><path d="M460 882 V921" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-short-arrow)" /><g id="flow-hosted-short-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify native deployment and version binding</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-short-prepare"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Prepare an owned workflow without native analysis</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Backend synthetic fixture</text><text x="88" y="304" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-short-active"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Observe process/HOME and read platform active state</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Agent observe + SDK session metadata</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-short-idle"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Wait, then check SDK idle state and a fresh stop before resume</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Bounded read-only metadata polling</text><text x="88" y="584" fill="#805000" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: BLOCKED (BLOCKED: 1)</text></g><g id="flow-hosted-short-resume"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Resume the same binding and compare process/HOME</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Agent observe</text><text x="88" y="724" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-hosted-short-witness"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Verify ordered platform active / idle / active metadata</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Independent SDK lifecycle witness</text><text x="88" y="864" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-hosted-short-unchanged"><rect x="70" y="928" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="957" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">7. Check that the deployed versions did not change</text><text x="88" y="980" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="1004" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify native deployment and version binding<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-short-1">Native deployment binding — PASS</a></td></tr>
+
+<tr><th scope="row">Prepare an owned workflow without native analysis<br><small>Backend synthetic fixture</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-short-2">Metadata-only preparation — PASS</a></td></tr>
+
+<tr><th scope="row">Observe process/HOME and read platform active state<br><small>Agent observe + SDK session metadata</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-short-3">Platform state before quiet interval — PASS</a></td></tr>
+
+<tr><th scope="row">Wait, then check SDK idle state and a fresh stop before resume<br><small>Bounded read-only metadata polling</small></th>
+<td>BLOCKED<br>BLOCKED: 1</td>
+<td><a href="#check-hosted-short-4">Platform state before resume — BLOCKED</a></td></tr>
+
+<tr><th scope="row">Resume the same binding and compare process/HOME<br><small>Agent observe</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Verify ordered platform active / idle / active metadata<br><small>Independent SDK lifecycle witness</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Check that the deployed versions did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-short-5">Deployed versions unchanged — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> The diagram describes the current controller, not the historical timing or proof of older runs.</p><p><strong>Scope:</strong> Quiet time alone is not an idle witness. This track has zero native analyses and no Blob reconstruction.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.NativeValidation.hosted_only</code>; <code>scripts.run_scenario.story1_native.NativeValidation.hosted_observation</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-hosted-short-1">
 <summary>1. Native deployment binding — <span class="badge PASS">PASS</span></summary>
@@ -1733,7 +2139,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Read-only metadata and local comparison&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
+  &#34;{reference-1}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
   &#34;authentication_context&#34;: &#34;Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1759,7 +2165,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1787,7 +2193,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1816,7 +2222,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1840,7 +2246,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1857,7 +2263,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 <article id="run-hosted-five-minute">
 <h3>Fixed five-minute Hosted observation - partial</h3><p><strong>Scope:</strong> Native v9: still active at the 301.602-second check; later metadata exposed an earlier stop. Original partial report retained; zero native analyses.<br><strong>Declared version:</strong> 9 · <strong>Kind:</strong> historical-observation</p>
-<p><strong>Run ID:</strong> 8f00f33461be4dc6aa904667d047ecbc<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T23:07:36.966328+00:00 — 2026-10-27T23:13:10.121619+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-18}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T23:07:36.966328+00:00 — 2026-10-27T23:13:10.121619+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-1-step-5&#34;,
@@ -1866,7 +2272,9 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native-hosted-only&#34;,
+  &#34;step&#34;: &#34;step-05-state-continuity&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 4,
@@ -1874,6 +2282,53 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 }. Additional non-mirrored events: 0.</p>
 
 <p><a href="evidence/hosted-five-minute.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 1 Step 5: Metadata-only Hosted idle/resume</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1068" role="img" aria-labelledby="flow-hosted-five-minute-title flow-hosted-five-minute-description" style="width:100%;height:auto;display:block"><title id="flow-hosted-five-minute-title">Story 1 Step 5: Metadata-only Hosted idle/resume</title><desc id="flow-hosted-five-minute-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-hosted-five-minute-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-five-minute-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-five-minute-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-five-minute-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-five-minute-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-five-minute-arrow)" /><path d="M460 882 V921" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-five-minute-arrow)" /><g id="flow-hosted-five-minute-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify native deployment and version binding</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-five-minute-prepare"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Prepare an owned workflow without native analysis</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Backend synthetic fixture</text><text x="88" y="304" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-five-minute-active"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Observe process/HOME and read platform active state</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Agent observe + SDK session metadata</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-five-minute-idle"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Wait, then check SDK idle state and a fresh stop before resume</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Bounded read-only metadata polling</text><text x="88" y="584" fill="#805000" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: BLOCKED (BLOCKED: 1)</text></g><g id="flow-hosted-five-minute-resume"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Resume the same binding and compare process/HOME</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Agent observe</text><text x="88" y="724" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-hosted-five-minute-witness"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Verify ordered platform active / idle / active metadata</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Independent SDK lifecycle witness</text><text x="88" y="864" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-hosted-five-minute-unchanged"><rect x="70" y="928" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="957" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">7. Check that the deployed versions did not change</text><text x="88" y="980" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="1004" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify native deployment and version binding<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-five-minute-1">Native deployment binding — PASS</a></td></tr>
+
+<tr><th scope="row">Prepare an owned workflow without native analysis<br><small>Backend synthetic fixture</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-five-minute-2">Metadata-only preparation — PASS</a></td></tr>
+
+<tr><th scope="row">Observe process/HOME and read platform active state<br><small>Agent observe + SDK session metadata</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-five-minute-3">Platform state before quiet interval — PASS</a></td></tr>
+
+<tr><th scope="row">Wait, then check SDK idle state and a fresh stop before resume<br><small>Bounded read-only metadata polling</small></th>
+<td>BLOCKED<br>BLOCKED: 1</td>
+<td><a href="#check-hosted-five-minute-4">Platform state before resume — BLOCKED</a></td></tr>
+
+<tr><th scope="row">Resume the same binding and compare process/HOME<br><small>Agent observe</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Verify ordered platform active / idle / active metadata<br><small>Independent SDK lifecycle witness</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Check that the deployed versions did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-five-minute-5">Deployed versions unchanged — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> The diagram describes the current controller, not the historical timing or proof of older runs.</p><p><strong>Scope:</strong> Quiet time alone is not an idle witness. This track has zero native analyses and no Blob reconstruction.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.NativeValidation.hosted_only</code>; <code>scripts.run_scenario.story1_native.NativeValidation.hosted_observation</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-hosted-five-minute-1">
 <summary>1. Native deployment binding — <span class="badge PASS">PASS</span></summary>
@@ -1902,7 +2357,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Read-only metadata and local comparison&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
+  &#34;{reference-1}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
   &#34;authentication_context&#34;: &#34;Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1928,7 +2383,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1956,7 +2411,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -1985,7 +2440,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2009,7 +2464,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2026,7 +2481,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 <article id="run-hosted">
 <h3>Platform-witnessed Hosted idle/resume</h3><p><strong>Scope:</strong> Native v9: all seven checks pass. Same binding active -&gt; idle/new stop -&gt; active, process changed, HOME retained. Idle witnessed after 332.861 seconds on second metadata read. Zero native analyses/Blob requests/forced lifecycle actions.<br><strong>Declared version:</strong> 9 · <strong>Kind:</strong> lifecycle</p>
-<p><strong>Run ID:</strong> 0cfaf4c106924294a57df6430ba12044<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T23:29:34.649717+00:00 — 2026-10-27T23:35:37.643562+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-19}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T23:29:34.649717+00:00 — 2026-10-27T23:35:37.643562+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-1-step-5&#34;,
@@ -2035,13 +2490,62 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native-hosted-only&#34;,
+  &#34;step&#34;: &#34;step-05-state-continuity&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 7
 }. Additional non-mirrored events: 0.</p>
 
 <p><a href="evidence/hosted.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 1 Step 5: Metadata-only Hosted idle/resume</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1068" role="img" aria-labelledby="flow-hosted-title flow-hosted-description" style="width:100%;height:auto;display:block"><title id="flow-hosted-title">Story 1 Step 5: Metadata-only Hosted idle/resume</title><desc id="flow-hosted-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-hosted-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-arrow)" /><path d="M460 882 V921" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-hosted-arrow)" /><g id="flow-hosted-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify native deployment and version binding</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-prepare"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Prepare an owned workflow without native analysis</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Backend synthetic fixture</text><text x="88" y="304" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-active"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Observe process/HOME and read platform active state</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Agent observe + SDK session metadata</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-idle"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Wait, then check SDK idle state and a fresh stop before resume</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Bounded read-only metadata polling</text><text x="88" y="584" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-resume"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Resume the same binding and compare process/HOME</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Agent observe</text><text x="88" y="724" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-witness"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Verify ordered platform active / idle / active metadata</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Independent SDK lifecycle witness</text><text x="88" y="864" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-hosted-unchanged"><rect x="70" y="928" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="957" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">7. Check that the deployed versions did not change</text><text x="88" y="980" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="1004" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify native deployment and version binding<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-1">Native deployment binding — PASS</a></td></tr>
+
+<tr><th scope="row">Prepare an owned workflow without native analysis<br><small>Backend synthetic fixture</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-2">Metadata-only preparation — PASS</a></td></tr>
+
+<tr><th scope="row">Observe process/HOME and read platform active state<br><small>Agent observe + SDK session metadata</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-3">Platform state before quiet interval — PASS</a></td></tr>
+
+<tr><th scope="row">Wait, then check SDK idle state and a fresh stop before resume<br><small>Bounded read-only metadata polling</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-4">Platform state before resume — PASS</a></td></tr>
+
+<tr><th scope="row">Resume the same binding and compare process/HOME<br><small>Agent observe</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-5">Optional Hosted marker observation — PASS</a></td></tr>
+
+<tr><th scope="row">Verify ordered platform active / idle / active metadata<br><small>Independent SDK lifecycle witness</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-6">Platform idle boundary witness — PASS</a></td></tr>
+
+<tr><th scope="row">Check that the deployed versions did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-hosted-7">Deployed versions unchanged — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> The diagram describes the current controller, not the historical timing or proof of older runs.</p><p><strong>Scope:</strong> Quiet time alone is not an idle witness. This track has zero native analyses and no Blob reconstruction.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.NativeValidation.hosted_only</code>; <code>scripts.run_scenario.story1_native.NativeValidation.hosted_observation</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-hosted-1">
 <summary>1. Native deployment binding — <span class="badge PASS">PASS</span></summary>
@@ -2070,7 +2574,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Read-only metadata and local comparison&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
+  &#34;{reference-1}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
   &#34;authentication_context&#34;: &#34;Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2096,7 +2600,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2124,7 +2628,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2167,7 +2671,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2193,7 +2697,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2239,7 +2743,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2263,7 +2767,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2280,7 +2784,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 
 <article id="run-supervisor">
 <h3>Supervisor native-contract preflight - blocked</h3><p><strong>Scope:</strong> Native v8 deployment: preflight stopped before inference because the stateless protocol lacks the trusted native session/file contract. No Supervisor analytical pass or redesign approval.<br><strong>Declared version:</strong> 8 · <strong>Kind:</strong> integration</p>
-<p><strong>Run ID:</strong> f2ce64f3b7bc428781537f2da518b97c<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:55:23.799863+00:00 — 2026-10-27T20:55:24.434075+00:00 (recorded evidence timestamps, not execution duration)</p>
+<p><strong>Run ID:</strong> {reference-20}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-27T20:55:23.799863+00:00 — 2026-10-27T20:55:24.434075+00:00 (recorded evidence timestamps, not execution duration)</p>
 
 <pre>{
   &#34;scenario&#34;: &#34;story-4-step-6&#34;,
@@ -2289,14 +2793,55 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;python&#34;: &#34;3.14.8&#34;,
   &#34;project_version&#34;: &#34;0.1.0&#34;,
   &#34;maf_version&#34;: &#34;1.19.0&#34;,
-  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;variant&#34;: &#34;native&#34;,
+  &#34;step&#34;: &#34;step-06-data-analysis&#34;
 }</pre>
 <p>Unique recorded check counts: {
   &#34;PASS&#34;: 2,
   &#34;BLOCKED&#34;: 1
 }. Additional non-mirrored events: 0.</p>
-
+<p class="notice">Cross-story reference: story-4-step-6 in Story 1 bundle. Original verdicts apply only to the declared reference scope, not combined story acceptance.</p>
 <p><a href="evidence/supervisor.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 4 Step 6: Native Supervisor contract preflight</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 811" role="img" aria-labelledby="flow-supervisor-title flow-supervisor-description" style="width:100%;height:auto;display:block"><title id="flow-supervisor-title">Story 4 Step 6: Native Supervisor contract preflight</title><desc id="flow-supervisor-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-supervisor-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-supervisor-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-supervisor-arrow)" /><path d="M460 485 V524" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-supervisor-arrow)" /><path d="M460 625 V664" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-supervisor-arrow)" /><g id="flow-supervisor-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify native deployment and version binding</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-supervisor-review"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Require reviewed native analytical evidence</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Runner baseline/evidence guard</text><text x="88" y="304" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-supervisor-contract"><rect x="70" y="368" width="780" height="117" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Check whether trusted nested session/file authorization is</text><text x="88" y="420" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">supported</text><text x="88" y="443" fill="#516477" font-size="15" font-family="system-ui">Actor: Native integration preflight</text><text x="88" y="467" fill="#805000" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: BLOCKED (BLOCKED: 1)</text></g><g id="flow-supervisor-stop"><rect x="70" y="531" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="560" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Retain the blocker before any analytical submission</text><text x="88" y="583" fill="#516477" font-size="15" font-family="system-ui">Actor: No identity workaround or automatic redesign</text><text x="88" y="607" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-supervisor-unchanged"><rect x="70" y="671" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="700" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Check that the deployed versions did not change</text><text x="88" y="723" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="747" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify native deployment and version binding<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-supervisor-1">Native deployment binding — PASS</a></td></tr>
+
+<tr><th scope="row">Require reviewed native analytical evidence<br><small>Runner baseline/evidence guard</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Check whether trusted nested session/file authorization is supported<br><small>Native integration preflight</small></th>
+<td>BLOCKED<br>BLOCKED: 1</td>
+<td><a href="#check-supervisor-2">Optional native Supervisor integration — BLOCKED</a></td></tr>
+
+<tr><th scope="row">Retain the blocker before any analytical submission<br><small>No identity workaround or automatic redesign</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Check that the deployed versions did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-supervisor-3">Deployed versions unchanged — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> The current handler is a preflight blocker, not an implemented native analytical delivery path.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story1_native.NativeValidation.supervisor</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
 
 <details open id="check-supervisor-1">
 <summary>1. Native deployment binding — <span class="badge PASS">PASS</span></summary>
@@ -2325,7 +2870,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Read-only metadata and local comparison&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
+  &#34;{reference-1}&#34;: &#34;See explicit metadata/role receipts; exact legacy calls are not reconstructed.&#34;,
   &#34;authentication_context&#34;: &#34;Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2351,7 +2896,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2375,7 +2920,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
   &#34;api_family&#34;: &#34;Local evidence verification&#34;,
   &#34;method&#34;: &#34;Not applicable&#34;,
   &#34;route_template&#34;: &#34;Not applicable&#34;,
-  &#34;{native-reference}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
   &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
   &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
   &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
@@ -2394,7 +2939,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <section id="provenance">
 <h2>Provenance and downloads</h2>
 <p>Reusable standalone renderer and shared report assets were reused from local branch <code>feature/native-code-interpreter</code>, commit <code>e139a6917c86fda32b8570545e8ec54eca04ccf4</code>. This bundle adapter uses the same strict, autoescaped Jinja2 rendering and offline layout principles, not Consumer-specific acceptance assumptions.</p>
-<p class="source">Bundle source fingerprint: 2c8f5e24b9d41f61ea2692c45854c3b7220e2730c910a4b7f636fc290855f007</p>
+<p class="source">Bundle source fingerprint: 2678b467b39dd51188548595a158e487c0a2c29cd6de5b3c8296e25dd252ca9b</p>
 <p><a href="sanitized-evidence.json">Download complete sanitized evidence bundle (JSON)</a></p>
 <p>No raw evidence, CSV payloads, model source code, credentials, endpoints, private paths, identity fingerprints, external assets, JavaScript, or live calls are exported. Only the explicitly approved synthetic PNG original may be included with its exact hash. Source hashes are provenance, not proof of unrecorded execution. Native files and charts are not fetched or recreated.</p>
 </section>

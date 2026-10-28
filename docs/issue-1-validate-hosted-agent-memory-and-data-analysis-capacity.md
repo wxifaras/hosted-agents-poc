@@ -9,17 +9,22 @@
 Status report: what works, what doesn't and why, and what to do next, for
 each requirement of issue #1 (Story 1 tasks in this repository).
 
-**Detailed HTML evidence report (2026-10-27):**
-[View with HTML Report](https://htmlpreview.github.io/?https://github.com/wxifaras/hosted-agents-poc/blob/feature/hosted-agents-enhancements/docs/reports/story-1/story1-improvements/2026-10-27/index.html)
+**Detailed HTML report with task flows (generated 2026-10-28; evidence 2026-10-27):**
+[View with HTML Preview](https://htmlpreview.github.io/?https://github.com/wxifaras/hosted-agents-poc/blob/feature/hosted-agents-enhancements/docs/reports/story-1/story1-improvements/2026-10-28-task-flows/index.html)
+· [Report source and sanitized downloads](reports/story-1/story1-improvements/2026-10-28-task-flows/index.html).
+Regenerated from the same retained results; no validation was rerun. Expand each
+run's task-flow section for the reviewed plan and its linked recorded checks,
+not an inferred execution trace. The new GitHub preview requires this snapshot
+and link update to be committed and pushed.
 
 | Field | Value |
 |---|---|
-| Current status reviewed | 2026-10-27; the Summary is the latest scoped POC position |
+| Current status reviewed | 2026-10-28 documentation review; Story 1 evidence remains bound to its 2026-10-27 runs |
 | Native POC environment | `hosted-agents-poc-dev`, `northcentralus`, model `gpt-5-mini` |
-| Latest validated deployment | Supervisor v14, Research v9, Data Analysis v9; the same three agents, no additional native agent |
+| Latest deployment validated for Story 1 | Supervisor v14, Research v9, Data Analysis v9; not a claim about a newer deployment or a combined rerun of every criterion |
 | Evidence bindings | Analysis/chart review, two-user isolation, and Blob reconstruction: native v8. Larger datasets and Hosted idle/resume: native v9. These are separate observations, not a combined rerun on v9 |
 | Code execution | Native Microsoft-managed Code Interpreter on the existing Data Analysis agent; no toolbox fallback or local generated-code execution |
-| Historical baseline | 2026-10-26 toolbox evaluation in `hosted-agents-poc-dev-001`; retained separately below |
+| Historical baseline | 2026-10-26 toolbox evaluation in `hosted-agents-poc-dev-001`; retained in the historical appendix, not today's backlog |
 | Detailed run history | [Native validation history](#native-validation-history-2026-10-27) at the end; original partial reports and measurements remain unchanged |
 
 **Legend:** ✅ Works (tested within the stated binding) / Accepted for POC
@@ -35,8 +40,9 @@ Where this POC has tested a point, the relevant section is linked. In this
 report, the **agent session sandbox** is where the hosted agent's own
 container runs, and the **Code Interpreter sandbox** is where model-written
 Python runs. The [Summary](#summary) reports the latest native POC position;
-the numbered detailed findings retain the historical toolbox evaluation, and
-the [dated appendix](#native-validation-history-2026-10-27) records the native runs.
+the [historical appendix](#historical-appendix-toolbox-evaluation-2026-10-26)
+retains the toolbox evaluation, and the
+[dated native appendix](#native-validation-history-2026-10-27) records the newer runs.
 
 There are **two separate execution environments**:
 
@@ -123,11 +129,10 @@ interpreter or customer-managed ACA dynamic sessions pool**.
 - Use **custom Code Interpreter / ACA dynamic sessions** when
   customer-controlled runtime or networking is required.
 
-Detailed findings for these questions are in sections
-[8](#8-secured-code-execution-where-the-sandbox-is-created----works),
-[8a](#8a-can-hosted-agents-use-aca-dynamic-sessions-or-an-aca-sandbox----partial),
-[8b](#8b-state-consistency-and-sandbox-rehydration----gap), and
-[8c](#8c-can-state-be-stored-in-our-own-network----partial).
+For the evaluated result, see the [current validated outcomes](#current-validated-outcomes)
+and [Summary](#summary). Historical execution-boundary and storage observations
+remain in the [toolbox appendix](#historical-appendix-toolbox-evaluation-2026-10-26);
+they are not current implementation instructions.
 
 ### Microsoft documentation
 
@@ -160,7 +165,7 @@ flowchart LR
     S1 --> R8["8. Managed execution /<br/>application isolation"]:::ok
     R8 --> R8a["8a. Own ACA sandbox<br/>(deferred)"]:::info
     R8 --> R8b["8b. Hosted idle/resume /<br/>Blob reconstruction"]:::ok
-    R8 --> R8c["8c. Customer Blob works /<br/>private network deferred"]:::partial
+    R8 --> R8c["8c. Customer Blob<br/>accepted for POC"]:::accepted
 
     classDef info fill:#d1ecf1,stroke:#17a2b8,color:#000
     classDef ok fill:#d4edda,stroke:#28a745,color:#000
@@ -207,15 +212,112 @@ measured limitation; it is not relabeled as a successful 75% pressure test.
 
 ---
 
-## Historical toolbox findings (2026-10-26)
+## Current validated outcomes
 
-The following numbered details preserve the original toolbox observations and
-their original statuses. They are **not the current native task instructions or
+### Representative analysis and user delivery - works
+
+Native v8 model-written analysis, exact row/cell/group/integer-cents checks,
+authorized original-file downloads, and the user-approved representative chart
+are demonstrated. Two genuine Consumer callers passed the scoped workflow and
+session-file isolation checks. These are direct-user results, not native
+Supervisor delivery or privileged project-user native-file confidentiality.
+
+### Progressively larger datasets to exercise memory pressure - accepted for POC
+
+The approved 1k through 1M-row workloads produced correct analytical originals.
+At 1M rows (57,340,679 input bytes / 54.68 MiB), process peak RSS was
+844,718,080 bytes (805.59 MiB), **39.34% of the observed 2 GiB limit**.
+The sponsor accepted this tested envelope as sufficient for the POC; no further
+pressure escalation is pending.
+
+The original **75% target was not reached**, and no OOM/failure boundary or
+platform maximum was measured. Preserve the runner's Not evaluated result for
+that diagnostic objective; it does not negate the accepted workload validation.
+See the [measurements](#bounded-native-pressure-batch-2026-10-27) and
+[acceptance decision](#poc-capacity-acceptance-decision-2026-10-27).
+
+### Recovery and customer-owned storage - works within accepted scope
+
+- **Blob reconstruction (native v8):** authenticated checkpoint write/readback
+  and recomputation into a new authorized session/distinct interpreter passed.
+  Public-endpoint customer Blob is accepted for the POC. This is not a full
+  Hosted session backup, restored interpreter RAM, or private-network proof.
+- **Hosted idle/resume (native v9):** platform state
+  `active -> idle/new stop -> active`, a changed process marker, and the retained
+  HOME sentinel passed on the same binding. Earlier fixed-interval checks remain
+  partial history, not outstanding retests.
+
+These are separate, version-bound proofs; they were not a combined rerun on
+every subsequent deployment. Private endpoints, BYO platform stores, permanent
+output archives, and broader crash/fault recovery remain deferred.
+
+### Supervisor native analysis and file delivery - pending
+
+Basic routing/text delegation does not satisfy this requirement. The remaining
+work is the smallest supported trusted native child-session/file adapter, followed
+by an authorized original-output and foreign-user validation. No identity guard
+should be bypassed and no interpreter toolbox fallback should be restored.
+
+## Prioritized next steps
+
+| Priority | Action | Closes | Scope / gate |
+|---|---|---|---|
+| 1 | Establish the supported trusted nested caller/session/file contract and approve the smallest stateless Supervisor/native adapter | 4b, 7 | Design/local proof first; any metadata hop or permission change requires its named approval |
+| 2 | Once supported, use existing **Story 4 Step 6** for original-file delivery and a foreign-user negative; refresh version-bound prerequisites for the selected deployment | 4b, 7 | Separately approved deployment and bounded end-to-end testing; no old result is relabeled as a current rerun |
+| 3 | Finalize per-workload/per-delivery-path viability after the Supervisor result or explicit deferral | 7 | Documentation; preserve accepted capacity/storage and separate isolation/recovery bindings |
+
+No additional pressure escalation, Hosted lifecycle test, or customer-Blob
+validation is pending for the accepted scope. Custom ACA, Standard/private-network
+migration, permanent archives, stateful `POC_WORKFLOW` redesign, and production
+certification are not automatic follow-on tasks.
+
+## Open Questions
+
+Only questions needed for the remaining native POC integration are active here.
+They are contract/design questions, not all assumed to require a Microsoft
+support case.
+
+| Question | Why it remains open | Next evidence / decision |
+|---|---|---|
+| What supported mechanism binds the Supervisor's native child session/conversation/files to the verified originating caller? | Direct-user native isolation does not establish trusted nested identity or ownership. Forwarded labels and correlation values are not authorization | Review the installed SDK/service contract; use a separately approved presence-only hop if needed. Retain the blocker if the contract is unsupported |
+| How will the approved adapter deliver original analytical receipts/files to the authorized user without exposing native project-file authority? | The existing stateless text protocol does not carry the owner-bound native session/file contract | Define the minimal backend adapter and test same-owner success plus foreign-user denial through existing Step 6 before claiming analytical delivery |
+
+The older toolbox/platform questions are retained as
+[historical or deferred topics](#historical-and-deferred-platform-topics), not as
+unresolved blockers for accepted capacity, storage, or Hosted continuity.
+
+## Evidence notes
+
+Findings summarize retained, version-bound runs. Per
+[ADR-0001](adr/0001-hosted-agents-poc.md#recovery-and-validation), original
+reports remain local. The published
+[HTML snapshot and sanitized downloads](reports/story-1/story1-improvements/2026-10-28-task-flows/index.html)
+preserve the detailed run ledger, original statuses, measurements, and sponsor
+decisions. The sponsor requested this new task-flow edition from the same saved
+results: its generation date changed, not the tested environment/version or
+acceptance evidence. The superseded published folder is removed; original local
+runs and their partial/blocked results are retained unchanged, and the previous
+snapshot remains available in Git history.
+
+For native reproduction, use the
+[current task guide](tasks-detailed.md#native-story-1-validation-current-branch)
+and an approved current version-bound baseline. Do not execute historical
+toolbox rerun/deletion instructions simply because they are retained below.
+The appendices preserve successful and failed observations at the sponsor's
+request, but neutral historical headings do not represent today's gaps.
+
+## Historical appendix: toolbox evaluation (2026-10-26)
+
+The following numbered details preserve the original toolbox observations.
+Their headings are neutral historical labels, not current failure statuses.
+They are **not the current native task instructions or
 backlog**. In particular, historical deletion, permission, and rerun proposals
 must not be applied blindly to today's tasks. Use the current [Summary](#summary),
 [prioritized next steps](#prioritized-next-steps), and
 [native task guide](tasks-detailed.md#native-story-1-validation-current-branch).
-The heading anchors are retained so existing references still resolve.
+Successful native results and acceptance decisions supersede the corresponding
+old missing-run/capacity follow-ups; unresolved historical discrepancies are not
+silently treated as platform fixes.
 
 ### Historical toolbox evaluation
 
@@ -228,7 +330,33 @@ The heading anchors are retained so existing references still resolve.
 | Code execution | Microsoft-managed Code Interpreter via toolbox `story1-data-analysis-ci` v1 |
 | Evidence | Local sanitized runs and dated [ADR-0001](adr/0001-hosted-agents-poc.md#recovery-and-validation) entries; this is not the native v8/v9 result set |
 
-### 2. Data Analysis Agent deployed as a Foundry Hosted Agent - ✅ Works
+The original `hosted-agents-poc-dev-001` task index is retained for provenance:
+
+| Step | Date | Original verdict, not current native status |
+|---|---|---|
+| Story 1 Step 1 | 2026-10-26 | Met |
+| Story 1 Step 2 | 2026-10-26 | Not evaluated; ran before the baseline existed |
+| Story 1 Step 3 | 2026-10-26 | Met for the original small dataset ladder |
+| Story 1 Step 4 | 2026-10-26 | Met within the tested toolbox boundary |
+| Story 1 Step 5 | - | Not run in that environment |
+| Story 4 Step 6 | 2026-10-26 | Met per ADR on older Supervisor 2 / Research 2 / Data Analysis 3 |
+
+### Historical and deferred platform topics
+
+These subjects remain relevant only if their specific path/requirement is
+reopened. They are not answered merely by switching to native execution, but
+they do not block the sponsor-accepted POC.
+
+| Earlier topic | Current relevance and disposition |
+|---|---|
+| Toolbox `memory_limit` above 2 GiB was not applied | Historical configuration discrepancy. Native runs also observed 2 GiB, but did not prove larger supported allocations. No larger allocation is required for the accepted 1M-row envelope; investigate only for a newly approved compute requirement |
+| Organization policy rejected toolbox network allowlisting | Historical egress restriction, not a current need to enable interpreter networking. Blob I/O is performed by the authorized backend/runner, not the interpreter. Revisit only if approved interpreter egress becomes required |
+| Conflicting 20/30-minute interpreter expiry and 90/220-second execution descriptions | Historical path/version-dependent limits. Preserve observations without declaring a universal timeout. Hosted idle/resume is a different state layer and does not resolve native interpreter expiry or maximum execution duration |
+| Per-user isolation roadmap for the interpreter toolbox | Not the selected architecture: native application-mediated user/session/file access was demonstrated. A general platform roadmap question is not a current action; privileged project-user confidentiality remains outside the claim |
+| Custom ACA session `identifier` behavior | Deferred with the unprovisioned customer-managed interpreter alternative. Determine it only if that architecture is explicitly selected |
+| Standard setup/BYO Cosmos placement for Hosted conversations | Deferred with BYO platform storage/private networking. Customer-owned Blob checkpoint persistence is already accepted; it does not answer placement of every Foundry state layer |
+
+### 2. Hosted agent deployment (historical toolbox)
 
 **What works**
 
@@ -249,7 +377,7 @@ The heading anchors are retained so existing references still resolve.
 **Next steps:** none. Rerun **Agents: Story 1 - 1** in `verify` mode after
 any redeploy to refresh the baseline.
 
-### 3. Synthetic tabular data - ✅ Works
+### 3. Synthetic tabular data (historical toolbox)
 
 **What works**
 
@@ -276,7 +404,7 @@ any redeploy to refresh the baseline.
 **Next steps:** optional. Add an XLSX variant, which the ADR's CSV/XLSX
 capability row mentions.
 
-### 4. Representative analysis using code execution - ⚠️ Partial
+### 4. Analytical workload and missing-run observations (historical toolbox)
 
 **What works**
 
@@ -306,7 +434,7 @@ capability row mentions.
    `hosted-agents-poc-dev-001`. It no longer blocks, because the baseline
    now exists.
 
-### 4a. Generating visualizations - ✅ Works
+### 4a. Visualization observations (historical toolbox)
 
 **What works**
 
@@ -323,7 +451,7 @@ relies on its own `poc-artifacts-v1` container reference instead.
 **Next steps:** none required. The Step 2 rerun also covers a chart drawn
 by model-written code.
 
-### 4b. How outputs reach the Supervisor or user - ⚠️ Partial
+### 4b. User and Supervisor delivery observations (historical toolbox)
 
 **How each output type is delivered (as built)**
 
@@ -362,7 +490,7 @@ by model-written code.
 3. Resolve the nested caller guard (ADR next increment 1), then rerun
    Step 2 to show `containers` forwarding end to end.
 
-### 5. Progressively larger datasets to exercise memory pressure - ❌ Gap
+### 5. Dataset-size baseline (historical toolbox)
 
 **What works**
 
@@ -404,7 +532,7 @@ by model-written code.
    size. Step 3 already stops at the first failure and writes a partial
    report.
 
-### 6. Observed resource limitations, failures, constraints documented - ✅ Works
+### 6. Resource limitations and constraints (historical toolbox)
 
 **What's documented (from Step 3 and Step 4 runs, 2026-10-26)**
 
@@ -439,7 +567,7 @@ by model-written code.
 3. Ask Microsoft about three discrepancies: the 20 vs 30 min expiry,
    `memory_limit` not being applied, and the 90 s vs 220 s execution limit.
 
-### 7. Viability conclusion - ⚠️ Partial
+### 7. Original viability assessment (historical toolbox)
 
 **What works:** Step 3 states its conclusion scoped to what was tested:
 
@@ -460,7 +588,7 @@ by model-written code.
 final verdict to this report. State it per workload size, per delivery
 path, and per tenancy model.
 
-### 8. Secured code execution: where the sandbox is created - ✅ Works
+### 8. Execution and isolation boundary observations (historical toolbox)
 
 **How it works**
 
@@ -512,7 +640,7 @@ path, and per tenancy model.
 Acceptance test: the Step 4 cross-principal probe, using two real Entra
 users.
 
-### 8a. Can hosted agents use ACA dynamic sessions or an ACA sandbox? - ⚠️ Partial
+### 8a. Customer-managed ACA alternative (historical assessment)
 
 **What works**
 
@@ -545,7 +673,7 @@ users.
 2. Rerun Steps 3, 4, and 5 against it: memory above 2 GiB, network
    allowlist, per-user isolation, and identifier behavior.
 
-### 8b. State consistency and sandbox rehydration - ❌ Gap
+### 8b. Continuity and reconstruction design (historical toolbox)
 
 **How sandbox state behaves (tested in Step 4)**
 
@@ -591,7 +719,7 @@ users.
 3. Plan the agent-framework checkpoint and process-loss experiments (ADR
    next increment 4).
 
-### 8c. Can state be stored in our own network? - ⚠️ Partial
+### 8c. Storage placement assessment (historical toolbox)
 
 **Placement assessment (built into Step 5)**
 
@@ -623,71 +751,6 @@ users.
    read/write from the hosted agent.
 
 ---
-
-## Prioritized next steps
-
-Current native POC backlog, not the historical toolbox follow-ups above.
-
-| Priority | Action | Closes | Effort / cost |
-|---|---|---|---|
-| 1 | Approve the smallest stateless Supervisor/native adapter; verify the supported trusted nested caller/session/file contract before analytical delegation | 4b, 7 | Design/local tests first; any metadata hop or permission change needs its named approval |
-| 2 | Once supported, use existing **Story 4 Step 6** for authorized original-file delivery and a foreign-user negative; refresh version-bound prerequisites for the target deployment | 4b, 7 | Separately approved deployment and bounded end-to-end test budget; do not reuse v8-only evidence as a v9 rerun |
-| 3 | Checkpoint current pressure/Hosted controller and documentation changes locally; publish the branch only when requested | Repeatability, 6 | Local Git/documentation; no automatic push |
-| 4 | Finalize per-workload/per-delivery-path viability after the Supervisor result or explicit deferral | 7 | Documentation; preserve accepted capacity and separate recovery/isolation bindings |
-
-No additional pressure escalation or Hosted lifecycle test is pending for the
-accepted POC scope. Custom ACA, Standard/private-network migration, permanent
-output archives, broader fault recovery, and stateful `POC_WORKFLOW` redesign are
-deferred unless separately approved. None is an automatic next deployment.
-
-## Questions for Microsoft
-
-These questions originate from the historical toolbox path or deferred
-infrastructure options. Native application-mediated isolation and current POC
-acceptance do not answer every underlying service discrepancy, and these
-questions are not additional required work for the accepted native workload.
-
-1. Why isn't `memory_limit` above 2 GiB applied, per call or on the toolbox?
-2. Which organization policy rejects the `allowlist` network policy, and
-   can it be scoped?
-3. Which is authoritative: the 20 min container expiry or the documented
-   30 min idle timeout? And the 90 s or the 220 s execution limit?
-4. Is per-user isolation for Code Interpreter used through a toolbox on the
-   roadmap?
-5. With a custom code interpreter, how does the Foundry MCP path set the
-   ACA session `identifier`?
-6. With the Standard agent setup, do hosted-agent conversations use the
-   bring-your-own Cosmos DB?
-
-## Evidence notes
-
-Findings are summarized from local task runs. Per
-[ADR-0001](adr/0001-hosted-agents-poc.md#recovery-and-validation), generated
-original run reports stay local, and this Markdown does not require access to
-them. A separately generated, sanitized HTML snapshot and its allowlisted
-downloads are included under
-[`docs/reports`](reports/story-1/story1-improvements/2026-10-27/index.html)
-for the requested GitHub HTML Preview reference; no original raw reports,
-credentials, or authentication caches are published.
-The table below is the original `hosted-agents-poc-dev-001` toolbox index,
-not the current native verdict set. For native reproduction, use the
-[current task guide](tasks-detailed.md#native-story-1-validation-current-branch)
-against `hosted-agents-poc-dev`, prepare current baselines/profiles, and read
-the [dated native evidence](#native-validation-history-2026-10-27).
-Do not invoke historical destructive procedures or refresh every accepted case
-merely because it appears in the old table.
-
-| Step (VS Code task) | Date | Verdict in `hosted-agents-poc-dev-001` |
-|---|---|---|
-| **Agents: Story 1 - 1** Enable Code Interpreter | 2026-10-26 | Met |
-| **Agents: Story 1 - 2** Analyze data and deliver outputs | 2026-10-26 | Not evaluated (blocked: ran before the Step 1 baseline existed) |
-| **Agents: Story 1 - 3** Evaluate dataset sizes | 2026-10-26 | Met |
-| **Agents: Story 1 - 4** Assess sandbox boundaries | 2026-10-26 | Met |
-| **Agents: Story 1 - 5** Assess state continuity | - | Not run in this environment |
-| **Agents: Story 4 - 6** Demonstrate Data Analysis via Supervisor | 2026-10-26 | Met per the ADR, on earlier versions (Supervisor 2, Research 2, Data Analysis 3) |
-
-Task procedures: [Current native task guide](tasks-detailed.md#native-story-1-validation-current-branch).
-Architecture and decisions: [ADR-0001](adr/0001-hosted-agents-poc.md).
 
 ## Native validation history, 2026-10-27
 
