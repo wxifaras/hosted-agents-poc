@@ -39,6 +39,10 @@ class Settings(AppConfigAwareSettings):
     data_analysis_port: int = Field(default=8090, ge=1, le=65535)
     request_timeout_seconds: float = Field(default=60, gt=0, le=3600)
     toolbox_endpoint: str | None = None
+    story1_native_enabled: bool = False
+    story1_native_pressure_enabled: bool = False
+    story1_native_timeout_seconds: float = Field(default=300, ge=10, le=900)
+    story1_native_max_output_bytes: int = Field(default=50 * 1024 * 1024, ge=1024, le=50 * 1024 * 1024)
 
     @field_validator(
         "foundry_project_endpoint",

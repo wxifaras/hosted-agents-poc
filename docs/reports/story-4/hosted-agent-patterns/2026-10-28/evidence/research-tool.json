@@ -1,0 +1,347 @@
+{
+  "key": "research-tool",
+  "label": "Public Learn MCP tool call",
+  "scope": "Same version-bound baseline. Search-only Research toolbox exposed Microsoft Learn search, the tool returned results, and Research used them through Supervisor. Public remote MCP is not authenticated user-delegated access.",
+  "agent_version": "10",
+  "kind": "tool",
+  "download": "evidence/research-tool.json",
+  "run_id": "{reference-5}",
+  "provenance": {
+    "scenario": "story-4-step-3",
+    "mode": "hosted",
+    "started_at": "2026-10-28T14:11:28.655866+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "step": "step-03-research-tool-call"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "6db8eab9714da19d50c1db5edc5983d2fa4c2e2c17b1d35f5a851310ac03bc73"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "49a50c5e4998ec77f7c55c33899fedfad8cbe7db58bf0b4bc2174e516612a0b6"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "49a50c5e4998ec77f7c55c33899fedfad8cbe7db58bf0b4bc2174e516612a0b6"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-28T14:11:37.505431+00:00 \u2014 2026-10-28T14:12:19.695294+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Agents reused - before",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:11:37.505431+00:00",
+      "expected": "Identical to the Story 4 Step 1 baseline (versions, identities, toolbox wiring)",
+      "observed": {
+        "supervisor-agent": "15",
+        "research-agent": "10",
+        "data-analysis-agent": "10"
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "Research toolbox definition",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:11:37.923766+00:00",
+      "expected": "One MCP tool for {url-4} allowed_tools [microsoft_docs_search]",
+      "observed": {
+        "version": "1"
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "tools/list",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:11:43.190737+00:00",
+      "expected": "Lists microsoft_docs_search",
+      "observed": [
+        "microsoft_learn___microsoft_docs_search"
+      ],
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 4,
+      "name": "Toolbox reaches the MCP server",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:11:45.904574+00:00",
+      "expected": "Search results with learn.microsoft.com URLs",
+      "observed": {},
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 5,
+      "name": "Research tool call",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:12:18.931932+00:00",
+      "expected": "Research called microsoft_docs_search successfully",
+      "observed": [
+        {
+          "name": "microsoft_learn___microsoft_docs_search",
+          "succeeded": true
+        }
+      ],
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 6,
+      "name": "Tool result used in the answer",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:12:18.953530+00:00",
+      "expected": "Research cites a learn.microsoft.com URL; the Supervisor delivers it with the token",
+      "observed": {},
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 7,
+      "name": "Agents reused - after",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:12:19.695294+00:00",
+      "expected": "Same three agents, versions, identities, and toolbox wiring as at the start",
+      "observed": "No changes",
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 7
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-4-step-3",
+    "title": "Story 4 Step 3: Research Learn MCP tool",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story4_identity.Step3",
+      "app.runtime.research_tools"
+    ],
+    "notes": [
+      "The remote Learn MCP server is public. This task does not prove protected-tool user OAuth."
+    ],
+    "nodes": [
+      {
+        "key": "baseline",
+        "title": "Verify the recorded deployment baseline",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Agents reused - before",
+            "status": "PASS",
+            "anchor": "check-research-tool-1"
+          }
+        ]
+      },
+      {
+        "key": "definition",
+        "title": "Inspect the search-only toolbox definition",
+        "actor": "Runner metadata read",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Research toolbox definition",
+            "status": "PASS",
+            "anchor": "check-research-tool-2"
+          }
+        ]
+      },
+      {
+        "key": "list",
+        "title": "List tools on that endpoint",
+        "actor": "Operator -> toolbox MCP",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "tools/list",
+            "status": "PASS",
+            "anchor": "check-research-tool-3"
+          }
+        ]
+      },
+      {
+        "key": "control",
+        "title": "Check a permitted public Learn search",
+        "actor": "Operator -> toolbox -> public Learn MCP",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Toolbox reaches the MCP server",
+            "status": "PASS",
+            "anchor": "check-research-tool-4"
+          }
+        ]
+      },
+      {
+        "key": "invoke",
+        "title": "Delegate Research and observe its actual tool call",
+        "actor": "Supervisor -> Research",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Research tool call",
+            "status": "PASS",
+            "anchor": "check-research-tool-5"
+          }
+        ]
+      },
+      {
+        "key": "answer",
+        "title": "Check that the delivered answer used the tool result",
+        "actor": "Research -> Supervisor -> caller",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Tool result used in the answer",
+            "status": "PASS",
+            "anchor": "check-research-tool-6"
+          }
+        ]
+      },
+      {
+        "key": "unchanged",
+        "title": "Check that the deployed agents did not change",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Agents reused - after",
+            "status": "PASS",
+            "anchor": "check-research-tool-7"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 1068\" role=\"img\" aria-labelledby=\"flow-research-tool-title flow-research-tool-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-research-tool-title\">Story 4 Step 3: Research Learn MCP tool</title><desc id=\"flow-research-tool-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-research-tool-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-research-tool-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-research-tool-arrow)\" /><path d=\"M460 462 V501\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-research-tool-arrow)\" /><path d=\"M460 602 V641\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-research-tool-arrow)\" /><path d=\"M460 742 V781\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-research-tool-arrow)\" /><path d=\"M460 882 V921\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-research-tool-arrow)\" /><g id=\"flow-research-tool-baseline\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify the recorded deployment baseline</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-research-tool-definition\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Inspect the search-only toolbox definition</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Runner metadata read</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-research-tool-list\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. List tools on that endpoint</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Operator -&gt; toolbox MCP</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-research-tool-control\"><rect x=\"70\" y=\"508\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"537\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Check a permitted public Learn search</text><text x=\"88\" y=\"560\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Operator -&gt; toolbox -&gt; public Learn MCP</text><text x=\"88\" y=\"584\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-research-tool-invoke\"><rect x=\"70\" y=\"648\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"677\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Delegate Research and observe its actual tool call</text><text x=\"88\" y=\"700\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Supervisor -&gt; Research</text><text x=\"88\" y=\"724\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-research-tool-answer\"><rect x=\"70\" y=\"788\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"817\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">6. Check that the delivered answer used the tool result</text><text x=\"88\" y=\"840\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Research -&gt; Supervisor -&gt; caller</text><text x=\"88\" y=\"864\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-research-tool-unchanged\"><rect x=\"70\" y=\"928\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"957\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">7. Check that the deployed agents did not change</text><text x=\"88\" y=\"980\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"1004\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "warnings": [],
+  "error": null
+}

@@ -23,19 +23,12 @@ _INSTRUCTIONS: dict[AgentName, str] = {
     ),
     "data_analysis": (
         "You are the Data Analysis specialist in a Hosted Agents runtime POC. "
-        "This foundation has no file analysis tools yet. Discuss analysis of supplied synthetic examples, "
-        "but never claim to have executed Python, measured resources, or created artifacts."
+        "Managed native Code Interpreter analysis is available only through the explicit "
+        "POC_STORY1_NATIVE runtime protocol with verified owner/session/conversation authorization. "
+        "Plain chat and delegated text turns do not execute Python or access session files. "
+        "Never claim they measured resources, analyzed files, or created artifacts."
     ),
 }
-
-_CODE_INTERPRETER_INSTRUCTIONS = (
-    "You are the Data Analysis specialist in a Hosted Agents runtime POC. "
-    "You have a managed code_interpreter tool. Synthetic input CSV files are mounted in /mnt/data; "
-    "their names end with story1-sales-<rows>.csv. Each code execution runs in a fresh sandbox, so load "
-    "inputs, compute, and save every requested output file under /mnt/data within a single execution. "
-    "Use the tool for every calculation over data and report only values the tool printed. "
-    "Never invent numbers or claim files you did not save. Answer simple non-data questions directly."
-)
 
 _RESEARCH_TOOL_INSTRUCTIONS = (
     "You are the Research specialist in a Hosted Agents runtime POC. "
@@ -48,11 +41,8 @@ _RESEARCH_TOOL_INSTRUCTIONS = (
 def data_analysis_tools(
     name: AgentName, settings: Settings, credential: TokenCredential
 ) -> list[MCPStreamableHTTPTool]:
-    """Only Data Analysis gets the managed Code Interpreter toolbox, and only when configured."""
-    if name != "data_analysis" or settings.toolbox_endpoint is None:
-        return []
-    # "both" keeps printed output visible to the model alongside the structured container reference.
-    return [FoundryToolbox(credential, url=settings.toolbox_endpoint, tool_result_content="both")]
+    """Data Analysis uses only the authorized native protocol, never a toolbox fallback."""
+    return []
 
 
 def research_tools(name: AgentName, settings: Settings, credential: TokenCredential) -> list[MCPStreamableHTTPTool]:
@@ -73,7 +63,7 @@ def build_agent(name: AgentName, settings: Settings, credential: TokenCredential
     tools = data_analysis_tools(name, settings, credential) or research_tools(name, settings, credential)
     instructions = _INSTRUCTIONS[name]
     if tools:
-        instructions = _CODE_INTERPRETER_INSTRUCTIONS if name == "data_analysis" else _RESEARCH_TOOL_INSTRUCTIONS
+        instructions = _RESEARCH_TOOL_INSTRUCTIONS
     return Agent(
         client=client,
         id=f"{name}-agent",

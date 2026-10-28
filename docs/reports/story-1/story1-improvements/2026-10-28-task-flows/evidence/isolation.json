@@ -1,0 +1,434 @@
+{
+  "key": "isolation",
+  "label": "Two-real-user application/session isolation",
+  "scope": "Native v8: both owners' analyses/downloads passed; foreign workflow/file requests denied with owner controls, and a clean same-user session denied. Not privileged native-project-file confidentiality.",
+  "agent_version": "8",
+  "kind": "isolation",
+  "download": "evidence/isolation.json",
+  "run_id": "{reference-14}",
+  "provenance": {
+    "scenario": "story-1-step-4",
+    "mode": "hosted",
+    "started_at": "2026-10-27T20:44:12.857116+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "variant": "native",
+    "step": "step-04-sandbox-boundaries"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "3c584ccf66451707c1c0b6ce2a75a413276caad557e28b3eea2c0764c102944d"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "308e153b8b55d17c24c495e492ddf284fc7da3b7e383009431be30666ada5ce6"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "308e153b8b55d17c24c495e492ddf284fc7da3b7e383009431be30666ada5ce6"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-27T20:44:19.930979+00:00 \u2014 2026-10-27T20:47:01.881090+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Native deployment binding",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:44:19.930979+00:00",
+      "expected": "Same three active agents; Data Analysis is native-only",
+      "observed": {
+        "environment": "hosted-agents-poc-dev",
+        "agents": {
+          "supervisor-agent": {
+            "version": "13",
+            "status": "active"
+          },
+          "research-agent": {
+            "version": "8",
+            "status": "active"
+          },
+          "data-analysis-agent": {
+            "version": "8",
+            "status": "active"
+          }
+        }
+      },
+      "explanation": {
+        "execution_type": "metadata_verification",
+        "purpose": "Inspect deployment/role/runtime metadata or compare source and package receipts.",
+        "api_family": "Read-only metadata and local comparison",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "See explicit metadata/role receipts; exact legacy calls are not reconstructed.",
+        "authentication_context": "Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Expected role, scope, version, key/source fingerprints and lockfile comparisons as recorded.",
+        "pass_meaning": "Prerequisites match this check, not proof of execution or isolation.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "1,000 rows: analytical originals",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:45:46.969267+00:00",
+      "expected": "Input hash, exact rows/cells/aggregates, original CSVs, and a valid PNG match",
+      "observed": {
+        "rows": 1000,
+        "bytes": 54449,
+        "input_sha256": "{reference-2}",
+        "checks": {
+          "input_sha256": true,
+          "filtered_rows": true,
+          "by_category": true,
+          "total": true,
+          "filtered_csv": true,
+          "by_category_csv": true,
+          "png": true
+        }
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "1,000 rows: analytical originals",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:46:34.323728+00:00",
+      "expected": "Input hash, exact rows/cells/aggregates, original CSVs, and a valid PNG match",
+      "observed": {
+        "rows": 1000,
+        "bytes": 54449,
+        "input_sha256": "{reference-2}",
+        "checks": {
+          "input_sha256": true,
+          "filtered_rows": true,
+          "by_category": true,
+          "total": true,
+          "filtered_csv": true,
+          "by_category_csv": true,
+          "png": true
+        }
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 4,
+      "name": "Owner 1: foreign workflow denied",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:46:38.768405+00:00",
+      "expected": "Real foreign caller cannot inspect the owner's workflow; owner control succeeds before/after",
+      "observed": {
+        "foreign_denied": true,
+        "owner_control": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 5,
+      "name": "Owner 1: foreign session file denied",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:46:43.147432+00:00",
+      "expected": "Foreign user cannot open the original owner's session file; owner download still succeeds",
+      "observed": {
+        "foreign_denied": true,
+        "owner_control": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 6,
+      "name": "Owner 2: foreign workflow denied",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:46:46.655897+00:00",
+      "expected": "Real foreign caller cannot inspect the owner's workflow; owner control succeeds before/after",
+      "observed": {
+        "foreign_denied": true,
+        "owner_control": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 7,
+      "name": "Owner 2: foreign session file denied",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:46:50.089903+00:00",
+      "expected": "Foreign user cannot open the original owner's session file; owner download still succeeds",
+      "observed": {
+        "foreign_denied": true,
+        "owner_control": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 8,
+      "name": "Same user, clean session",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:47:00.739776+00:00",
+      "expected": "A distinct session cannot inherit the original workflow binding",
+      "observed": {
+        "denied": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 9,
+      "name": "Deployed versions unchanged",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:47:01.881090+00:00",
+      "expected": "No agent identity/version changes during validation",
+      "observed": {
+        "unchanged": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 9
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-1-step-4-native",
+    "title": "Story 1 Step 4: Two-user application isolation",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story1_native.NativeValidation.isolation"
+    ],
+    "notes": [
+      "This does not prove universal native-file confidentiality against privileged project users."
+    ],
+    "nodes": [
+      {
+        "key": "baseline",
+        "title": "Verify native deployment and version binding",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Native deployment binding",
+            "status": "PASS",
+            "anchor": "check-isolation-1"
+          }
+        ]
+      },
+      {
+        "key": "users",
+        "title": "Verify two genuine caller profiles",
+        "actor": "Existing isolated CLI profiles",
+        "evidence_status": "NOT RECORDED",
+        "counts": {},
+        "references": []
+      },
+      {
+        "key": "analysis",
+        "title": "Analyze the seeded CSV and check original outputs",
+        "actor": "Native interpreter + independent runner oracle",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 2
+        },
+        "references": [
+          {
+            "name": "1,000 rows: analytical originals",
+            "status": "PASS",
+            "anchor": "check-isolation-2"
+          },
+          {
+            "name": "1,000 rows: analytical originals",
+            "status": "PASS",
+            "anchor": "check-isolation-3"
+          }
+        ]
+      },
+      {
+        "key": "foreign",
+        "title": "Try foreign workflow/file access with owner controls",
+        "actor": "Named Consumer callers / application and Session Files",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 4
+        },
+        "references": [
+          {
+            "name": "Owner 1: foreign workflow denied",
+            "status": "PASS",
+            "anchor": "check-isolation-4"
+          },
+          {
+            "name": "Owner 1: foreign session file denied",
+            "status": "PASS",
+            "anchor": "check-isolation-5"
+          },
+          {
+            "name": "Owner 2: foreign workflow denied",
+            "status": "PASS",
+            "anchor": "check-isolation-6"
+          },
+          {
+            "name": "Owner 2: foreign session file denied",
+            "status": "PASS",
+            "anchor": "check-isolation-7"
+          }
+        ]
+      },
+      {
+        "key": "clean",
+        "title": "Try the original workflow from a clean same-user session",
+        "actor": "Fresh owned session",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Same user, clean session",
+            "status": "PASS",
+            "anchor": "check-isolation-8"
+          }
+        ]
+      },
+      {
+        "key": "unchanged",
+        "title": "Check that the deployed versions did not change",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Deployed versions unchanged",
+            "status": "PASS",
+            "anchor": "check-isolation-9"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 928\" role=\"img\" aria-labelledby=\"flow-isolation-title flow-isolation-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-isolation-title\">Story 1 Step 4: Two-user application isolation</title><desc id=\"flow-isolation-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-isolation-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-isolation-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-isolation-arrow)\" /><path d=\"M460 462 V501\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-isolation-arrow)\" /><path d=\"M460 602 V641\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-isolation-arrow)\" /><path d=\"M460 742 V781\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-isolation-arrow)\" /><g id=\"flow-isolation-baseline\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify native deployment and version binding</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-isolation-users\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Verify two genuine caller profiles</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Existing isolated CLI profiles</text><text x=\"88\" y=\"304\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: NOT RECORDED</text></g><g id=\"flow-isolation-analysis\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Analyze the seeded CSV and check original outputs</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Native interpreter + independent runner oracle</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 2)</text></g><g id=\"flow-isolation-foreign\"><rect x=\"70\" y=\"508\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"537\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Try foreign workflow/file access with owner controls</text><text x=\"88\" y=\"560\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Named Consumer callers / application and Session Files</text><text x=\"88\" y=\"584\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 4)</text></g><g id=\"flow-isolation-clean\"><rect x=\"70\" y=\"648\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"677\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Try the original workflow from a clean same-user session</text><text x=\"88\" y=\"700\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Fresh owned session</text><text x=\"88\" y=\"724\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-isolation-unchanged\"><rect x=\"70\" y=\"788\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"817\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">6. Check that the deployed versions did not change</text><text x=\"88\" y=\"840\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"864\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "warnings": [],
+  "error": null
+}

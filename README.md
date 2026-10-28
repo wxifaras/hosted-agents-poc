@@ -105,20 +105,18 @@ flowchart LR
 
 ### Data Analysis
 
-`POC_AGENT_NAME=data_analysis`. Without `TOOLBOX_ENDPOINT`, it discusses
-supplied synthetic examples using Data Analysis-specific instructions. For
-Story #1 the **existing** deployed agent is wired to Microsoft-managed Code
-Interpreter through a Foundry toolbox. It then executes Python in the managed
-sandbox and returns `poc-artifacts-v1` container references. Generated files
-stay in the sandbox and are downloaded by an authenticated client. See
-**Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent**.
+`POC_AGENT_NAME=data_analysis`. Story #1 now targets **native Microsoft-managed
+Code Interpreter** on the existing `data-analysis-agent`, without a fourth agent
+or toolbox wrapper. Fixed synthetic CSV commands use trusted owner/session
+bindings and deliver original output bytes through authorized Hosted Session
+Files. Selecting the native tool alone is not proof of isolation, and this POC
+does not claim confidentiality against privileged project users.
 
-To run it, choose **Terminal > Run Task...** in VS Code, select that task,
-then select the environment and mode. Use `enable-if-missing` for initial
-toolbox/agent wiring, or `verify` to test an already-configured deployment.
-Both modes incur sandbox/model usage charges. See the
-[Step 1 task guide](docs/tasks-detailed.md#agents-story-1---1-enable-code-interpreter-on-existing-data-analysis-agent)
-for prerequisites, execution steps, and the complete output-file inventory.
+Use the same five **Agents: Story 1** task entries. Each defaults to `preview`,
+which is local and credential-free. Select `run` only after approving the bounded
+paid validation budget and deploying the reviewed native version. Tasks do not
+deploy, grant roles, delete service resources, or fall back to the toolbox.
+See [current native task instructions](docs/tasks-detailed.md#native-story-1-validation-current-branch).
 
 This is a **local test runner calling remote services**, not a sandbox-only
 task: dataset generation, expected checksums, API coordination, and evidence
@@ -132,7 +130,7 @@ Results are linked from [the Story 1 evidence index](artifacts/story-1/index.md)
 Each run is written to
 `artifacts\story-<n>\step-<NN>-<slug>\<YYYYMMDDTHHMMSSZ>-<id8>\report.md`, for example
 `artifacts\story-1\step-01-code-interpreter\20261023T120408Z-a1b2c3d4\report.md`.
-The step folder groups every rerun of a step, and the Step 1 mode is recorded in
+The step folder groups every rerun of a step, and the native variant is recorded in
 `manifest.json` and the index entry. Runs written before this convention keep
 their original folder names and index links. See
 [output files](docs/tasks-detailed.md#step-1-output-files) for the full layout.
@@ -141,15 +139,18 @@ After Step 1, run **Agents: Story 1 - 2 Analyze data and deliver outputs**
 (Story #1 AC2), **Agents: Story 1 - 3 Evaluate dataset sizes** (AC3),
 **Agents: Story 1 - 4 Assess sandbox boundaries** (AC4), and
 **Agents: Story 1 - 5 Assess state continuity** (AC5). They require the Step 1
-baseline, never change the agents or the Step 1 toolbox, and write their
-reports under `step-02-analysis-and-outputs\` through `step-05-state-continuity\`. Step 4 can
-create and delete a separate probe-only toolbox; Step 5 deletes one sandbox
-container and writes, reads, and deletes one synthetic Blob checkpoint. See the
-[Step 2](docs/tasks-detailed.md#agents-story-1---2-analyze-data-and-deliver-outputs),
-[Step 3](docs/tasks-detailed.md#agents-story-1---3-evaluate-dataset-sizes),
-[Step 4](docs/tasks-detailed.md#agents-story-1---4-assess-sandbox-boundaries),
-and [Step 5](docs/tasks-detailed.md#agents-story-1---5-assess-state-continuity)
-task guides.
+native baseline, never change agents, and retain reports under
+`step-02-analysis-and-outputs\` through `step-05-state-continuity\`.
+Step 4 uses two real existing user profiles. Step 5 retains its Blob checkpoint
+and demonstrates runner-driven reconstruction, not surviving interpreter RAM.
+Hosted idle/resume has a separate zero-analysis option (`only`) in Step 5, using
+platform lifecycle metadata plus process/HOME checks. It passed one bounded v9
+cycle. The existing Story 4 Step 6 Supervisor integration remains blocked at
+contract preflight; implementation of a redesign still requires explicit approval.
+
+For another computer, use the [repeatable user-access and validation setup](docs/tasks-detailed.md#repeat-the-tests-on-another-computer).
+Azure grants persist; local sign-in profiles and version-bound test evidence must
+be prepared on that computer.
 
 ### Story 3: multi-agent conversation management
 
@@ -220,6 +221,9 @@ Prompt/tool-content capture is explicitly disabled. See
 [viewing Step 1 traces](docs/tasks-detailed.md#viewing-step-1-traces-in-foundry)
 for setup, deployment scope, and verification. Direct operator toolbox probes
 are not Data Analysis agent invocations.
+
+The following diagram illustrates the historical toolbox path, not the native
+Story 1 path described above; its earlier reports remain historical evidence.
 
 ```mermaid
 flowchart LR
@@ -324,9 +328,11 @@ provisioning or a new agent version.
     ([details](docs/tasks-detailed.md#viewing-step-1-traces-in-foundry)).
     A `Project not found` error means the Agent Service has not registered the
     project yet; see [troubleshooting](docs/deployment.md#troubleshooting-project-not-found).
-11. **Enable Code Interpreter for Story 1:** run
+11. **Validate native Code Interpreter for Story 1:** deploy the reviewed native
+    version when approved, then run
     **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent**
-    with mode `enable-if-missing` on a new environment, `verify` afterwards.
+    in `preview` first and `run` only within the approved paid budget. This task
+    does not create a toolbox or deploy a version.
 
 The [complete task sequence](docs/deployment.md#complete-task-sequence-after-provisioning)
 lists every deployment and permission task in order.
@@ -337,7 +343,8 @@ foundation changes and `azd deploy` for code; do not substitute `azd up`.
 
 To demonstrate **direct native-user isolation** on an existing Research deployment:
 
-1. Run **Access: Create isolated user auth profiles** with two full user UPNs.
+1. Run **Access: Preview isolated user Consumer grants**, then
+   **Access: Create isolated user auth profiles** with two full user UPNs.
    Choose `consumer` for the required project-scoped invocation grants, or `none`
    if access is already configured.
 2. Run **Agents: Test native Entra user isolation** with those same users and
@@ -371,6 +378,192 @@ Independent smoke is not delegation, isolation, persistence, or recovery proof.
 A configured 120-second idle policy is not evidence of an actual lifecycle
 transition. The [ADR snapshot](docs/adr/0001-hosted-agents-poc.md#implementation-and-evidence-snapshot)
 separates implementation from observed hosted results.
+
+## Generate HTML reports after validation runs
+
+HTML generation is **offline**: it reads saved evidence, not the deployed agents.
+It does not rerun tests, call models/Azure, deploy, grant permissions, or turn
+partial evidence into a passing story. Use the same workflow for Stories 1, 3 and 4,
+and for later stories.
+
+### 1. Select the evidence
+
+Run the relevant existing validation tasks first. Each run normally retains
+`manifest.json`, `results.jsonl`, `events.jsonl`, and a Markdown report under
+`artifacts\story-<n>\step-<NN>-<slug>\<run-folder>`.
+For a current-execution report, select the latest execution of each relevant
+task, including its actual failed, blocked, or partial results. Exclude superseded
+attempts from the HTML and downloads; retain their original local artifacts
+separately. Do not mix versions or environments without identifying each run's scope.
+
+Create a local JSON bundle, for example
+`artifacts\story-4\report-input.json`:
+
+```json
+{
+  "schema": "story-report-bundle-v1",
+  "story": 4,
+  "title": "Story 4 - Hosted Agent Patterns",
+  "environment": "hosted-agents-poc-dev",
+  "runs": [
+    {
+      "key": "routing",
+      "label": "Supervisor routing",
+      "run_dir": "artifacts\\story-4\\step-01-supervisor-delegation\\<run-folder>",
+      "scope": "Routing and text delivery only; not native code execution."
+    }
+  ],
+  "decisions": [],
+  "traceability": [
+    {
+      "requirement": "Supervisor routing",
+      "status": "Recorded evidence",
+      "summary": "Interpret the selected run's checks within its actual version and scope.",
+      "run_keys": ["routing"]
+    }
+  ]
+}
+```
+
+Replace `<run-folder>` with an actual run directory. Add one `runs` entry per
+selected run, with a unique lowercase slug `key` (for example `research-tool`);
+use those keys in `traceability[].run_keys`.
+This one-run example is not a complete Story 4 report. Choose the title, story
+number, scope, and requirements for the evidence being reported.
+
+| Bundle field | Purpose |
+|---|---|
+| `story` | Story number; selects supported story-specific context, never a pass/fail policy |
+| `runs` | Explicit saved run directories and descriptions; no automatic assumption that all required tasks ran |
+| `traceability` | Requirement, scoped status/interpretation, and supporting run keys; use this when a Markdown summary is historical or not current |
+| `decisions` | Optional acceptance decisions as `area`, `status`, `detail`, and `evidence_keys`; keep sponsor acceptance separate from measured results |
+| `runs[].kind` | Optional run category. In the new schema, use `cross-story-reference` explicitly when including a run from another story, and explain its limited relevance in `scope` |
+
+Relative paths resolve from the command's current directory. Run from the
+repository root. Input bundles and original evidence are local/ignored; a fresh
+clone does not contain them. Use the locked environment from **Setup: Prepare
+local environment** and prepare an input bundle from evidence available on that
+computer. Never copy authentication caches as report inputs.
+
+### 2. Generate and open the HTML
+
+Use the shared [report entry point](scripts/story_report.py):
+
+```powershell
+# Story 1: use the existing local bundle, or prepare one from the relevant runs.
+uv run --frozen --no-sync --group validation python -m scripts.story_report --input artifacts\story-1\report-input.json --output artifacts\story-1\html-report\<snapshot-name>
+
+# Story 4: use the same command with the Story 4 bundle.
+uv run --frozen --no-sync --group validation python -m scripts.story_report --input artifacts\story-4\report-input.json --output artifacts\story-4\html-report\<snapshot-name>
+
+# Story 3: bind saved conversation-management runs, including blockers.
+uv run --frozen --no-sync --group validation python -m scripts.story_report --input artifacts\story-3\report-input.json --output artifacts\story-3\html-report\<snapshot-name>
+```
+
+Replace `<snapshot-name>` with a new dated/descriptive directory, such as
+`2026-10-28-current`. Open the printed `index.html` path in a browser. The report
+is self-contained, uses local sanitized downloads, and requires no web server,
+JavaScript, or CDN. Review the report's warnings and exit code as well as the
+page itself: generating HTML is not validation success.
+
+For the shared report command, exit codes describe **report generation**, not
+the outcome of the tests:
+
+| Exit code | Meaning |
+|---|---|
+| `0` | Evidence rendered without input errors; recorded failed/blocked checks may still be present |
+| `1` | I/O failure; check local files and output permissions |
+| `2` | Invalid configuration or evidence; an HTML report may still have been written with invalid bindings explicitly identified |
+
+The existing [Story 1 command](scripts/story1_report.py) and
+`story1-report-bundle-v1` inputs remain supported. Story 1's optional
+`summary_source` can bind its current Markdown Summary; only use a genuinely
+current summary in the supported Story 1 table format. Both `summary_source`
+and chart imports are Story 1-specific; other stories use explicit
+`traceability` instead. An optional synthetic chart must be bound to its original
+hash and review receipt, not substituted with a newly regenerated image.
+
+### What each task validates: shared flow diagrams
+
+Expand **What this task validates — flow diagram and evidence mapping** inside
+each recorded run. Both the shared bundle and single-run reports reuse the
+[task-flow definitions and SVG renderer](scripts/report_task_flows.py) and the
+[same Jinja fragment](scripts/report_assets/task_flow.html).
+
+The diagram shows reviewed actors, plan actions, and their relationships.
+Its badges describe exact linked check records—not automatically inferred
+execution, identity propagation, or distributed trace spans. `NOT RECORDED`
+does not mean an action ran or failed; `MIXED` preserves conflicting check
+outcomes rather than converting them into a task pass.
+
+Definitions cover the selected Story 1 native tasks, all five Story 3 conversation
+tasks, and Story 4 task paths. Story 3 has its own architecture/API context and
+sanitized mapping/history counters; raw history, code words, and conversation
+identifiers are not published. Passing shared-ID evaluation checks can record
+HTTP 404 outcomes, not successful shared history. Unexpected allowed reads retain
+their original failed checks.
+Offline chart review, Blob reconstruction, and metadata-only Hosted observation
+have separate plans. The native Supervisor preflight depicts its blocker, not
+an implemented analytical delivery path. Unknown scenarios/variants receive an
+explicit unmapped notice instead of a guessed diagram.
+
+For a future task, add a reviewed `TaskFlow` using the existing `FlowStep` /
+`FlowEdge` structure and exact recorded-check selectors, register its scenario
+and variant, and add an offline mapping test. Reuse the renderer; do not write
+another drawing engine or infer behavior by parsing arbitrary Python code.
+Versioned definitions describe current reviewed code; historical run outcomes
+remain separate. No visualization libraries or live service calls are required.
+
+### 3. Interpret, retain, and optionally publish
+
+| Story/context | Reporting boundary |
+|---|---|
+| Story 1 | Show native analytical originals, memory/capacity, and Hosted/Blob observations when recorded. Keep the accepted capacity envelope distinct from the original unreached pressure threshold |
+| Story 4 | Show routing, background behavior, Research tool use, identity/access observations, and direct invocation. Text delegation is not native Code Interpreter evidence; correlation is not a verified distributed trace or OAuth OBO |
+| Future stories | Reuse the same run/requirement/decision bundle. Unknown story numbers use neutral evidence views; add reviewed story-specific context only when that story actually needs it |
+
+- Keep each run's source/version binding and original PASS/FAIL/BLOCKED/SKIP
+  observations. Missing finish records, timings, or trace links remain missing;
+  the renderer must not manufacture them.
+- The shared command enforces output under the repository working directory's
+  ignored `artifacts` folder, outside every selected source run directory.
+  Choose a new output directory when inputs change. `--overwrite` permits
+  regeneration only for an existing snapshot whose input/evidence fingerprint
+  is unchanged.
+- Review sanitized HTML/JSON/downloads before sharing. Do not publish raw reports,
+  user/session/native identifiers, credentials, private paths, original CSV
+  payloads, or generated interpreter code. Sanitization is not a substitute for
+  reviewing what a report claims.
+- If publication is requested, copy only the reviewed sanitized snapshot and
+  its relative assets to a tracked reports directory. Add an HTML Preview link
+  in the corresponding story document. GitHub preview requires a committed,
+  pushed snapshot; generation does not commit or push automatically.
+- Existing published reports are dated snapshots, not living pages. Updating
+  documentation or running new tests does not silently rewrite an old report.
+
+For a single saved run, the legacy
+[single-run renderer](scripts/generate_report.py) is also available:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.generate_report --run-dir artifacts\story-4\step-01-supervisor-delegation\<run-folder> --title "Story 4 - Supervisor routing"
+```
+
+Unlike the shared bundle command, the single-run renderer prints a new report
+directory within that source run. `--allow-incomplete` permits a truncated final
+JSONL record for inspection with disclosed gaps; it does not accept arbitrary
+malformed evidence or turn an incomplete test into a pass.
+
+### Troubleshooting report generation
+
+| Problem | What to check |
+|---|---|
+| Run directory or evidence file missing | Original evidence and input bundles are ignored/local. Select an existing retained run; do not invent missing results. Run commands from the repository root, not the bundle's directory |
+| Output location rejected | For the shared command, choose a directory under `artifacts` that is not a selected source run or nested inside one |
+| Output already exists or fingerprint changed | Choose a new snapshot directory. Use `--overwrite` only for unchanged inputs/evidence; do not delete original runs to bypass the check |
+| Run belongs to another story | In the shared schema, explicitly set that run's `kind` to `cross-story-reference` and explain its limited relevance in `scope` |
+| `summary_source` or chart import rejected | Those inputs are Story 1-only. Use explicit `traceability` for Story 4/future stories; Story 1 Markdown summaries must retain the supported table structure |
+| HTML exists but the command returned `2` | Inspect the report's invalid-input warnings and terminal error. Fix the selected evidence/configuration and use a new snapshot directory; do not interpret the page as a successful validation |
+| Task diagram is unavailable | The scenario/variant has no reviewed flow definition. The evidence is still shown; add a reviewed definition and mapping test rather than guessing an execution flow |
 
 ## Documentation
 
@@ -418,11 +611,11 @@ for setup, execution boundaries, and debugger details.
 | **Agents: Smoke test all hosted agents** | Remote inference without building new versions |
 | **Agents: Test hosted identity variants and isolation** | Explicit hosted call-context/user-label experiments and synthetic state/history tests; no models; requires diagnostic opt-in |
 | **Agents: Test native Entra user isolation** | Choose verbose request/response panels or shorter output; two native CLI users directly invoke Research, with no delegated labels or models |
-| **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent** | Reuses the existing agents. `verify` is read-only plus a paid sandbox proof. `enable-if-missing` creates the Story 1 toolbox and updates only the existing Data Analysis agent, once. Writes a Markdown report |
-| **Agents: Story 1 - 2 Analyze data and deliver outputs** | Read-only reuse of the Step 1 agents and toolbox. One paid Data Analysis request (model-written filter/group/summarize/chart) validated against a local oracle, downloaded CSVs and chart, and the existing Supervisor workflow path, including files forwarded by container ID through the Supervisor. Writes a report under `step-02-analysis-and-outputs\` |
-| **Agents: Story 1 - 3 Evaluate dataset sizes** | Read-only reuse of the Step 1 agents and toolbox. One sequential paid request per size (1k/10k/100k rows), no retries, and stops at the first platform failure. Writes `03-capacity.md` with sandbox measurements and a scoped viability verdict |
-| **Agents: Story 1 - 4 Assess sandbox boundaries** | Paid benign sandbox probes (identity, filesystem, network, execution limit, per-call and toolbox-level options), one hosted confirmation, and an optional ~21-minute idle-expiry wait. Can create and then delete a separate probe-only toolbox. Writes `04-sandbox-boundaries.md` |
-| **Agents: Story 1 - 5 Assess state continuity** | Four paid hosted requests across three conversations, one sandbox container deletion, and a synthetic checkpoint written to, read from, and deleted in the existing Blob container. Writes `05-state-continuity.md` |
+| **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent** | Preview locally; approved run validates native execution on the same Data Analysis agent and records a distinct native baseline. No toolbox or deployment |
+| **Agents: Story 1 - 2 Analyze data and deliver outputs** | Native model-written CSV analysis, independent oracle and original session-file downloads. Chart meaning is reviewed offline against the PNG hash |
+| **Agents: Story 1 - 3 Evaluate dataset sizes** | Finite baseline or opt-in pressure ladder; observed interpreter memory, no retries, stop at first failure/unavailable metric or 75% target |
+| **Agents: Story 1 - 4 Assess sandbox boundaries** | Two-real-user native application/session isolation checks, owner controls, and original file access. No privileged-native-file confidentiality claim |
+| **Agents: Story 1 - 5 Assess state continuity** | `skip`: Blob reconstruction; `observe`: Blob then Hosted; `only`: zero-analysis Hosted active/idle/active metadata and process/HOME proof. Bounded read-only state checks; no forced stop/delete or local Blob fallback |
 | **Agents: Story 3 - 1 Demonstrate separate conversations** | AC1. `verify` changes nothing; `prepare-if-missing` runs `azd deploy supervisor-agent` once if needed. One paid Supervisor -> Research turn in a Supervisor-created conversation and a model-free mapping re-read. Writes a report under `step-01-separate-conversations\` and the Story 3 baseline |
 | **Agents: Story 3 - 2 Verify sub-agent follow-up history** | AC2. Two paid turns through the Supervisor into one mapped Research conversation; the follow-up never resends the code word. Writes a report under `step-02-follow-up-history\` |
 | **Agents: Story 3 - 3 Assess conversation ownership and access** | AC3. Reads (never grants) roles; one paid turn, then model-free allowed/denied conversation reads and Supervisor mapping denials. Writes a report under `step-03-ownership-and-access\` |
@@ -433,9 +626,10 @@ for setup, execution boundaries, and debugger details.
 | **Agents: Story 4 - 3 Demonstrate Research tool call** | AC3. Direct toolbox probe plus a paid Supervisor -> Research MCP tool call; caller/target/permission/trust-boundary table. Writes `03-research-tool-call.md` |
 | **Agents: Story 4 - 4 Evaluate identity paths** | AC4. Reads (never grants) roles; paid agent-owned, call-context, and delegated-user calls. Writes `04-identity-paths.md` |
 | **Agents: Story 4 - 5 Trace identity and access** | AC5. Paid traced request and platform/application denials with the enforcing component. Writes `05-trace-and-access.md` |
-| **Agents: Story 4 - 6 Demonstrate Data Analysis via Supervisor** | AC6. Reuses the Story 1 toolbox, request, oracle, and evidence; one paid Code Interpreter analysis through the Supervisor. Writes `06-data-analysis-code-interpreter.md` |
+| **Agents: Story 4 - 6 Demonstrate Data Analysis via Supervisor** | AC6. Bounded best-effort native stateless compatibility probe using reviewed Story 1 evidence. Unsupported identity/protocol contract is blocked; redesign requires approval |
 | **Agents: Story 4 - 7 Invoke Research directly** | AC7. Two paid requests only to Research in its own conversation; no Supervisor. Writes `07-direct-invocation.md` |
 | **Access: Preview hosted agent permissions** | Read-only actual-instance permission inspection |
+| **Access: Preview isolated user Consumer grants** | Read-only project-scoped test-user grant plan; no sign-in, role writes, or agent calls. Reuses covering grants |
 | **Access: Create isolated user auth profiles** | Prompt for UPNs and optional project-scoped Consumer RBAC; operator grants precede isolated Microsoft sign-in; no agent calls or administrative/impersonation grants |
 | **Access: Apply hosted agent permissions** | Explicit scoped grants; not proof of delegation |
 | **Quality: Run all local checks** | Lint, format, mypy, and tests; default build task |

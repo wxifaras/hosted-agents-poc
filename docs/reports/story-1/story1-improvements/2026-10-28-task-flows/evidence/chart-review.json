@@ -1,0 +1,158 @@
+{
+  "key": "chart-review",
+  "label": "User-approved offline chart review",
+  "scope": "Rechecked retained original hashes and independent oracle; user approved original category labels and values. No new model analysis.",
+  "agent_version": "8",
+  "kind": "review",
+  "download": "evidence/chart-review.json",
+  "run_id": "{reference-6}",
+  "provenance": {
+    "scenario": "story-1-step-2",
+    "mode": "hosted",
+    "started_at": "2026-10-27T20:49:40.409978+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "variant": "native",
+    "step": "step-02-analysis-and-outputs"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "e39b53d3614ff4d85298f2fd94449f9571d653fb1e2fe530ac3096c996d2bd7c"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "d1b6b8e89045991e934da57edb4b2fde5350e73eb9475088d09a77048ffc111d"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "d1b6b8e89045991e934da57edb4b2fde5350e73eb9475088d09a77048ffc111d"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-27T20:49:40.448540+00:00 \u2014 2026-10-27T20:49:40.459703+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Retained analytical originals",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:49:40.448540+00:00",
+      "expected": "Original bytes and oracle match",
+      "observed": {
+        "input_sha256": true,
+        "filtered_rows": true,
+        "by_category": true,
+        "total": true,
+        "filtered_csv": true,
+        "by_category_csv": true,
+        "png": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "Chart meaning",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:49:40.459703+00:00",
+      "expected": "Review bound to the exact original PNG and expected plotted data",
+      "observed": {
+        "accepted": true,
+        "original_run": "20261027T202108Z-aea1fafe"
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 2
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-1-step-2-review",
+    "title": "Story 1 Step 2: Offline retained-chart review",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story1_native.offline_chart_review"
+    ],
+    "notes": [
+      "This is an offline review of prior originals, not a new native execution."
+    ],
+    "nodes": [
+      {
+        "key": "originals",
+        "title": "Recheck retained original hashes and independent oracle",
+        "actor": "Local validation only",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Retained analytical originals",
+            "status": "PASS",
+            "anchor": "check-chart-review-1"
+          }
+        ]
+      },
+      {
+        "key": "chart",
+        "title": "Check the user receipt against the exact original PNG",
+        "actor": "User review / chart hash",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Chart meaning",
+            "status": "PASS",
+            "anchor": "check-chart-review-2"
+          }
+        ]
+      },
+      {
+        "key": "record",
+        "title": "Record the offline assessment without another analysis",
+        "actor": "Local evidence writer",
+        "evidence_status": "NOT RECORDED",
+        "counts": {},
+        "references": []
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 508\" role=\"img\" aria-labelledby=\"flow-chart-review-title flow-chart-review-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-chart-review-title\">Story 1 Step 2: Offline retained-chart review</title><desc id=\"flow-chart-review-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-chart-review-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-chart-review-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-chart-review-arrow)\" /><g id=\"flow-chart-review-originals\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Recheck retained original hashes and independent oracle</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Local validation only</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-chart-review-chart\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Check the user receipt against the exact original PNG</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: User review / chart hash</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-chart-review-record\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Record the offline assessment without another analysis</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Local evidence writer</text><text x=\"88\" y=\"444\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: NOT RECORDED</text></g></svg>"
+  },
+  "warnings": [],
+  "error": null
+}

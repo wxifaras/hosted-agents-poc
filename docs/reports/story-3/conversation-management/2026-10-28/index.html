@@ -1,0 +1,1732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>Story 3 - Multi-Agent Conversation Management</title>
+<style>
+:root { color-scheme:light; --ink:#19314b; --muted:#516477; --line:#d5dfeb; --paper:#fff; --back:#edf2f8; }
+* { box-sizing:border-box; } body { margin:0; color:var(--ink); background:var(--back); font:16px/1.55 system-ui,sans-serif; }
+header { background:#102d4d; color:#fff; padding:34px max(5vw,20px); } h1 { margin:0 0 8px; font-size:2rem; }
+main { max-width:1250px; margin:24px auto; padding:0 20px 40px; }
+nav,section { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:24px; margin-bottom:22px; }
+h2 { margin:0 0 14px; font-size:1.45rem; } h3 { margin:20px 0 8px; } a { color:#14548a; text-underline-offset:3px; }
+a:focus-visible { outline:3px solid #ac5a00; outline-offset:3px; }
+pre { white-space:pre-wrap; overflow-wrap:anywhere; background:#f3f6fa; padding:12px; font-size:.85rem; }
+table { border-collapse:collapse; width:100%; margin:12px 0; } caption { text-align:left; font-weight:bold; }
+th,td { border-bottom:1px solid var(--line); text-align:left; padding:9px; vertical-align:top; overflow-wrap:anywhere; }
+th { background:#e9f0f7; } .scroll { overflow-x:auto; } .muted { color:var(--muted); } .notice { border-left:5px solid #b47500; padding:12px; background:#fff5da; }
+.badge { font-weight:bold; padding:2px 6px; border:1px solid currentColor; border-radius:4px; display:inline-block; }
+.PASS { color:#176538; } .FAIL { color:#a51b26; } .BLOCKED,.SKIP { color:#805000; }
+.source { font:12px/1.5 ui-monospace,monospace; overflow-wrap:anywhere; } img { max-width:100%; height:auto; }
+.bar { display:block; height:12px; background:#c9d6e7; width:100%; } .bar span { display:block; height:100%; background:#25629f; }
+.architecture { width:100%; height:auto; } .architecture text { fill:#19314b; font:16px system-ui,sans-serif; }
+.architecture .label { font-weight:bold; } .architecture .small { font-size:13px; }
+.architecture .node { fill:#e9f0f7; stroke:#516477; stroke-width:2; }
+.architecture .blocked { fill:#fff5da; stroke:#805000; stroke-width:2; stroke-dasharray:7 5; }
+.architecture .arrow { fill:none; stroke:#25629f; stroke-width:2; marker-end:url(#native-arrow); }
+details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary { cursor:pointer; font-weight:bold; }
+@media(max-width:650px) { main { padding:0 10px 24px; } section,nav { padding:14px; } th,td { min-width:110px; } }
+@media print { body { background:#fff; font-size:10pt; } header { color:#000; background:#fff; padding:12px 0; } main { max-width:none; padding:0; } section { break-inside:auto; border:0; padding:10px 0; } h2,h3 { break-after:avoid; } tr,details { break-inside:avoid; } .scroll { overflow:visible; } }
+</style>
+</head>
+<body>
+<header>
+<h1>Story 3 - Multi-Agent Conversation Management</h1><p>hosted-agents-poc-dev · 2026-10-28T18:12:00.334896+00:00</p>
+<p>RECORDED EVIDENCE — NOT A COMBINED COMPLETION VERDICT</p>
+</header>
+<main>
+<nav aria-label="Table of contents">
+<h2>Contents</h2>
+<a href="#summary">Summary and interpretation</a> · <a href="#traceability">Requirement traceability</a> ·
+<a href="#decisions">Sponsor decisions</a> ·
+
+<a href="#architecture">Architecture reference</a> · <a href="#native-api">Current SDK/API reference</a> ·
+
+<a href="#runs">Detailed recorded runs</a> · <a href="#provenance">Provenance and downloads</a>
+<ol><li><a href="#run-separate">Step 1 - Separate conversations and mapping</a></li><li><a href="#run-followup">Step 2 - Independent Research follow-up history</a></li><li><a href="#run-access">Step 3 - Ownership and access (Partially met)</a></li><li><a href="#run-shared">Step 4 - Shared-ID evaluation (404 outcomes)</a></li><li><a href="#run-comparison">Step 5 - Separate result/placeholder versus shared ID</a></li></ol>
+</nav>
+<section id="summary">
+<h2>Summary and interpretation</h2>
+<p class="notice">Recorded check statuses remain the original evidence. No combined COMPLETE, no inferred finish event, no inferred execution duration, and no inferred Supervisor acceptance are produced.</p>
+
+<p>Separate conversation mapping, independent Research history, access checks, shared-ID experiments, and delivery classification are separate evidence boundaries. The protocol is <code>POC_CONVERSE</code> / <code>poc-conversation-v1</code>; Data Analysis is baseline-only in these tasks.</p>
+<p>Acceptance of a shared-ID evaluation does not mean shared history worked: an explicit HTTP 404 can pass a recording check. Unexpected allowed reads remain failures; elevated operator access is not least-privileged two-user isolation proof. Application correlation is not distributed-trace proof. Historical findings and different deployment versions are not merged into a new acceptance verdict.</p>
+
+<p>5 bound evidence runs. All bound inputs parsed; this is not an acceptance verdict.</p>
+<p>Duplicate JSONL records are counted once. Results mirrored into events are not counted twice. Unknown observed fields and identity fingerprints are excluded from exports.</p>
+</section>
+<section id="traceability">
+<h2>Requirement traceability</h2>
+<p>Curated requirement-level assessments below are supplied separately from original per-check verdicts.</p>
+<div class="scroll"><table><caption>Story 3 requirement assessments</caption><thead><tr><th scope="col">Requirement</th><th scope="col">Curated status</th><th scope="col">What works</th><th scope="col">Limitations</th><th scope="col">Next step</th><th scope="col">Evidence bindings</th></tr></thead><tbody>
+<tr><th scope="row">AC1 - Separate conversations and application-owned mapping</th><td>Met within the recorded scope</td><td>All 9 checks passed: distinct Research conversation, user-isolated Supervisor mapping, later mapping re-read and custom parent metadata link.</td><td>Creation and mapping writes are separate operations. Interrupted creation, cleanup and crash recovery were not tested. Custom metadata is not a native parent-child contract.</td><td>Add interruption/recovery tests before production use.</td><td><a href="#run-separate">separate</a></td></tr><tr><th scope="row">AC2 - Follow-up reuses independent Research history</th><td>Met within the recorded scope</td><td>All 9 checks passed. Follow-up reused the mapped child, Research history grew from 2 to 4 items and recalled the code word without it being resent. A fresh Supervisor conversation had no mapping.</td><td>Synthetic single-operator test; recall is supported by item counts, not a standalone deterministic persistence guarantee. Crash recovery and distinct-user isolation were not tested.</td><td>Retain separate histories and test interruption/recovery.</td><td><a href="#run-followup">followup</a></td></tr><tr><th scope="row">AC3 - Ownership, user binding, access and correlation</th><td>Partially met - unexpected allowed read</td><td>13 checks passed and 1 failed. Original-user binding, custom correlation and application mapping guards passed. Seven of eight access cases matched expectations; the operator could list the Supervisor-created Research child (2 items) when denial was expected.</td><td>Operator had Foundry User, Owner and User Access Administrator roles; the cause of the allowed read is unproven. Forwarded call-context reads were allowed, not proof of least-privileged two-user isolation or downstream OBO. Application correlation is not distributed tracing.</td><td>Reproduce with least-privileged distinct users and confirm the conversation access contract without relabeling this failure.</td><td><a href="#run-access">access</a></td></tr><tr><th scope="row">AC4 - Shared-ID read, append and later hydration</th><td>Evaluation Met; shared-ID calls did not complete</td><td>All 8 recording checks passed. Research calls using the Supervisor ID returned HTTP 404 not_found in both identity modes and in the same-principal operator control. No Research input/output was appended; later Supervisor inspection saw no added Research messages.</td><td>PASS means explicit outcomes were captured, not that shared history worked. The exact cause of the cross-endpoint 404 is unverified.</td><td>Use separate IDs; confirm cross-endpoint conversation scope with Microsoft.</td><td><a href="#run-shared">shared</a></td></tr><tr><th scope="row">AC5 - Result, placeholder or full-history delivery comparison</th><td>Comparison Met; shared delivery unavailable</td><td>All 6 recording checks passed. Separate variants delivered result or placeholder as selected. Both shared variants returned HTTP 404 and were classified as nothing (sub-agent call did not complete).</td><td>No shared full-history delivery demonstrated. Streaming, background delivery, Data Analysis file delivery and crash recovery were not tested.</td><td>Use explicit result/reference delivery with separate Research conversations.</td><td><a href="#run-comparison">comparison</a></td></tr>
+</tbody></table></div>
+
+</section>
+<section id="decisions">
+<h2>Sponsor decisions — not measured results</h2>
+<h3>Approved live test scope</h3><p><strong>Supervisor-only deployment, then five verify-only tasks</strong></p><p>The report covers the latest execution of each of the five Story 3 tasks at Supervisor v16, Research v10 and Data Analysis v10. Only Supervisor was deployed, from the approved integration branch. No provisioning, permission grants, or specialist deployment. These Story 3 runs are not new Story 1/4 regression evidence.</p><p><a href="#run-separate">separate</a> · <a href="#run-followup">followup</a> · <a href="#run-access">access</a> · <a href="#run-shared">shared</a> · <a href="#run-comparison">comparison</a></p><h3>Latest execution scope</h3><p><strong>One latest execution per task, including its actual failures and limitations</strong></p><p>This HTML binds only the five latest task executions in hosted-agents-poc-dev. Superseded executions are excluded. Current failed checks and unsuccessful capability outcomes remain visible; successful report generation is not full story acceptance.</p><p><a href="#run-separate">separate</a> · <a href="#run-followup">followup</a> · <a href="#run-access">access</a> · <a href="#run-shared">shared</a> · <a href="#run-comparison">comparison</a></p>
+
+</section>
+
+
+<section id="architecture">
+<h2>Story 3 conversation architecture — code/reference context</h2>
+<p class="notice">Reference design, not an execution trace. Separate and shared paths are alternatives. Only the linked recorded checks establish which calls completed, what was denied, and what history was observed.</p>
+<svg class="architecture" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 390" role="img" aria-labelledby="story3-title story3-description">
+<title id="story3-title">Supervisor-owned mapping and independent Research history</title>
+<desc id="story3-description">The operator creates a Supervisor conversation. Supervisor stores a user-isolated mapping to a distinct Research conversation and reuses it for follow-up. Each endpoint hydrates its own history. Result or placeholder delivery is explicit. The alternative shared-ID experiment supplies the Supervisor ID to Research and records its outcome; it does not establish support.</desc>
+<defs><marker id="native-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 Z" fill="#25629f"/></marker></defs>
+<rect class="node" x="15" y="95" width="160" height="100" rx="8"/><text class="label" x="30" y="125">Operator</text><text class="small" x="30" y="155">Creates parent S</text><text class="small" x="30" y="178">POC_CONVERSE</text>
+<rect class="node" x="245" y="75" width="240" height="140" rx="8"/><text class="label" x="260" y="105">Supervisor / history S</text><text class="small" x="260" y="135">Mapping guards</text><text class="small" x="260" y="160">Result or placeholder</text><text class="small" x="260" y="185">Model-free inspect</text>
+<rect class="node" x="650" y="75" width="330" height="140" rx="8"/><text class="label" x="665" y="105">Research / separate history C</text><text class="small" x="665" y="135">Follow-up reuses C</text><text class="small" x="665" y="160">No copying turns into S</text><text class="small" x="665" y="185">Own history hydration</text>
+<rect class="node" x="245" y="275" width="340" height="90" rx="8"/><text class="label" x="260" y="305">Foundry state: mapping S to C</text><text class="small" x="260" y="335">Application-owned, user-isolated</text>
+<rect class="blocked" x="650" y="275" width="330" height="90" rx="8"/><text class="label" x="665" y="305">Alternative: shared ID S</text><text class="small" x="665" y="335">Attempt and record; not assumed supported</text>
+<path class="arrow" d="M175 145 H245"/><path class="arrow" d="M485 120 H650"/><text class="small" x="500" y="105">Separate: use C</text><path class="arrow" d="M650 185 H485"/><text class="small" x="500" y="210">Explicit delivery</text><path class="arrow" d="M365 215 V275"/><path class="arrow" stroke-dasharray="7 5" d="M485 235 L650 305"/>
+</svg>
+<p>Custom parent metadata is not a native parent-child contract. Conversation creation and mapping writes are separate operations; crash recovery is not demonstrated. Operator access, agent identity, forwarded call context, and cross-endpoint scope require distinct checks.</p>
+</section>
+
+
+<section id="native-api">
+<h2>Current SDK/API catalog — code/reference context</h2>
+<p>Reviewed call shapes use symbolic placeholders, not actual requests, endpoints, identities, or execution receipts. Only per-check recorded observations establish measured outcomes.</p>
+<div class="scroll"><table><caption>Caller, model activity, and backend privilege distinctions</caption><thead><tr><th scope="col">Operation / source</th><th scope="col">Acting boundary</th><th scope="col">Model activity</th><th scope="col">Reviewed SDK/request shape</th><th scope="col">Scope and limitation</th></tr></thead><tbody>
+<tr><th scope="row">Client creates and invokes a Supervisor conversation<br><span class="source">scripts.run_scenario.story3_conversations.Story3Step</span></th><td>Authenticated operator</td><td>Hosted turn for send; no model for inspect</td><td><pre>client.conversations.create(); client.responses.create(input=command.wire(), conversation=supervisor_conversation, stream=False)</pre></td><td>POC_CONVERSE / poc-conversation-v1 is separate from Story 4 delegation. Missing conversation context is rejected before state access or outbound calls.</td></tr><tr><th scope="row">Separate child conversation and application-owned mapping<br><span class="source">app.services.conversations.separate_turn</span></th><td>Supervisor backend / user-isolated state store</td><td>Conversation metadata and durable mapping; no model</td><td><pre>await client.conversations.create(metadata=parent_metadata); await separate_turn(turn, client_for, store)</pre></td><td>Supervisor stores and reuses a distinct Research conversation. Parent metadata is custom, not a native parent-child relationship. Creation and mapping persistence are not atomic.</td></tr><tr><th scope="row">Research follow-up in its mapped conversation<br><span class="source">app.services.conversations.invoke</span></th><td>Supervisor backend calling Research</td><td>Research model turn with its own hydrated history</td><td><pre>await client.responses.create(input=hop_message, conversation=child_conversation, stream=False)</pre></td><td>The application does not copy Research turns into Supervisor history. Result or placeholder delivery is explicit. Recall checks and stored-item counts are separate observations.</td></tr><tr><th scope="row">Conversation access and mapping guards<br><span class="source">app.services.conversations.list_items</span></th><td>Operator or Supervisor agent / forwarded call context</td><td>No model for history listing or inspect</td><td><pre>client.conversations.items.list(conversation); identity_headers(mode, correlation_id)</pre></td><td>Allowed reads, explicit HTTP denials, and transport/service errors are distinct. An elevated operator is not a least-privileged second-user isolation test. Application correlation is not distributed-trace proof.</td></tr><tr><th scope="row">Shared conversation ID experiment<br><span class="source">app.services.conversations.shared_turn</span></th><td>Supervisor backend and same-principal operator control</td><td>Attempted Research turn; later model-free Supervisor inspect</td><td><pre>await shared_turn(turn, client_for); conversation=supervisor_conversation</pre></td><td>The Supervisor ID is supplied to Research. Recording an explicit 404 can satisfy the evaluation check without demonstrating shared history, successful delivery, or its root cause.</td></tr><tr><th scope="row">Classify result, placeholder, or full history<br><span class="source">scripts.run_scenario.story3_conversations.classify_received</span></th><td>Validation runner / later Supervisor inspection</td><td>No additional model for classification</td><td><pre>classify_received(report, later.supervisor_history)</pre></td><td>Classification uses saved outcomes and history counters, not the requested delivery mode alone. Streaming, background delivery, recovery, and Data Analysis files are not tested here.</td></tr>
+</tbody></table></div>
+</section>
+
+
+<section id="runs">
+<h2>Detailed recorded runs</h2>
+
+<article id="run-separate">
+<h3>Step 1 - Separate conversations and mapping</h3><p><strong>Scope:</strong> 2026-10-28 verify-only run after the approved Supervisor-only deployment. Recorded baseline: Supervisor v16, Research v10, Data Analysis v10. Research exercised; Data Analysis baseline-only. No deployment inside this run.<br><strong>Declared version:</strong> 16 · <strong>Kind:</strong> Recorded evidence</p>
+<p><strong>Run ID:</strong> {reference-2}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-28T17:41:47.973602+00:00 — 2026-10-28T17:42:56.261433+00:00 (recorded evidence timestamps, not execution duration)</p>
+
+<pre>{
+  &#34;scenario&#34;: &#34;story-3-step-1&#34;,
+  &#34;mode&#34;: &#34;hosted&#34;,
+  &#34;started_at&#34;: &#34;2026-10-28T17:41:37.961765+00:00&#34;,
+  &#34;python&#34;: &#34;3.14.8&#34;,
+  &#34;project_version&#34;: &#34;0.1.0&#34;,
+  &#34;maf_version&#34;: &#34;1.19.0&#34;,
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;step&#34;: &#34;step-01-separate-conversations&#34;
+}</pre>
+<p>Unique recorded check counts: {
+  &#34;PASS&#34;: 9
+}. Additional non-mirrored events: 0.</p>
+
+<p><a href="evidence/separate.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 3 Step 1: Separate conversations and mapping</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1068" role="img" aria-labelledby="flow-separate-title flow-separate-description" style="width:100%;height:auto;display:block"><title id="flow-separate-title">Story 3 Step 1: Separate conversations and mapping</title><desc id="flow-separate-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-separate-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-separate-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-separate-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-separate-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-separate-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-separate-arrow)" /><path d="M460 882 V921" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-separate-arrow)" /><g id="flow-separate-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify the recorded deployment baseline</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-separate-prerequisite"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Require Story 3 support and its saved baseline</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="304" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-separate-capability"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Verify Supervisor accepts the conversation protocol</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Runner</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-separate-create"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Create Supervisor and distinct Research conversations</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Operator -&gt; Supervisor -&gt; Research</text><text x="88" y="584" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 3)</text></g><g id="flow-separate-mapping"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Persist and re-read the application-owned child mapping</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Supervisor / user-isolated Foundry state</text><text x="88" y="724" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-separate-metadata"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Check the custom parent metadata link</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Runner / Supervisor inspect</text><text x="88" y="864" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-separate-unchanged"><rect x="70" y="928" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="957" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">7. Check that the deployed agents did not change</text><text x="88" y="980" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="1004" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify the recorded deployment baseline<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-separate-1">Agents reused - before — PASS</a></td></tr>
+
+<tr><th scope="row">Require Story 3 support and its saved baseline<br><small>Validation runner</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Verify Supervisor accepts the conversation protocol<br><small>Runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-separate-2">Story 3 code deployed — PASS</a></td></tr>
+
+<tr><th scope="row">Create Supervisor and distinct Research conversations<br><small>Operator -&gt; Supervisor -&gt; Research</small></th>
+<td>PASS<br>PASS: 3</td>
+<td><a href="#check-separate-3">Supervisor conversation created by the client — PASS</a><br><a href="#check-separate-4">Supervisor turn in the Supervisor conversation — PASS</a><br><a href="#check-separate-5">Separate sub-agent conversation — PASS</a></td></tr>
+
+<tr><th scope="row">Persist and re-read the application-owned child mapping<br><small>Supervisor / user-isolated Foundry state</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-separate-6">Mapping owned and stored by the Supervisor — PASS</a><br><a href="#check-separate-7">Mapping re-read from the state store — PASS</a></td></tr>
+
+<tr><th scope="row">Check the custom parent metadata link<br><small>Runner / Supervisor inspect</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-separate-8">Parent link stored on the sub-agent conversation — PASS</a></td></tr>
+
+<tr><th scope="row">Check that the deployed agents did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-separate-9">Agents reused - after — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> Parent metadata is application-written; child creation and mapping persistence are not atomic.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story3_conversations.Step1</code>; <code>app.services.conversations.separate_turn</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
+
+<details open id="check-separate-1">
+<summary>1. Agents reused - before — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:41:47.973602+00:00</p>
+<h4>Expected</h4><pre>&#34;All three existing agents active&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;supervisor-agent&#34;: &#34;16&#34;,
+  &#34;research-agent&#34;: &#34;10&#34;,
+  &#34;data-analysis-agent&#34;: &#34;10&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-separate-2">
+<summary>2. Story 3 code deployed — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:42:06.916040+00:00</p>
+<h4>Expected</h4><pre>&#34;Supervisor rejects POC_CONVERSE without a conversation (Story 3 code deployed)&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;supervisor_version&#34;: &#34;16&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-separate-3">
+<summary>3. Supervisor conversation created by the client — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:42:16.623013+00:00</p>
+<h4>Expected</h4><pre>&#34;Client (operator) creates a conversation on the Supervisor endpoint&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-separate-4">
+<summary>4. Supervisor turn in the Supervisor conversation — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:42:50.902986+00:00</p>
+<h4>Expected</h4><pre>&#34;Completed poc-conversation-v1 report bound to the client&#39;s Supervisor conversation&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;status&#34;: &#34;completed&#34;,
+  &#34;outcome&#34;: &#34;allowed&#34;,
+  &#34;mapping&#34;: {
+    &#34;owner&#34;: &#34;supervisor-application&#34;,
+    &#34;storage&#34;: &#34;foundry-state-store&#34;,
+    &#34;store&#34;: &#34;hosted-agents-poc-supervisor-registry-v1&#34;,
+    &#34;user_isolated&#34;: true,
+    &#34;found&#34;: false,
+    &#34;created_now&#34;: true
+  },
+  &#34;listing_before&#34;: &#34;allowed (0 items)&#34;,
+  &#34;listing_after&#34;: &#34;allowed (2 items)&#34;,
+  &#34;failure&#34;: null
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-separate-5">
+<summary>5. Separate sub-agent conversation — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:42:50.925000+00:00</p>
+<h4>Expected</h4><pre>&#34;Supervisor created a distinct Research conversation and the Research turn was stored in it&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;items_after_turn&#34;: 2
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-separate-6">
+<summary>6. Mapping owned and stored by the Supervisor — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:42:50.944972+00:00</p>
+<h4>Expected</h4><pre>&#34;Supervisor application wrote the mapping to its user-isolated Foundry state store&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;owner&#34;: &#34;supervisor-application&#34;,
+  &#34;storage&#34;: &#34;foundry-state-store&#34;,
+  &#34;store&#34;: &#34;hosted-agents-poc-supervisor-registry-v1&#34;,
+  &#34;user_isolated&#34;: true,
+  &#34;found&#34;: false,
+  &#34;created_now&#34;: true
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-separate-7">
+<summary>7. Mapping re-read from the state store — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:42:55.489769+00:00</p>
+<h4>Expected</h4><pre>&#34;A later Supervisor request finds the same sub-agent conversation and can list its history&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;status&#34;: &#34;inspected&#34;,
+  &#34;outcome&#34;: &#34;allowed&#34;,
+  &#34;mapping&#34;: {
+    &#34;owner&#34;: &#34;supervisor-application&#34;,
+    &#34;storage&#34;: &#34;foundry-state-store&#34;,
+    &#34;store&#34;: &#34;hosted-agents-poc-supervisor-registry-v1&#34;,
+    &#34;user_isolated&#34;: true,
+    &#34;found&#34;: true,
+    &#34;created_now&#34;: false
+  },
+  &#34;listing_before&#34;: &#34;allowed (2 items)&#34;,
+  &#34;listing_after&#34;: &#34;not listed&#34;,
+  &#34;failure&#34;: null
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-separate-8">
+<summary>8. Parent link stored on the sub-agent conversation — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:42:55.523303+00:00</p>
+<h4>Expected</h4><pre>&#34;Foundry returns the Supervisor-written parent digest and correlation ID as conversation metadata&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;metadata_linked&#34;: true
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-separate-9">
+<summary>9. Agents reused - after — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:42:56.261433+00:00</p>
+<h4>Expected</h4><pre>&#34;Same three agents, versions, identities, and toolbox wiring as at the start&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>&#34;No changes&#34;</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+
+<h4>Original evidence source hashes</h4><ul><li class="source">manifest.json · SHA256 ab3951e1d07c36ea58c12871eb0c2dbb0a400701dfb9233755078a48cc489b6b</li><li class="source">results.jsonl · SHA256 6370045871741f2b135d910c18c8fd91bb7b016620dbd793740a6d5525843c59</li><li class="source">events.jsonl · SHA256 6370045871741f2b135d910c18c8fd91bb7b016620dbd793740a6d5525843c59</li></ul>
+</article>
+
+<article id="run-followup">
+<h3>Step 2 - Independent Research follow-up history</h3><p><strong>Scope:</strong> Same 16/10/10 baseline. Two Research turns reuse the child mapping; item counts, recall and a new-parent control are distinct checks.<br><strong>Declared version:</strong> 16 · <strong>Kind:</strong> Recorded evidence</p>
+<p><strong>Run ID:</strong> {reference-3}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-28T17:43:32.045046+00:00 — 2026-10-28T17:44:40.438710+00:00 (recorded evidence timestamps, not execution duration)</p>
+
+<pre>{
+  &#34;scenario&#34;: &#34;story-3-step-2&#34;,
+  &#34;mode&#34;: &#34;hosted&#34;,
+  &#34;started_at&#34;: &#34;2026-10-28T17:43:17.736707+00:00&#34;,
+  &#34;python&#34;: &#34;3.14.8&#34;,
+  &#34;project_version&#34;: &#34;0.1.0&#34;,
+  &#34;maf_version&#34;: &#34;1.19.0&#34;,
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;step&#34;: &#34;step-02-follow-up-history&#34;
+}</pre>
+<p>Unique recorded check counts: {
+  &#34;PASS&#34;: 9
+}. Additional non-mirrored events: 0.</p>
+
+<p><a href="evidence/followup.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 3 Step 2: Reuse independent Research history</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 928" role="img" aria-labelledby="flow-followup-title flow-followup-description" style="width:100%;height:auto;display:block"><title id="flow-followup-title">Story 3 Step 2: Reuse independent Research history</title><desc id="flow-followup-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-followup-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-followup-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-followup-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-followup-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-followup-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-followup-arrow)" /><g id="flow-followup-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify the recorded deployment baseline</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-followup-prerequisite"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Require Story 3 support and its saved baseline</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="304" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-followup-first"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Remember a synthetic code word in a new child</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Operator -&gt; Supervisor -&gt; Research</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-followup-followup"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Reuse the mapping and recall without resending the code word</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Supervisor -&gt; Research</text><text x="88" y="584" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 3)</text></g><g id="flow-followup-isolate"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Check separate histories and a new-parent control</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Runner / model-free Supervisor inspect</text><text x="88" y="724" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-followup-unchanged"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Check that the deployed agents did not change</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="864" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify the recorded deployment baseline<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-followup-1">Agents reused - before — PASS</a></td></tr>
+
+<tr><th scope="row">Require Story 3 support and its saved baseline<br><small>Validation runner</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Remember a synthetic code word in a new child<br><small>Operator -&gt; Supervisor -&gt; Research</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-followup-2">Supervisor conversation created by the client — PASS</a><br><a href="#check-followup-3">First turn created the sub-agent conversation — PASS</a></td></tr>
+
+<tr><th scope="row">Reuse the mapping and recall without resending the code word<br><small>Supervisor -&gt; Research</small></th>
+<td>PASS<br>PASS: 3</td>
+<td><a href="#check-followup-4">Follow-up reused the same sub-agent conversation — PASS</a><br><a href="#check-followup-5">Prior history stored in the sub-agent conversation — PASS</a><br><a href="#check-followup-6">Sub-agent recalled its own history — PASS</a></td></tr>
+
+<tr><th scope="row">Check separate histories and a new-parent control<br><small>Runner / model-free Supervisor inspect</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-followup-7">Sub-agent history not copied into the Supervisor conversation — PASS</a><br><a href="#check-followup-8">Another Supervisor conversation has no mapping — PASS</a></td></tr>
+
+<tr><th scope="row">Check that the deployed agents did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-followup-9">Agents reused - after — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> Recall is checked alongside stored-item counts, not treated alone as deterministic persistence proof.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story3_conversations.Step2</code>; <code>app.services.conversations.separate_turn</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
+
+<details open id="check-followup-1">
+<summary>1. Agents reused - before — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:43:32.045046+00:00</p>
+<h4>Expected</h4><pre>&#34;Identical to the Story 3 Step 1 baseline (versions, identities, toolbox wiring)&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;supervisor-agent&#34;: &#34;16&#34;,
+  &#34;research-agent&#34;: &#34;10&#34;,
+  &#34;data-analysis-agent&#34;: &#34;10&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-followup-2">
+<summary>2. Supervisor conversation created by the client — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:43:38.501158+00:00</p>
+<h4>Expected</h4><pre>&#34;Client creates a conversation on the Supervisor endpoint&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-followup-3">
+<summary>3. First turn created the sub-agent conversation — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:44:06.849073+00:00</p>
+<h4>Expected</h4><pre>&#34;Completed; the Supervisor created and mapped a new Research conversation&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;status&#34;: &#34;completed&#34;,
+  &#34;outcome&#34;: &#34;allowed&#34;,
+  &#34;mapping&#34;: {
+    &#34;owner&#34;: &#34;supervisor-application&#34;,
+    &#34;storage&#34;: &#34;foundry-state-store&#34;,
+    &#34;store&#34;: &#34;hosted-agents-poc-supervisor-registry-v1&#34;,
+    &#34;user_isolated&#34;: true,
+    &#34;found&#34;: false,
+    &#34;created_now&#34;: true
+  },
+  &#34;listing_before&#34;: &#34;allowed (0 items)&#34;,
+  &#34;listing_after&#34;: &#34;allowed (2 items)&#34;,
+  &#34;failure&#34;: null
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-followup-4">
+<summary>4. Follow-up reused the same sub-agent conversation — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:44:22.535102+00:00</p>
+<h4>Expected</h4><pre>&#34;The mapping returned the first turn&#39;s Research conversation; nothing new was created&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;status&#34;: &#34;completed&#34;,
+  &#34;outcome&#34;: &#34;allowed&#34;,
+  &#34;mapping&#34;: {
+    &#34;owner&#34;: &#34;supervisor-application&#34;,
+    &#34;storage&#34;: &#34;foundry-state-store&#34;,
+    &#34;store&#34;: &#34;hosted-agents-poc-supervisor-registry-v1&#34;,
+    &#34;user_isolated&#34;: true,
+    &#34;found&#34;: true,
+    &#34;created_now&#34;: false
+  },
+  &#34;listing_before&#34;: &#34;allowed (2 items)&#34;,
+  &#34;listing_after&#34;: &#34;allowed (4 items)&#34;,
+  &#34;failure&#34;: null
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-followup-5">
+<summary>5. Prior history stored in the sub-agent conversation — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:44:22.539088+00:00</p>
+<h4>Expected</h4><pre>&#34;Before the follow-up the Research conversation already held the first turn; the follow-up added to it&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;items_before_follow_up&#34;: 2,
+  &#34;items_after_follow_up&#34;: 4
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-followup-6">
+<summary>6. Sub-agent recalled its own history — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:44:22.543895+00:00</p>
+<h4>Expected</h4><pre>&#34;Research answers with the code word although the forwarded follow-up did not contain it&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;code_recalled&#34;: true
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-followup-7">
+<summary>7. Sub-agent history not copied into the Supervisor conversation — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:44:22.546036+00:00</p>
+<h4>Expected</h4><pre>&#34;The Supervisor hydrated only the client&#39;s inputs and its own replies, not Research&#39;s turns&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;items&#34;: 2,
+  &#34;user_messages&#34;: 1,
+  &#34;assistant_messages&#34;: 1,
+  &#34;hop_inputs&#34;: 0,
+  &#34;protocol_replies&#34;: 1,
+  &#34;other_assistant&#34;: 0
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-followup-8">
+<summary>8. Another Supervisor conversation has no mapping — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:44:39.324919+00:00</p>
+<h4>Expected</h4><pre>&#34;A new Supervisor conversation has no sub-agent mapping, so Research history does not leak across&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;status&#34;: &#34;inspected&#34;,
+  &#34;outcome&#34;: &#34;allowed&#34;,
+  &#34;mapping&#34;: {
+    &#34;owner&#34;: &#34;supervisor-application&#34;,
+    &#34;storage&#34;: &#34;foundry-state-store&#34;,
+    &#34;store&#34;: &#34;hosted-agents-poc-supervisor-registry-v1&#34;,
+    &#34;user_isolated&#34;: true,
+    &#34;found&#34;: false,
+    &#34;created_now&#34;: false
+  },
+  &#34;listing_before&#34;: &#34;not listed&#34;,
+  &#34;listing_after&#34;: &#34;not listed&#34;,
+  &#34;failure&#34;: null
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-followup-9">
+<summary>9. Agents reused - after — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:44:40.438710+00:00</p>
+<h4>Expected</h4><pre>&#34;Same three agents, versions, identities, and toolbox wiring as at the start&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>&#34;No changes&#34;</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+
+<h4>Original evidence source hashes</h4><ul><li class="source">manifest.json · SHA256 b40ae4cb68545c8e105fecfc5142ce404b4786d04d0927a24f99b0409a988c58</li><li class="source">results.jsonl · SHA256 48d646494bba97baae0c8bb756437354d5b6980b648a2ee9addc36c4932709e3</li><li class="source">events.jsonl · SHA256 48d646494bba97baae0c8bb756437354d5b6980b648a2ee9addc36c4932709e3</li></ul>
+</article>
+
+<article id="run-access">
+<h3>Step 3 - Ownership and access (Partially met)</h3><p><strong>Scope:</strong> Same 16/10/10 baseline. Operator had elevated project roles. Unexpected allowed child-history read remains FAIL; application mapping guards are separate. No distinct least-privileged second user or role change.<br><strong>Declared version:</strong> 16 · <strong>Kind:</strong> Recorded evidence</p>
+<p><strong>Run ID:</strong> {reference-4}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-28T17:44:53.213613+00:00 — 2026-10-28T17:46:49.385404+00:00 (recorded evidence timestamps, not execution duration)</p>
+
+<pre>{
+  &#34;scenario&#34;: &#34;story-3-step-3&#34;,
+  &#34;mode&#34;: &#34;hosted&#34;,
+  &#34;started_at&#34;: &#34;2026-10-28T17:44:49.428182+00:00&#34;,
+  &#34;python&#34;: &#34;3.14.8&#34;,
+  &#34;project_version&#34;: &#34;0.1.0&#34;,
+  &#34;maf_version&#34;: &#34;1.19.0&#34;,
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;step&#34;: &#34;step-03-ownership-and-access&#34;
+}</pre>
+<p>Unique recorded check counts: {
+  &#34;PASS&#34;: 13,
+  &#34;FAIL&#34;: 1
+}. Additional non-mirrored events: 0.</p>
+
+<p><a href="evidence/access.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 3 Step 3: Ownership, correlation and access</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1068" role="img" aria-labelledby="flow-access-title flow-access-description" style="width:100%;height:auto;display:block"><title id="flow-access-title">Story 3 Step 3: Ownership, correlation and access</title><desc id="flow-access-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-access-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-access-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-access-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-access-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-access-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-access-arrow)" /><path d="M460 882 V921" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-access-arrow)" /><g id="flow-access-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify the recorded deployment baseline</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-access-prerequisite"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Require Story 3 support and its saved baseline</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="304" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-access-setup"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Create the parent and mapped child</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Operator -&gt; Supervisor -&gt; Research</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-access-context"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Check original-user binding and custom correlation</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Supervisor platform context / runner</text><text x="88" y="584" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-access-reads"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Record owner, cross-endpoint and agent-context reads</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Operator / Supervisor -&gt; Foundry</text><text x="88" y="724" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: MIXED (PASS: 4, FAIL: 1)</text></g><g id="flow-access-guards"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Reject unmapped claims and missing parent context</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Supervisor application guards</text><text x="88" y="864" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 3)</text></g><g id="flow-access-unchanged"><rect x="70" y="928" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="957" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">7. Check that the deployed agents did not change</text><text x="88" y="980" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="1004" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify the recorded deployment baseline<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-access-1">Agents reused - before — PASS</a></td></tr>
+
+<tr><th scope="row">Require Story 3 support and its saved baseline<br><small>Validation runner</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Create the parent and mapped child<br><small>Operator -&gt; Supervisor -&gt; Research</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-access-2">Supervisor conversation created by the client — PASS</a><br><a href="#check-access-3">Sub-agent conversation created by the Supervisor — PASS</a></td></tr>
+
+<tr><th scope="row">Check original-user binding and custom correlation<br><small>Supervisor platform context / runner</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-access-4">Original user bound at the Supervisor — PASS</a><br><a href="#check-access-5">Custom correlation recorded with the mapping — PASS</a></td></tr>
+
+<tr><th scope="row">Record owner, cross-endpoint and agent-context reads<br><small>Operator / Supervisor -&gt; Foundry</small></th>
+<td>MIXED<br>PASS: 4<br>FAIL: 1</td>
+<td><a href="#check-access-6">Owner lists its Supervisor conversation — PASS</a><br><a href="#check-access-7">Owner lists its Supervisor conversation through the Research endpoint — PASS</a><br><a href="#check-access-8">Client lists the Supervisor-created sub-agent conversation — FAIL</a><br><a href="#check-access-9">Supervisor lists its sub-agent conversation (agent identity) — PASS</a><br><a href="#check-access-10">Supervisor lists its sub-agent conversation (call-context identity) — PASS</a></td></tr>
+
+<tr><th scope="row">Reject unmapped claims and missing parent context<br><small>Supervisor application guards</small></th>
+<td>PASS<br>PASS: 3</td>
+<td><a href="#check-access-11">Client supplies an unmapped sub-agent conversation ID — PASS</a><br><a href="#check-access-12">Another Supervisor conversation claims the sub-agent conversation — PASS</a><br><a href="#check-access-13">Request without a Supervisor conversation — PASS</a></td></tr>
+
+<tr><th scope="row">Check that the deployed agents did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-access-14">Agents reused - after — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> Operator reads do not establish least-privileged two-user isolation or the reason for unexpected access.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story3_conversations.Step3</code>; <code>app.services.conversations.separate_turn</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
+
+<details open id="check-access-1">
+<summary>1. Agents reused - before — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:44:53.213613+00:00</p>
+<h4>Expected</h4><pre>&#34;Identical to the Story 3 Step 1 baseline (versions, identities, toolbox wiring)&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;supervisor-agent&#34;: &#34;16&#34;,
+  &#34;research-agent&#34;: &#34;10&#34;,
+  &#34;data-analysis-agent&#34;: &#34;10&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-2">
+<summary>2. Supervisor conversation created by the client — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:45:18.722262+00:00</p>
+<h4>Expected</h4><pre>&#34;Client creates a conversation on the Supervisor endpoint&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-3">
+<summary>3. Sub-agent conversation created by the Supervisor — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:45:48.721192+00:00</p>
+<h4>Expected</h4><pre>&#34;Completed; the Supervisor created and mapped a Research conversation&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;status&#34;: &#34;completed&#34;,
+  &#34;outcome&#34;: &#34;allowed&#34;,
+  &#34;mapping&#34;: {
+    &#34;owner&#34;: &#34;supervisor-application&#34;,
+    &#34;storage&#34;: &#34;foundry-state-store&#34;,
+    &#34;store&#34;: &#34;hosted-agents-poc-supervisor-registry-v1&#34;,
+    &#34;user_isolated&#34;: true,
+    &#34;found&#34;: false,
+    &#34;created_now&#34;: true
+  },
+  &#34;listing_before&#34;: &#34;allowed (0 items)&#34;,
+  &#34;listing_after&#34;: &#34;allowed (2 items)&#34;,
+  &#34;failure&#34;: null
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-4">
+<summary>4. Original user bound at the Supervisor — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:45:48.728067+00:00</p>
+<h4>Expected</h4><pre>&#34;The Supervisor sees the operator as the platform user, with a call context to forward&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;supervisor_user&#34;: &#34;operator (original user)&#34;,
+  &#34;call_id_present&#34;: true
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-5">
+<summary>5. Custom correlation recorded with the mapping — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:45:48.730870+00:00</p>
+<h4>Expected</h4><pre>&#34;The x-client-correlation-id header reached the Supervisor and the mapping recorded it&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;header_matched&#34;: true,
+  &#34;mapping_correlation_matches&#34;: true
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-6">
+<summary>6. Owner lists its Supervisor conversation — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:45:51.182689+00:00</p>
+<h4>Expected</h4><pre>&#34;allowed&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;observed&#34;: &#34;allowed (2 items)&#34;,
+  &#34;enforced_by&#34;: &#34;Foundry (conversation ownership)&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-7">
+<summary>7. Owner lists its Supervisor conversation through the Research endpoint — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:45:54.239855+00:00</p>
+<h4>Expected</h4><pre>&#34;recorded: is a conversation scoped to the endpoint that created it?&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;observed&#34;: &#34;denied (HTTP 404, not_found)&#34;,
+  &#34;enforced_by&#34;: &#34;Foundry&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-8">
+<summary>8. Client lists the Supervisor-created sub-agent conversation — <span class="badge FAIL">FAIL</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:45:58.068708+00:00</p>
+<h4>Expected</h4><pre>&#34;denied (one caller can&#39;t read another caller&#39;s conversations)&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;observed&#34;: &#34;allowed (2 items)&#34;,
+  &#34;enforced_by&#34;: &#34;Foundry (conversation ownership)&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-9">
+<summary>9. Supervisor lists its sub-agent conversation (agent identity) — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:46:01.357698+00:00</p>
+<h4>Expected</h4><pre>&#34;allowed&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;observed&#34;: &#34;allowed (2 items)&#34;,
+  &#34;enforced_by&#34;: &#34;Foundry (conversation ownership)&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-10">
+<summary>10. Supervisor lists its sub-agent conversation (call-context identity) — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:46:04.887650+00:00</p>
+<h4>Expected</h4><pre>&#34;recorded: which principal Foundry binds when the call context is forwarded&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;observed&#34;: &#34;allowed (2 items)&#34;,
+  &#34;enforced_by&#34;: &#34;Foundry (conversation ownership)&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-11">
+<summary>11. Client supplies an unmapped sub-agent conversation ID — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:46:20.216064+00:00</p>
+<h4>Expected</h4><pre>&#34;denied by the Supervisor mapping, no outbound call&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;observed&#34;: &#34;denied by the Supervisor mapping (no outbound call)&#34;,
+  &#34;enforced_by&#34;: &#34;Supervisor application (mapping check)&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-12">
+<summary>12. Another Supervisor conversation claims the sub-agent conversation — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:46:37.612927+00:00</p>
+<h4>Expected</h4><pre>&#34;denied by the Supervisor mapping&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;observed&#34;: &#34;denied by the Supervisor mapping (no outbound call)&#34;,
+  &#34;enforced_by&#34;: &#34;Supervisor application (mapping per Supervisor conversation)&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-13">
+<summary>13. Request without a Supervisor conversation — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:46:48.595191+00:00</p>
+<h4>Expected</h4><pre>&#34;rejected before any state or outbound call&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;observed&#34;: &#34;failed: Create an explicit Supervisor conversation before POC_CONVERSE.&#34;,
+  &#34;enforced_by&#34;: &#34;Supervisor application&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-access-14">
+<summary>14. Agents reused - after — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:46:49.385404+00:00</p>
+<h4>Expected</h4><pre>&#34;Same three agents, versions, identities, and toolbox wiring as at the start&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>&#34;No changes&#34;</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+
+<h4>Original evidence source hashes</h4><ul><li class="source">manifest.json · SHA256 43004a90729c7dde08d7fb33587d4a0213c4e9caadb3c095d2f6537186a249e9</li><li class="source">results.jsonl · SHA256 70beebcaa44c18f00b94f57eaa833dbee3d67d5be4cbab493161b09861cf029b</li><li class="source">events.jsonl · SHA256 70beebcaa44c18f00b94f57eaa833dbee3d67d5be4cbab493161b09861cf029b</li></ul>
+</article>
+
+<article id="run-shared">
+<h3>Step 4 - Shared-ID evaluation (404 outcomes)</h3><p><strong>Scope:</strong> Same 16/10/10 baseline. Both identity modes and the same-principal cross-endpoint control returned HTTP 404 not_found. Evaluation Met is not shared-ID capability success.<br><strong>Declared version:</strong> 16 · <strong>Kind:</strong> Recorded evidence</p>
+<p><strong>Run ID:</strong> {reference-5}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-28T17:47:22.123332+00:00 — 2026-10-28T17:48:23.431723+00:00 (recorded evidence timestamps, not execution duration)</p>
+
+<pre>{
+  &#34;scenario&#34;: &#34;story-3-step-4&#34;,
+  &#34;mode&#34;: &#34;hosted&#34;,
+  &#34;started_at&#34;: &#34;2026-10-28T17:47:15.817904+00:00&#34;,
+  &#34;python&#34;: &#34;3.14.8&#34;,
+  &#34;project_version&#34;: &#34;0.1.0&#34;,
+  &#34;maf_version&#34;: &#34;1.19.0&#34;,
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;step&#34;: &#34;step-04-shared-conversation-id&#34;
+}</pre>
+<p>Unique recorded check counts: {
+  &#34;PASS&#34;: 8
+}. Additional non-mirrored events: 0.</p>
+
+<p><a href="evidence/shared.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 3 Step 4: Evaluate a shared conversation ID</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 928" role="img" aria-labelledby="flow-shared-title flow-shared-description" style="width:100%;height:auto;display:block"><title id="flow-shared-title">Story 3 Step 4: Evaluate a shared conversation ID</title><desc id="flow-shared-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-shared-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-shared-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-shared-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-shared-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-shared-arrow)" /><path d="M460 742 V781" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-shared-arrow)" /><g id="flow-shared-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify the recorded deployment baseline</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-shared-prerequisite"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Require Story 3 support and its saved baseline</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="304" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-shared-seed"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Seed Supervisor history with a synthetic code word</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Operator -&gt; Supervisor</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-shared-shared"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Attempt Research calls with the Supervisor ID in both modes</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Supervisor -&gt; Research</text><text x="88" y="584" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-shared-inspect"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Inspect later history and run the same-principal control</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Supervisor inspect / operator -&gt; Research</text><text x="88" y="724" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-shared-unchanged"><rect x="70" y="788" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="817" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">6. Check that the deployed agents did not change</text><text x="88" y="840" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="864" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify the recorded deployment baseline<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-shared-1">Agents reused - before — PASS</a></td></tr>
+
+<tr><th scope="row">Require Story 3 support and its saved baseline<br><small>Validation runner</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Seed Supervisor history with a synthetic code word<br><small>Operator -&gt; Supervisor</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-shared-2">Supervisor conversation created by the client — PASS</a><br><a href="#check-shared-3">Supervisor conversation seeded — PASS</a></td></tr>
+
+<tr><th scope="row">Attempt Research calls with the Supervisor ID in both modes<br><small>Supervisor -&gt; Research</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-shared-4">B invoked with A&#39;s conversation ID (agent identity) — PASS</a><br><a href="#check-shared-5">B invoked with A&#39;s conversation ID (call-context identity) — PASS</a></td></tr>
+
+<tr><th scope="row">Inspect later history and run the same-principal control<br><small>Supervisor inspect / operator -&gt; Research</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-shared-6">Later Supervisor invocation observed its hydrated history — PASS</a><br><a href="#check-shared-7">Control: owner uses A&#39;s conversation on B&#39;s endpoint — PASS</a></td></tr>
+
+<tr><th scope="row">Check that the deployed agents did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-shared-8">Agents reused - after — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> PASS records an explicit outcome, including HTTP 404; it does not mean shared history worked.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story3_conversations.Step4</code>; <code>app.services.conversations.shared_turn</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
+
+<details open id="check-shared-1">
+<summary>1. Agents reused - before — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:47:22.123332+00:00</p>
+<h4>Expected</h4><pre>&#34;Identical to the Story 3 Step 1 baseline (versions, identities, toolbox wiring)&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;supervisor-agent&#34;: &#34;16&#34;,
+  &#34;research-agent&#34;: &#34;10&#34;,
+  &#34;data-analysis-agent&#34;: &#34;10&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-shared-2">
+<summary>2. Supervisor conversation created by the client — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:47:33.763803+00:00</p>
+<h4>Expected</h4><pre>&#34;Client creates a conversation on the Supervisor endpoint&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-shared-3">
+<summary>3. Supervisor conversation seeded — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:47:48.675429+00:00</p>
+<h4>Expected</h4><pre>&#34;A completed plain turn in A&#39;s conversation that contains the code word&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;agent&#34;: &#34;supervisor-agent&#34;,
+  &#34;status&#34;: &#34;completed&#34;,
+  &#34;seconds&#34;: 14.91,
+  &#34;statuses_seen&#34;: [
+    &#34;completed&#34;
+  ]
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-shared-4">
+<summary>4. B invoked with A&#39;s conversation ID (agent identity) — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:48:09.932014+00:00</p>
+<h4>Expected</h4><pre>&#34;An explicit outcome: completed, or a 4xx denial from Foundry&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;status&#34;: &#34;sub_agent_failed&#34;,
+  &#34;outcome&#34;: &#34;denied (HTTP 404, not_found)&#34;,
+  &#34;mapping&#34;: null,
+  &#34;listing_before&#34;: &#34;denied (HTTP 404, not_found)&#34;,
+  &#34;listing_after&#34;: &#34;denied (HTTP 404, not_found)&#34;,
+  &#34;failure&#34;: {
+    &#34;stage&#34;: &#34;request&#34;,
+    &#34;http_status&#34;: 404,
+    &#34;code&#34;: &#34;not_found&#34;,
+    &#34;handled_by&#34;: &#34;supervisor-application&#34;,
+    &#34;retried&#34;: false
+  },
+  &#34;b_read&#34;: null,
+  &#34;input_appended&#34;: false,
+  &#34;output_appended&#34;: false
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-shared-5">
+<summary>5. B invoked with A&#39;s conversation ID (call-context identity) — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:48:15.835727+00:00</p>
+<h4>Expected</h4><pre>&#34;An explicit outcome: completed, or a 4xx denial from Foundry&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;status&#34;: &#34;sub_agent_failed&#34;,
+  &#34;outcome&#34;: &#34;denied (HTTP 404, not_found)&#34;,
+  &#34;mapping&#34;: null,
+  &#34;listing_before&#34;: &#34;denied (HTTP 404, not_found)&#34;,
+  &#34;listing_after&#34;: &#34;denied (HTTP 404, not_found)&#34;,
+  &#34;failure&#34;: {
+    &#34;stage&#34;: &#34;request&#34;,
+    &#34;http_status&#34;: 404,
+    &#34;code&#34;: &#34;not_found&#34;,
+    &#34;handled_by&#34;: &#34;supervisor-application&#34;,
+    &#34;retried&#34;: false
+  },
+  &#34;b_read&#34;: null,
+  &#34;input_appended&#34;: false,
+  &#34;output_appended&#34;: false
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-shared-6">
+<summary>6. Later Supervisor invocation observed its hydrated history — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:48:20.362063+00:00</p>
+<h4>Expected</h4><pre>&#34;The Supervisor reports what it hydrated from its own conversation (counts only)&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;sees_b_messages&#34;: false,
+  &#34;history&#34;: {
+    &#34;items&#34;: 6,
+    &#34;user_messages&#34;: 3,
+    &#34;assistant_messages&#34;: 3,
+    &#34;hop_inputs&#34;: 0,
+    &#34;protocol_replies&#34;: 2,
+    &#34;other_assistant&#34;: 1
+  },
+  &#34;before_b&#34;: {
+    &#34;items&#34;: 2,
+    &#34;user_messages&#34;: 1,
+    &#34;assistant_messages&#34;: 1,
+    &#34;hop_inputs&#34;: 0,
+    &#34;protocol_replies&#34;: 0,
+    &#34;other_assistant&#34;: 1
+  }
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-shared-7">
+<summary>7. Control: owner uses A&#39;s conversation on B&#39;s endpoint — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:48:22.875759+00:00</p>
+<h4>Expected</h4><pre>&#34;Explicit outcome recorded; separates cross-endpoint scope from cross-principal ownership&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;agent&#34;: &#34;research-agent&#34;,
+  &#34;status&#34;: &#34;rejected&#34;,
+  &#34;http_status&#34;: 404,
+  &#34;seconds&#34;: 2.51
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-shared-8">
+<summary>8. Agents reused - after — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:48:23.431723+00:00</p>
+<h4>Expected</h4><pre>&#34;Same three agents, versions, identities, and toolbox wiring as at the start&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>&#34;No changes&#34;</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+
+<h4>Original evidence source hashes</h4><ul><li class="source">manifest.json · SHA256 cd871aa0effe7302974cfc9ec1ad81a8488e73f166e77ba926f7a52bd9350fc4</li><li class="source">results.jsonl · SHA256 8e91a054a6f946aa9cfc4084777f7790366873a12542da99fe411f49153b9544</li><li class="source">events.jsonl · SHA256 8e91a054a6f946aa9cfc4084777f7790366873a12542da99fe411f49153b9544</li></ul>
+</article>
+
+<article id="run-comparison">
+<h3>Step 5 - Separate result/placeholder versus shared ID</h3><p><strong>Scope:</strong> Same 16/10/10 baseline. Separate result and placeholder delivered as requested. Both shared variants returned 404 and delivered nothing; comparison Met is not shared-history success.<br><strong>Declared version:</strong> 16 · <strong>Kind:</strong> Recorded evidence</p>
+<p><strong>Run ID:</strong> {reference-6}<br><strong>Completion evidence:</strong> Recorded checks, no finish-event recorded.<br><strong>Evidence span:</strong> 2026-10-28T17:48:37.095689+00:00 — 2026-10-28T17:51:12.186469+00:00 (recorded evidence timestamps, not execution duration)</p>
+
+<pre>{
+  &#34;scenario&#34;: &#34;story-3-step-5&#34;,
+  &#34;mode&#34;: &#34;hosted&#34;,
+  &#34;started_at&#34;: &#34;2026-10-28T17:48:32.736500+00:00&#34;,
+  &#34;python&#34;: &#34;3.14.8&#34;,
+  &#34;project_version&#34;: &#34;0.1.0&#34;,
+  &#34;maf_version&#34;: &#34;1.19.0&#34;,
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;step&#34;: &#34;step-05-shared-vs-separate&#34;
+}</pre>
+<p>Unique recorded check counts: {
+  &#34;PASS&#34;: 6
+}. Additional non-mirrored events: 0.</p>
+
+<p><a href="evidence/comparison.json">Download sanitized binding evidence (JSON)</a></p>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story 3 Step 5: Compare result, placeholder and shared history</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 788" role="img" aria-labelledby="flow-comparison-title flow-comparison-description" style="width:100%;height:auto;display:block"><title id="flow-comparison-title">Story 3 Step 5: Compare result, placeholder and shared history</title><desc id="flow-comparison-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-comparison-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-comparison-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-comparison-arrow)" /><path d="M460 462 V501" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-comparison-arrow)" /><path d="M460 602 V641" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-comparison-arrow)" /><g id="flow-comparison-baseline"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Verify the recorded deployment baseline</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-comparison-prerequisite"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Require Story 3 support and its saved baseline</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="304" fill="#516477" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: NOT RECORDED</text></g><g id="flow-comparison-separate"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Compare explicit result and placeholder delivery</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: Supervisor -&gt; mapped Research child / later inspect</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-comparison-shared"><rect x="70" y="508" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="537" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">4. Classify shared-ID outcomes in both identity modes</text><text x="88" y="560" fill="#516477" font-size="15" font-family="system-ui">Actor: Supervisor -&gt; Research / later inspect</text><text x="88" y="584" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 2)</text></g><g id="flow-comparison-unchanged"><rect x="70" y="648" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="677" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">5. Check that the deployed agents did not change</text><text x="88" y="700" fill="#516477" font-size="15" font-family="system-ui">Actor: Validation runner</text><text x="88" y="724" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Verify the recorded deployment baseline<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-comparison-1">Agents reused - before — PASS</a></td></tr>
+
+<tr><th scope="row">Require Story 3 support and its saved baseline<br><small>Validation runner</small></th>
+<td>NOT RECORDED</td>
+<td>No exact recorded assertion mapped.</td></tr>
+
+<tr><th scope="row">Compare explicit result and placeholder delivery<br><small>Supervisor -&gt; mapped Research child / later inspect</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-comparison-2">Variant separate / result / agent — PASS</a><br><a href="#check-comparison-3">Variant separate / placeholder / agent — PASS</a></td></tr>
+
+<tr><th scope="row">Classify shared-ID outcomes in both identity modes<br><small>Supervisor -&gt; Research / later inspect</small></th>
+<td>PASS<br>PASS: 2</td>
+<td><a href="#check-comparison-4">Variant shared / placeholder / agent — PASS</a><br><a href="#check-comparison-5">Variant shared / placeholder / call-context — PASS</a></td></tr>
+
+<tr><th scope="row">Check that the deployed agents did not change<br><small>Validation runner</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-comparison-6">Agents reused - after — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> Classification uses recorded results and history counters; shared-call rejection is not successful delivery.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story3_conversations.Step5</code>; <code>scripts.run_scenario.story3_conversations.classify_received</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
+
+<details open id="check-comparison-1">
+<summary>1. Agents reused - before — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:48:37.095689+00:00</p>
+<h4>Expected</h4><pre>&#34;Identical to the Story 3 Step 1 baseline (versions, identities, toolbox wiring)&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;supervisor-agent&#34;: &#34;16&#34;,
+  &#34;research-agent&#34;: &#34;10&#34;,
+  &#34;data-analysis-agent&#34;: &#34;10&#34;
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-comparison-2">
+<summary>2. Variant separate / result / agent — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:49:27.178042+00:00</p>
+<h4>Expected</h4><pre>&#34;Supervisor ends up with the sub-agent&#39;s result; sub-agent history stays in its own conversation&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;received&#34;: &#34;result&#34;,
+  &#34;outcome&#34;: &#34;allowed&#34;,
+  &#34;history&#34;: {
+    &#34;items&#34;: 2,
+    &#34;user_messages&#34;: 1,
+    &#34;assistant_messages&#34;: 1,
+    &#34;hop_inputs&#34;: 0,
+    &#34;protocol_replies&#34;: 1,
+    &#34;other_assistant&#34;: 0
+  }
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-comparison-3">
+<summary>3. Variant separate / placeholder / agent — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:50:01.966332+00:00</p>
+<h4>Expected</h4><pre>&#34;Supervisor ends up with the sub-agent&#39;s placeholder; sub-agent history stays in its own conversation&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;received&#34;: &#34;placeholder&#34;,
+  &#34;outcome&#34;: &#34;allowed&#34;,
+  &#34;history&#34;: {
+    &#34;items&#34;: 2,
+    &#34;user_messages&#34;: 1,
+    &#34;assistant_messages&#34;: 1,
+    &#34;hop_inputs&#34;: 0,
+    &#34;protocol_replies&#34;: 1,
+    &#34;other_assistant&#34;: 0
+  }
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-comparison-4">
+<summary>4. Variant shared / placeholder / agent — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:50:35.785715+00:00</p>
+<h4>Expected</h4><pre>&#34;Explicit outcome recorded and classified&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;received&#34;: &#34;nothing (sub-agent call did not complete)&#34;,
+  &#34;outcome&#34;: &#34;denied (HTTP 404, not_found)&#34;,
+  &#34;history&#34;: {
+    &#34;items&#34;: 2,
+    &#34;user_messages&#34;: 1,
+    &#34;assistant_messages&#34;: 1,
+    &#34;hop_inputs&#34;: 0,
+    &#34;protocol_replies&#34;: 1,
+    &#34;other_assistant&#34;: 0
+  }
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-comparison-5">
+<summary>5. Variant shared / placeholder / call-context — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:51:10.717478+00:00</p>
+<h4>Expected</h4><pre>&#34;Explicit outcome recorded and classified&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>{
+  &#34;received&#34;: &#34;nothing (sub-agent call did not complete)&#34;,
+  &#34;outcome&#34;: &#34;denied (HTTP 404, not_found)&#34;,
+  &#34;history&#34;: {
+    &#34;items&#34;: 2,
+    &#34;user_messages&#34;: 1,
+    &#34;assistant_messages&#34;: 1,
+    &#34;hop_inputs&#34;: 0,
+    &#34;protocol_replies&#34;: 1,
+    &#34;other_assistant&#34;: 0
+  }
+}</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+<details open id="check-comparison-6">
+<summary>6. Agents reused - after — <span class="badge PASS">PASS</span></summary>
+<p><strong>Recorded timestamp:</strong> 2026-10-28T17:51:12.186469+00:00</p>
+<h4>Expected</h4><pre>&#34;Same three agents, versions, identities, and toolbox wiring as at the start&#34;</pre>
+<h4>Observed — sanitized allowlist</h4><pre>&#34;No changes&#34;</pre>
+<h4>Implementation explanation — not additional execution evidence</h4><pre>{
+  &#34;execution_type&#34;: &#34;local_assertion&#34;,
+  &#34;purpose&#34;: &#34;Compare the recorded evidence with this check&#39;s expected condition.&#34;,
+  &#34;api_family&#34;: &#34;Local evidence verification&#34;,
+  &#34;method&#34;: &#34;Not applicable&#34;,
+  &#34;route_template&#34;: &#34;Not applicable&#34;,
+  &#34;{reference-1}&#34;: &#34;No network request for this local comparison.&#34;,
+  &#34;authentication_context&#34;: &#34;No credential needed for the local comparison.&#34;,
+  &#34;prompt_applicability&#34;: &#34;Not applicable: this check does not invoke a model.&#34;,
+  &#34;prompt&#34;: &#34;No prompt is sent by this operation.&#34;,
+  &#34;controls&#34;: &#34;Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.&#34;,
+  &#34;pass_meaning&#34;: &#34;Only this recorded comparison satisfied its expected condition.&#34;,
+  &#34;limitations&#34;: &#34;Not proof of VM isolation, privileged-user isolation, or another API&#39;s authorization.&#34;,
+  &#34;evidence_basis&#34;: &#34;Implementation explanation for a legacy check, not a captured request or reconstructed outcome.&#34;
+}</pre>
+</details>
+
+
+<h4>Original evidence source hashes</h4><ul><li class="source">manifest.json · SHA256 5bd0547387d0db63b99a7109c11e7a80f155cecb6efe10ce720246c921741163</li><li class="source">results.jsonl · SHA256 168c235af427b39e6215ee68615b8038f6deface217fc376aefd7751f01f0c03</li><li class="source">events.jsonl · SHA256 168c235af427b39e6215ee68615b8038f6deface217fc376aefd7751f01f0c03</li></ul>
+</article>
+
+</section>
+<section id="provenance">
+<h2>Provenance and downloads</h2>
+<p>Reusable standalone renderer and shared report assets were reused from local branch <code>feature/native-code-interpreter</code>, commit <code>e139a6917c86fda32b8570545e8ec54eca04ccf4</code>. This bundle adapter uses the same strict, autoescaped Jinja2 rendering and offline layout principles, not Consumer-specific acceptance assumptions.</p>
+<p class="source">Bundle source fingerprint: 74920ccf10d86230a466c2a92d0c5e920fd34ac6cc5fc889cfbe9d6e77392dfd</p>
+<p><a href="sanitized-evidence.json">Download complete sanitized evidence bundle (JSON)</a></p>
+<p>No raw evidence, CSV payloads, model source code, credentials, endpoints, private paths, identity fingerprints, external assets, JavaScript, or live calls are exported. Only the explicitly approved synthetic PNG original may be included with its exact hash. Source hashes are provenance, not proof of unrecorded execution. Native files and charts are not fetched or recreated.</p>
+</section>
+</main>
+</body>
+</html>

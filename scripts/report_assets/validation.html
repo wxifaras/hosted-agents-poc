@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>{{ title }}</title>
+<style>
+:root { color-scheme:light; --ink:#19314b; --muted:#516477; --line:#d5dfeb; --paper:#fff; --back:#edf2f8; }
+* { box-sizing:border-box; } body { margin:0; color:var(--ink); background:var(--back); font:16px/1.55 system-ui,sans-serif; }
+header { background:#102d4d; color:#fff; padding:34px max(5vw,20px); } h1 { margin:0 0 8px; font-size:2rem; }
+header p { margin:6px 0; } main { max-width:1250px; margin:24px auto; padding:0 20px 40px; }
+nav { display:flex; flex-wrap:wrap; gap:14px; margin-bottom:22px; } a { color:#14548a; text-underline-offset:3px; }
+section { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:24px; margin-bottom:22px; }
+h2 { margin:0 0 14px; font-size:1.45rem; } h3 { margin:12px 0 8px; } .muted { color:var(--muted); }
+.badge { display:inline-block; border-radius:5px; padding:3px 10px; font-weight:750; font-size:.86rem; background:#e2e9f2; color:#233b54; }
+.PASS { background:#dff1e4; color:#14552d; } .FAIL { background:#f9dfdf; color:#8c1616; }
+.BLOCKED,.INCOMPLETE { background:#fff0ce; color:#704600; } .SKIP { background:#e6e9ed; color:#374553; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:16px 0; }
+.card { border:1px solid var(--line); border-radius:8px; padding:14px; } .card strong { display:block; font-size:1.6rem; }
+details { border:1px solid var(--line); border-radius:8px; padding:12px 16px; margin:12px 0; }
+summary { cursor:pointer; font-weight:650; } summary .badge { margin-right:8px; } .label { font-weight:700; }
+pre { white-space:pre-wrap; overflow-wrap:anywhere; background:#f3f6fa; border:1px solid #e1e8f0; border-radius:6px; padding:14px; font:13px/1.55 ui-monospace,monospace; }
+.table { overflow-x:auto; } table { border-collapse:collapse; width:100%; } th,td { border-bottom:1px solid var(--line); padding:10px; text-align:left; vertical-align:top; }
+th { background:#f3f6fa; } img { max-width:100%; height:auto; } .diagram { width:100%; border:1px solid var(--line); }
+article[id], section[id], details[id] { scroll-margin-top:16px; }
+td, li, code { overflow-wrap:anywhere; } .appendix-entry { border-top:2px solid var(--line); padding:22px 0; }
+.warning { border-left:5px solid #c38912; padding:8px 15px; background:#fff7e7; }
+footer { color:var(--muted); padding:15px; font-size:.9rem; } .file { border-top:1px solid var(--line); padding:16px 0; }
+@media print { body { background:#fff; } header { background:#fff; color:#111; } section { break-inside:avoid; } nav { display:none; } }
+</style>
+</head>
+<body>
+<header>
+<h1>{{ title }}</h1>
+<p><span class="badge {{ verdict }}">{{ verdict }}</span> Evidence-based report, not a new test execution</p>
+<p>Generated {{ generated_at }} &middot; recorded run duration: {{ elapsed }}</p>
+</header>
+<main>
+<nav aria-label="Report sections">
+<a href="#overview">Overview</a>{% if diagrams %}<a href="#architecture">Architecture</a>{% endif %}<a href="#checks">Checks</a>
+{% if api_groups %}<a href="#api-catalog">API / SDK catalog</a>{% endif %}
+<a href="#timeline">Execution timeline / HTTP</a><a href="#files">Generated files</a><a href="#downloads">Downloads</a>
+<a href="#technical-appendix">Technical appendix</a>
+</nav>
+<section id="overview">
+<h2>Run overview and evidence limits</h2>
+{% if consumer %}
+<h3>Consumer-facing isolation acceptance: {{ acceptance }}</h3>
+<p><strong>{{ mandatory_completed }} / {{ mandatory_total }}</strong> mandatory acceptance checks have recorded
+assertions. COMPLETE is scoped to the recorded consumer-facing analysis, original JSON/PNG delivery and
+authorization cases. It is not production certification or universal native API isolation.
+This explicit acceptance policy supersedes the earlier policy that made native bypass mandatory;
+no unexecuted native test is relabeled PASS.</p>
+<p><strong>Optional Advanced native bypass:</strong> {{ advanced_acceptance }}.
+Probe-key setup is needed only for that optional harness, never for ordinary consumer-facing analysis.</p>
+<p>Identity convention: <strong>user1</strong> is the first verified input UPN; <strong>user2</strong> is the second.
+These aliases remain fixed in both probe directions. <strong>privileged-control</strong> is a separately approved
+harness credential, not a Consumer identity. Unrecorded legacy ownership is labeled unspecified, not guessed.</p>
+<p>Mandatory live evidence is separate from platform assurances and exclusions. Microsoft's
+<a href="https://learn.microsoft.com/azure/foundry/agents/how-to/tools/code-interpreter#sandboxed-execution-environment" rel="noopener noreferrer">managed sandbox / Hyper-V documentation</a>
+is a referenced platform statement, not an application test PASS. Reference reviewed 2026-10-26.
+Privileged-project-user isolation and chart aesthetics are outside Consumer isolation acceptance;
+PNG format, numerical correctness, original-byte integrity and authorization remain mandatory.</p>
+<p>Read every PASS as scoped to the recorded assertion and configuration. Hosted Session Files authorization is not a universal native-container API isolation claim.</p>
+{% else %}
+<h3>Recorded evidence only</h3>
+<p>Only assertions saved in this run are represented. No story-specific acceptance policy, identity propagation, architecture, tool execution, or additional coverage is inferred. Missing completion and timing remain explicitly unrecorded.</p>
+{% endif %}
+<div class="cards">
+{% for status in ['PASS','FAIL','BLOCKED','SKIP'] %}
+<div class="card"><span class="badge {{ status }}">{{ status }}</span><strong>{{ counts.get(status,0) }}</strong>recorded assertions</div>
+{% endfor %}
+<div class="card"><span class="badge">NOT RECORDED</span><strong>{{ missing|length }}</strong>core coverage gaps</div>
+</div>
+{% for warning in warnings %}<p class="warning">{{ warning }}</p>{% endfor %}
+<details><summary>Manifest (sanitized)</summary><pre>{{ manifest }}</pre></details>
+<details id="completion-counters"><summary>Completion / execution counters (sanitized)</summary>
+<p>Each field links to its purpose, counting rules, numbered execution flow, SDK methods where relevant,
+and implementation reference. Missing fields are not inferred from a selected suite or a passing legacy run.</p>
+<div class="table"><table><thead><tr><th>Field / explanation</th><th>Recorded value</th></tr></thead><tbody>
+{% for field in counter_appendix %}<tr><td><a href="#{{ field.identifier }}">{{ field.name }}</a></td><td><pre>{{ field.value }}</pre></td></tr>{% endfor %}
+</tbody></table></div>
+<details><summary>Original sanitized completion JSON</summary><pre>{{ conclusion }}</pre></details>
+</details>
+<div class="table"><table><thead><tr><th>Boundary</th><th>Evidence classification / result</th><th>Interpretation</th></tr></thead><tbody>
+{% for entry in boundary_appendix %}<tr><td><a href="#{{ entry.identifier }}">{{ entry.name }}</a></td><td>{{ entry.status }}</td><td>{{ entry.evidence }}</td></tr>{% endfor %}
+</tbody></table></div>
+</section>
+{% if diagrams %}<section id="architecture">
+<h2>Architecture and trust boundaries</h2>
+<p class="warning">These are reviewed <strong>architecture-under-test</strong> views, not a live topology inventory or proof that every depicted boundary passed. Compare the diagrams with the actual checks below.</p>
+{% for diagram in diagrams %}<details open><summary>{{ diagram.name }}</summary>
+<img class="diagram" src="{{ diagram.url }}" alt="{{ diagram.name }}">
+</details>{% endfor %}
+<p>The backend credential plus trusted call context is not end-user OAuth on-behalf-of authentication. Editable diagram data is included in Downloads.</p>
+</section>
+{% endif %}
+{% if api_groups %}
+<section id="api-catalog">
+<h2>API and SDK code-call reference</h2>
+<p class="warning"><strong>Implementation reference, not recorded execution.</strong>
+This catalog explains the reviewed consumer and native-bypass code paths. Inclusion here does not mean a
+request ran or passed in this saved run. Exact HTTP outcomes and explicit linkage remain under each check
+and in the execution timeline. Code-call locations refer to the current implementation, not an attestation
+of the deployed source for an older run.</p>
+<p>Use your browser's Find (Ctrl+F) to search SDK methods, API names or operation titles.
+No full code snippets or raw resource identifiers are included.</p>
+{% for group in api_groups %}
+<h3>{{ group.name }}</h3>
+{% for api in group.entries %}
+<article id="api-{{ api.id }}" class="file">
+<h3>{{ api.title }}</h3>
+<div class="table"><table><tbody>
+<tr><th>Python SDK method</th><td><code>{{ api.sdk }}</code></td></tr>
+<tr><th>HTTP operation / sanitized route</th><td>{{ api.method }} {{ api.route }}</td></tr>
+<tr><th>Who calls it</th><td>{{ api.caller }}</td></tr>
+<tr><th>Purpose</th><td>{{ api.purpose }}</td></tr>
+<tr><th>How the code calls it</th><td>{{ api.explanation }}</td></tr>
+<tr><th>Related check types</th><td>{{ api.related }}</td></tr>
+<tr><th>Implementation location</th><td>{{ api.source }}</td></tr>
+</tbody></table></div>
+</article>
+{% endfor %}
+{% endfor %}
+</section>
+{% endif %}
+<section id="checks">
+<h2>Recorded checks: detailed intent, expected and observed results</h2>
+{% include "task_flow.html" %}
+{% for case in cases %}
+<details id="check-{{ case.id }}">
+<summary><span class="badge {{ case.status }}">{{ case.status }}</span>{{ case.ordinal }}. {{ case.name }}</summary>
+<p class="label">Detailed step</p><p>{{ case.detail }}</p>
+<p><strong>Actor:</strong> {{ case.actor }} &middot; <strong>Resource user:</strong> {{ case.resource_owner }}</p>
+{% if case.api_references %}
+<h3>Related SDK / code-call reference</h3>
+<p class="muted">These methods explain the request or supporting upstream operations. A local assertion does
+not itself call every linked API; only separately recorded evidence establishes an actual call.</p>
+{% for api in case.api_references %}
+<p><a href="#api-{{ api.id }}">{{ api.title }}</a> &middot; <code>{{ api.sdk }}</code><br>
+{{ api.explanation }}</p>
+{% endfor %}
+{% else %}
+<p class="muted">No workflow API reference applies to this local/metadata check, or its exact call mapping
+was not established. Deployment and RBAC administrative APIs are outside this catalog's scope.</p>
+{% endif %}
+<h3>What actually happens in this operation</h3>
+<p class="muted">{{ case.execution.evidence_basis }}</p>
+<div class="table"><table><tbody>
+<tr><th>Execution type</th><td>{{ case.execution.execution_type }}</td></tr>
+<tr><th>Why we test this</th><td>{{ case.execution.purpose }}</td></tr>
+<tr><th>API family</th><td>{{ case.execution.api_family }}</td></tr>
+<tr><th>Credential context</th><td>{{ case.execution.authentication_context }}</td></tr>
+<tr><th>Method / safe route</th><td>{{ case.execution.method }} {{ case.execution.route_template }}</td></tr>
+<tr><th>Prompt applicability</th><td>{{ case.execution.prompt_applicability }}</td></tr>
+<tr><th>Positive controls</th><td>{{ case.execution.controls }}</td></tr>
+<tr><th>What a passing check means</th><td>{{ case.execution.pass_meaning }}</td></tr>
+<tr><th>What this does not prove</th><td>{{ case.execution.limitations }}</td></tr>
+</tbody></table></div>
+<p class="label">Request / command template (opaque references withheld; not a reconstructed wire payload)</p>
+<pre>{{ case.execution.request_template }}</pre>
+<p class="label">Prompt, if applicable</p><pre>{{ case.execution.prompt }}</pre>
+<h3>Before → attempt → after evidence</h3>
+<p class="muted">{{ case.correlation_notice }}</p>
+{% for phase in case.phase_evidence %}
+<details><summary>{{ phase.phase }} — {{ phase.records|length }} explicitly linked records</summary>
+{% for record in phase.records %}<pre>{{ record }}</pre>{% else %}<p>Not recorded for this check. No outcome or HTTP status is inferred.</p>{% endfor %}
+</details>{% endfor %}
+<p class="label">Expected</p><p>{{ case.expected }}</p>
+<p class="label">Observed evidence</p><pre>{{ case.observed }}</pre>
+<p class="muted">Assertion timestamp: {{ case.timestamp }}<br>Duration: {{ case.duration }}<br>Stable check key: {{ case.id }}</p>
+</details>
+{% endfor %}
+{% if missing %}
+<h3>Planned core checks with no recorded assertion</h3>
+<p>NOT EXECUTED / NOT RECORDED is not PASS. Legacy naming or an early stop can leave these gaps; the exporter does not manufacture outcomes.</p>
+{% for key,name in missing %}<p><span class="badge SKIP">NOT RECORDED</span> {{ name }}</p>{% endfor %}
+{% endif %}
+{% if mandatory_missing %}
+<h3>Required consumer-facing checks not recorded in this run</h3>
+{% for key,name in mandatory_missing %}<p><span class="badge SKIP">NOT RECORDED</span> {{ name }}</p>{% endfor %}
+{% endif %}
+</section>
+<section id="timeline">
+<h2>Chronological progress and HTTP evidence</h2>
+<p>Commands, model prompt descriptions, HTTP templates/statuses, and assertions appear in their recorded order. An event's position alone does not prove which request caused it. Only explicit actor/operation labels establish correlation.</p>
+{% for event in events %}
+<details><summary>{{ event.timestamp }} &middot; {{ event.kind }} &middot; {{ event.step }}</summary><pre>{{ event.detail }}</pre></details>
+{% endfor %}
+{% if not events %}<p>No execution events were recorded.</p>{% endif %}
+</section>
+<section id="files">
+<h2>Original generated-file delivery and retained attachments</h2>
+<p>For this consumer proof, user1 and user2 each upload input.xlsx with distinct synthetic markers and totals.
+The model generates Python in managed Code Interpreter to produce result.json (total and marker) and chart.png
+(bar chart) for that user's workflow. The backend retrieves and stages the original bytes; it does not regenerate them locally.</p>
+{% for file in artifacts %}
+<article class="file">
+<h3>{{ file.name }}</h3><p>{{ file.notice }}. Original size: {{ file.length }} bytes.<br>Original SHA-256: <code>{{ file.sha256 }}</code></p>
+{% if file.media == 'image/png' %}<img src="{{ file.url }}" alt="Retained synthetic Code Interpreter chart for {{ file.actor }}. Visual quality is not a test verdict.">
+{% else %}<pre>{{ file.text }}</pre>{% endif %}
+<p><a href="{{ file.url }}" download="{{ file.name }}">Download {{ file.name }}</a></p>
+</article>
+{% else %}<p>No verified original-output attachments were retained. The report does not fetch missing files, recreate charts, or rerun analysis. Hash/length assertions can still be inspected under Checks.</p>{% endfor %}
+</section>
+<section id="downloads">
+<h2>Portable evidence</h2>
+<p>This HTML is self-contained: no scripts, CDNs, Node.js, external fonts, or network access. The generated sibling report.zip contains this HTML, sanitized evidence, editable diagram data, and SVG views. Original run evidence is preserved outside that archive.</p>
+{% for download in downloads %}<p><a href="{{ download.url }}" download="{{ download.name }}">{{ download.name }}</a></p>{% endfor %}
+</section>
+<section id="technical-appendix">
+<h2>Technical appendix: execution design and evidence interpretation</h2>
+<p class="warning"><strong>Implementation reference, not additional recorded execution.</strong>
+Numbered flows explain the reviewed current code or a separately proposed validation approach. They do
+not attest that this exact source/SDK version was deployed for an older run. Recorded values and check
+outcomes remain separate. No optional, excluded or undocumented test becomes PASS through this appendix.</p>
+{% if consumer %}<p>SDK families: <strong>azure-ai-projects</strong> (AIProjectClient and Hosted Session Files),
+<strong>openai</strong> (AsyncOpenAI Responses, Files and Containers), <strong>azure-identity</strong>
+(authenticated clients), and Python's <strong>asyncio</strong> (deadlines). Backend managed credentials
+and trusted platform call context are not an end-user OAuth on-behalf-of token.
+For versions actually recorded by the deployment, inspect the runtime/source checks under
+<a href="#checks">Checks</a> and the <a href="#timeline">timeline</a>; local installed versions are not substituted.
+{% if api_groups %}SDK method names below link to the <a href="#api-catalog">API / SDK catalog</a> when applicable.{% endif %}
+References are file/symbol names, not executable snippets or external file dependencies.</p>{% else %}
+<p>References explain recorded local fields only; no SDK calls or story-specific execution flow are inferred.</p>{% endif %}
+<nav aria-label="Appendix contents">
+<a href="#appendix-boundaries">Boundary explanations</a><a href="#appendix-counters">Completion field explanations</a>
+{% for diagram in appendix_diagrams %}<a href="#{{ diagram.id }}">{{ diagram.name }}</a>{% endfor %}
+</nav>
+{% for diagram in appendix_diagrams %}
+<article id="{{ diagram.id }}" class="appendix-entry">
+<h3>UML-style sequence: {{ diagram.name }}</h3>
+<p>Architecture / validation-design reference, not proof of executed requests. The optional native
+sequence requires separate approval and key/control prerequisites; it is not part of ordinary consumer use.</p>
+<img class="diagram" src="{{ diagram.url }}" alt="{{ diagram.name }} — reference design, not recorded execution">
+<p><a href="#appendix-boundaries">Related boundary explanations</a> &middot;
+<a href="#appendix-counters">Related counter explanations</a></p>
+</article>
+{% endfor %}
+<h3 id="appendix-boundaries">Every boundary: purpose, flow and evidence</h3>
+{% for entry in boundary_appendix %}
+<article id="{{ entry.identifier }}" class="appendix-entry">
+<h3>{{ entry.name }}</h3>
+<p><strong>Evidence classification / result:</strong> {{ entry.status }}<br>{{ entry.evidence }}</p>
+<p><strong>Purpose:</strong> {{ entry.reference.purpose }}</p>
+<h4>Numbered code-call / validation flow (reference)</h4>
+<ol>{% for step in entry.reference.flow %}<li>{{ step }}</li>{% endfor %}</ol>
+<h4>SDK methods and call explanations</h4>
+{% for api in entry.apis %}<p><a href="#api-{{ api.id }}">{{ api.title }}</a>:
+<code>{{ api.sdk }}</code><br>{{ api.caller }}<br>{{ api.explanation }}</p>
+{% else %}<p>No application SDK method proves this boundary. See its documented or local review approach above.</p>{% endfor %}
+<p><strong>Implementation file / symbols (current source):</strong></p>
+<ul>{% for source in entry.reference.implementation %}<li>{{ source }}</li>{% endfor %}</ul>
+<p><strong>Prerequisites / separate approval:</strong> {{ entry.reference.prerequisites }}</p>
+<p><strong>Interpretation / limitations:</strong> {{ entry.reference.limitations }}</p>
+{% if entry.status == 'DOCUMENTED' %}<p><a href="https://learn.microsoft.com/azure/foundry/agents/how-to/tools/code-interpreter#sandboxed-execution-environment" rel="noopener noreferrer">Microsoft managed sandbox / Hyper-V reference</a> (reviewed 2026-10-26).</p>{% endif %}
+{% if entry.checks %}
+<details><summary>Related recorded checks (supporting calls may be shared)</summary><ul>
+{% for check in entry.checks %}<li><a href="#check-{{ check.identifier }}">{{ check.name }}</a> — {{ check.status }}</li>{% endfor %}
+</ul></details>
+{% else %}<p>No related application assertion is linked here; this does not imply execution or PASS.</p>{% endif %}
+<p>{% if appendix_diagrams %}<a href="#{{ entry.reference.diagram }}">Related sequence view</a> &middot; {% endif %}
+<a href="#overview">Back to boundary overview</a> &middot; <a href="#technical-appendix">Appendix contents</a></p>
+</article>
+{% endfor %}
+<h3 id="appendix-counters">Every completion field: meaning and execution rules</h3>
+{% for field in counter_appendix %}
+<article id="{{ field.identifier }}" class="appendix-entry">
+<h3>{{ field.name }}</h3>
+<p><strong>{{ 'Recorded value (sanitized)' if field.recorded else 'NOT RECORDED — no value inferred' }}</strong></p>
+<pre>{{ field.value }}</pre>
+<p><strong>Purpose:</strong> {{ field.reference.purpose }}</p>
+<ol>{% for step in field.reference.flow %}<li>{{ step }}</li>{% endfor %}</ol>
+<p><strong>Implementation file / symbols (current source):</strong> {{ field.reference.implementation }}</p>
+{% for api in field.apis %}<p><a href="#api-{{ api.id }}">{{ api.title }}</a>:
+<code>{{ api.sdk }}</code><br>{{ api.explanation }}</p>
+{% else %}<p>This is local orchestration / reporting metadata, not itself an Azure SDK operation.</p>{% endfor %}
+<p><strong>Interpretation / limitations:</strong> {{ field.reference.interpretation }}</p>
+<p>{% if appendix_diagrams %}<a href="#{{ field.reference.diagram }}">Related sequence view</a> &middot; {% endif %}
+<a href="#completion-counters">Back to completion / execution counters</a> &middot;
+<a href="#technical-appendix">Appendix contents</a></p>
+</article>
+{% endfor %}
+</section>
+<footer>Report generation success is separate from validation success. Sensitive tokens/identifiers are redacted before rendering; only share approved synthetic evidence through approved channels.</footer>
+</main>
+</body>
+</html>

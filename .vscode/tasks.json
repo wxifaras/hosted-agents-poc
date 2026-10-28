@@ -103,6 +103,15 @@
       "problemMatcher": []
     },
     {
+      "label": "Access: Preview isolated user Consumer grants",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.common.auth_profiles", "--users", "${input:authProfileUsers}", "--environment", "${input:infraEnvironment}", "--rbac", "consumer"],
+      "detail": "Read-only plan for the selected test users' project-scoped Foundry Agent Consumer grants. Reuses covering grants. No role writes, sign-in, profile creation, deployment, or agent calls. Does not certify absence of other permissions.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
       "label": "Access: Create isolated user auth profiles",
       "type": "process",
       "command": "uv",
@@ -198,8 +207,8 @@
       "label": "Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent",
       "type": "process",
       "command": "uv",
-      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "1", "--environment", "${input:infraEnvironment}", "--mode", "${input:story1Step1Mode}"],
-      "detail": "Reuses the existing agents. verify = read-only checks and a paid sandbox proof. enable-if-missing = once, create the Story 1 toolbox and move only the existing data-analysis-agent to a Code Interpreter version (never creates agents; Supervisor/Research untouched). Writes a Markdown report.",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_native", "--execution", "${input:story1Execution}", "--step", "1", "--environment", "${input:infraEnvironment}"],
+      "detail": "Native-only readiness on the existing Data Analysis agent. Preview is local; run creates one bound session and one paid analysis, validates original outputs, and saves a separate native baseline. Never deploys, grants roles, creates an agent, or creates a toolbox.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -207,8 +216,8 @@
       "label": "Agents: Story 1 - 2 Analyze data and deliver outputs",
       "type": "process",
       "command": "uv",
-      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "2", "--environment", "${input:infraEnvironment}"],
-      "detail": "Read-only reuse of the Step 1 agents and toolbox. Paid: one Data Analysis request (model-written filter/group/summarize/chart on 1k rows) validated against a local oracle, downloads the CSVs and chart, and records the existing Supervisor POC_WORKFLOW path, including the files forwarded by container ID through the Supervisor when that path completes. Writes a report under step-02-analysis-and-outputs\\. Requires a Step 1 baseline.",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_native", "--execution", "${input:story1Execution}", "--step", "2", "--environment", "${input:infraEnvironment}"],
+      "detail": "Native model-written analysis of seeded 1k-row CSV; independently checks rows/cells/totals and downloads original CSV/PNG session files. Preview is local; run makes one paid analysis. Chart meaning requires an offline hash-bound human review, not another inference. Requires native Step 1.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -216,8 +225,8 @@
       "label": "Agents: Story 1 - 3 Evaluate dataset sizes",
       "type": "process",
       "command": "uv",
-      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "3", "--environment", "${input:infraEnvironment}"],
-      "detail": "Read-only reuse of the Step 1 agents and toolbox. Paid: one sequential hosted request per size (1k/10k/100k rows, 300 s client timeout, no retries); stops escalating at the first platform failure. Writes a report under step-03-dataset-sizes\\ with sandbox measurements and a scoped viability verdict. Requires a Step 1 baseline.",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_native", "--execution", "${input:story1Execution}", "--profile", "${input:story1CapacityProfile}", "--step", "3", "--environment", "${input:infraEnvironment}"],
+      "detail": "Native finite capacity ladder: baseline 1k/10k/100k or explicitly enabled pressure 250k/500k/1M rows. One analysis per size, no retries, stop at first failure/unavailable memory metric or 75% of observed interpreter limit. Preview is local; run is paid. No toolbox mutations.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -225,8 +234,8 @@
       "label": "Agents: Story 1 - 4 Assess sandbox boundaries",
       "type": "process",
       "command": "uv",
-      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "4", "--environment", "${input:infraEnvironment}", "--options-toolbox", "${input:story1OptionsToolbox}", "--idle-wait", "${input:story1IdleWait}"],
-      "detail": "Reuses the Step 1 agents and toolbox without changing them. Paid: benign direct sandbox probes (identity, filesystem, network, 90 s limit, per-call options), one hosted confirmation, and optionally a temporary probe-only toolbox that is deleted. Deletes only its own probe containers. Writes a report under step-04-sandbox-boundaries\\.",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_native", "--execution", "${input:story1Execution}", "--users", "${input:authProfileUsers}", "--step", "4", "--environment", "${input:infraEnvironment}"],
+      "detail": "Native application isolation with two real existing user profiles: own analysis/original downloads, foreign workflow/session-file denial, and clean-session ownership checks. Preview is local; run makes two paid analyses. No login, role changes, native-file confidentiality claim, or container deletion.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -234,8 +243,8 @@
       "label": "Agents: Story 1 - 5 Assess state continuity",
       "type": "process",
       "command": "uv",
-      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_data_analysis", "--step", "5", "--environment", "${input:infraEnvironment}"],
-      "detail": "Reuses the Step 1 agents and toolbox without changing them. Paid: four hosted requests across three conversations, deletes one sandbox container to test recreation, and writes/reads/deletes one synthetic checkpoint in the existing Blob container. Writes a report under step-05-state-continuity\\.",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_native", "--execution", "${input:story1Execution}", "--hosted-idle", "${input:story1HostedIdle}", "--step", "5", "--environment", "${input:infraEnvironment}"],
+      "detail": "Step 5 selector: skip = Blob reconstruction (two analyses); observe = Blob then Hosted; only = zero-analysis Hosted idle/resume probe. Hosted proof checks platform active/idle/stopped metadata before resume, then process/HOME continuity. Preview is local. No deletion, forced stop, retries, or redesign.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -333,8 +342,8 @@
       "label": "Agents: Story 4 - 6 Demonstrate Data Analysis via Supervisor",
       "type": "process",
       "command": "uv",
-      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story4_agent_patterns", "--step", "6", "--environment", "${input:infraEnvironment}"],
-      "detail": "AC6. Read-only reuse of the Story 4 baseline and the Story 1 toolbox, request, oracle, and evidence index. Paid: one Supervisor -> Data Analysis Code Interpreter analysis; downloads the CSVs and chart. Writes a report under step-06-data-analysis\\.",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_native", "--execution", "${input:story1Execution}", "--step", "6", "--environment", "${input:infraEnvironment}"],
+      "detail": "AC6. Native stateless Supervisor compatibility probe using the existing agents and reviewed native Story 1 evidence. Preview is local; run is a bounded best-effort attempt, not a workflow redesign. A missing trusted native contract is reported as blocked, with redesign proposed only for your approval.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -471,24 +480,24 @@
   ],
   "inputs": [
     {
-      "id": "story1Step1Mode",
+      "id": "story1Execution",
       "type": "pickString",
-      "description": "verify = no changes; enable-if-missing = create the Story 1 toolbox and update the EXISTING data-analysis-agent once if not already done",
-      "options": ["verify", "enable-if-missing"],
-      "default": "verify"
+      "description": "preview = local operation summary only; run = execute the separately approved paid native validation budget (no deployment/grants/deletion)",
+      "options": ["preview", "run"],
+      "default": "preview"
     },
     {
-      "id": "story1OptionsToolbox",
+      "id": "story1CapacityProfile",
       "type": "pickString",
-      "description": "probe = create a separate probe-only toolbox (no agent uses it), test memory/network options, then delete it; document = schema and per-call tests only",
-      "options": ["probe", "document"],
-      "default": "probe"
+      "description": "baseline = original 1k/10k/100k cases; pressure = separately approved 250k/500k/1M ladder, also requiring backend pressure enablement",
+      "options": ["baseline", "pressure"],
+      "default": "baseline"
     },
     {
-      "id": "story1IdleWait",
+      "id": "story1HostedIdle",
       "type": "pickString",
-      "description": "skip = record the container expiry policy only; wait = idle about 21 minutes and check that the container expired",
-      "options": ["skip", "wait"],
+      "description": "skip = Blob only (two analyses); observe = Blob then Hosted; only = zero-analysis Hosted probe. Five-minute minimum quiet, up to six read-only state checks, eight-minute quiet cap. Keep machine awake. No forced stop/delete.",
+      "options": ["skip", "observe", "only"],
       "default": "skip"
     },
     {

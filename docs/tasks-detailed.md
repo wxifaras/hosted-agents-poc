@@ -19,6 +19,12 @@ For the overall run order, use the [README Quick start](../README.md#quick-start
 For CLI alternatives and caveats, use [Deployment reference](deployment.md).
 For accepted decisions and dated findings, use [ADR-0001](adr/0001-hosted-agents-poc.md).
 
+**Story 1 update:** the same five Story 1 tasks and Story 4 Step 6 now use the
+[native validation flow](#native-story-1-validation-current-branch). The older
+toolbox procedures below are retained as historical reference, not instructions
+for the current task wiring. Existing live findings are not native validation
+passes.
+
 ## Safety and evidence boundaries
 
 | Activity | What it can establish | What it cannot establish by itself |
@@ -137,6 +143,22 @@ alternative when one exists, and keep untested behavior separate.
   on Application Insights.
 - **Boundary:** no specialist impersonation grants, broad administrative grants,
   Blob grants, or user-token/OBO exchange. Permission does not prove user propagation.
+
+### Access: Preview isolated user Consumer grants
+
+- **Purpose:** repeatable read-only grant planning before preparing test users,
+  including on another computer.
+- **Implementation:** [auth_profiles.py](../scripts/common/auth_profiles.py)
+  with `--rbac consumer`, without `--apply`.
+- **Prompts:** environment and two full user sign-in names; run under the
+  operator CLI identity.
+- **Effect:** verifies the selected tenant/project, users, and built-in role;
+  reports whether covering unconditional Consumer grants exist or are missing.
+  No role writes, profile creation, sign-in, or agent/model calls.
+- **Boundary:** this is grant planning, not a complete audit of every effective
+  permission or proof of isolation. It does not revoke inherited/group roles.
+- **Apply:** use **Access: Create isolated user auth profiles**, selecting
+  `consumer`; no additional grant-only implementation is needed.
 
 ### Access: Create isolated user auth profiles
 
@@ -533,7 +555,213 @@ flowchart TD
     Missing --> Results["Record acceptance results"]
 ```
 
+### Native Story 1 validation (current branch)
+
+The existing `data-analysis-agent` uses native managed Code Interpreter for a
+fixed seeded CSV workload. No new agent, custom sandbox, certificate service,
+or toolbox is required. Research's separate documentation toolbox is unchanged.
+Generated Python runs only in the managed interpreter.
+
+The five Story 1 task labels are unchanged. `preview` is the default and does not
+load Azure configuration, create clients, authenticate, or make paid calls.
+`run` is a separately approved service operation, not a deployment step.
+Use the reviewed existing agent version and existing permissions; tasks do not
+repair RBAC, deploy, retry, or delete remote resources.
+
+| Existing task | Native behavior and boundary |
+|---|---|
+| Story 1 Step 1 | Verify all three active agents, native-only Data Analysis configuration, one analytical execution, authorized original outputs, and a distinct native baseline. |
+| Story 1 Step 2 | One model-written analysis, exact independent row/cell/group checks, original CSV/PNG files, and separate hash-bound chart review. |
+| Story 1 Step 3 | Baseline 1k/10k/100k or optional pressure 250k/500k/1M rows, one submission per case, measured interpreter memory, stop at first failure/unavailable metric or 75% target. Pressure must also be enabled in the backend before deployment. |
+| Story 1 Step 4 | Two real existing isolated user profiles, own analytical controls, cross-user workflow/file denials, and a clean-session check. Not universal native-file isolation. |
+| Story 1 Step 5 | `skip`: required Blob reconstruction; `observe`: Blob then Hosted; `only`: zero-analysis Hosted lifecycle observation. Independent SDK state is read before attempting resume. No local Blob fallback, forced stop, or deletion. |
+| Story 4 Step 6 | Optional bounded stateless Supervisor compatibility probe, reusing reviewed native Story 1 evidence. Unsupported trusted-context contracts remain blocked. |
+
+The existing Data Analysis deployment sets `STORY1_NATIVE_ENABLED=true`.
+The runtime/local-example default for `STORY1_NATIVE_PRESSURE_ENABLED` is `false`.
+The POC deployment manifest now explicitly enables it for the sponsor-approved
+bounded pressure release. This does not start tests automatically: the task still
+defaults to `preview` and the `baseline` profile.
+
+#### Pressure testing with the existing tasks
+
+No additional validation task is needed:
+
+1. Review the backend pressure flag in [azure.yaml](../azure.yaml). To enable
+   pressure on a deployment that still has it disabled, use **Agents: Deploy all
+   hosted agents** for the existing environment. This redeploys the same agents,
+   not the infrastructure. Skip redeployment when the intended version already
+   has the approved configuration.
+2. Run **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis
+   agent**, selecting `run`, to refresh the native version-bound baseline after
+   deployment.
+3. Run **Agents: Story 1 - 3 Evaluate dataset sizes**, selecting `run` and
+   `pressure`. The fixed ladder is 250k, 500k, and 1M rows, one analysis per size.
+4. Stop at 75% of the observed interpreter limit, the first failure/ambiguity, or
+   an unavailable required metric. Do not retry, raise ceilings, or add cases.
+   If the last case remains below target, retain that gap rather than claiming
+   a platform maximum.
+
+The approved batch permits at most four analyses including Step 1, with a
+300-second request timeout and a 1,800-second pressure-run bound. Existing caps
+remain: 64 MiB input, 16 MiB combined runner downloads, 8,000 native output tokens,
+and one interpreter tool call per analysis. The deployed backend output ceiling
+remains 50 MiB; the runner's lower ceiling still applies. Synthetic fixture sizes
+are 14,250,540 / 28,613,347 / 57,340,679 bytes respectively, all below 64 MiB.
+
+Disabling pressure later is an explicit backend configuration/redeployment,
+not an automatic hidden cleanup operation or an increase to any runtime limit.
+
+**Current POC acceptance:** on 2026-10-27 the sponsor accepted the measured
+1M-row envelope and 39.34% process-memory reading as sufficient. No further
+pressure escalation is required for this scope. The 75% diagnostic threshold
+and original Not evaluated report are not rewritten; acceptance of a tested
+envelope is not evidence that the threshold or platform maximum was reached.
+See the [recorded decision](issue-1-validate-hosted-agent-memory-and-data-analysis-capacity.md#poc-capacity-acceptance-decision-2026-10-27).
+
+#### Repeat the tests on another computer
+
+1. Use the same implementation revision and configure the existing POC azd
+   environment/project. Do not provision another project just to rerun tests.
+   Run **Setup: Prepare local environment** to install the locked application.
+2. Sign in as the operator for the correct tenant/subscription, then run
+   **Access: Preview isolated user Consumer grants** with the two intended
+   test-user sign-in names.
+3. Run **Access: Create isolated user auth profiles**. Choose `consumer` if
+   missing project grants should be created under the operator identity; existing
+   covering grants are reused. Choose `none` for sign-in only when access is
+   already prepared. Operator role-assignment rights are needed only for grants.
+4. Each user completes Microsoft's sign-in/MFA UI on that computer. Never copy
+   token caches or profiles from another computer, share passwords, or substitute
+   the developer identity. The task isolates each user's local CLI cache.
+5. Run native **Story 1 Step 1** to create a fresh version-bound baseline, then
+   use the same Story 1 Steps 2-5. For Step 4 enter the same two verified users.
+   Chart review and service findings must refer to the current run's originals.
+
+Azure role assignments belong to the users/project and persist across computers;
+they normally do not need re-creating. Local sign-in caches, Python installation,
+baselines, and run evidence do need preparing on the new computer. The additional
+task is an **Access preview**, not another validation task or an automatic setup
+dependency. Broader effective grants must still be reviewed before claiming a
+Consumer-only threat model; the preview does not remove them.
+
+#### Preview and approved execution
+
+Run from the root using the existing environment:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story1_native --step 1 --execution preview
+```
+
+After local checks, deployment approval, named-user access verification, and
+approval of the bounded live budget:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story1_native --step 1 --environment <environment> --execution run
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story1_native --step 2 --environment <environment> --execution run
+```
+
+Do not run these commands automatically during setup or unit tests. A fresh
+native baseline is required after agent version/configuration changes; the
+historical toolbox baseline cannot satisfy it. Existing evidence is retained.
+
+Each analysis uses one native model submission plus fixed preparation/metadata/
+session-file operations. Step 4 uses two analyses; Blob reconstruction uses two.
+The default per-request timeout is 300 seconds, bounded by an overall
+1,800-second run limit. These are maximums, not permission to consume the budget;
+approve the actual profile and calls before selecting `run`.
+
+#### Offline chart review
+
+Step 2 retains `outputs\revenue_by_category.png` and
+`chart-review-template.json`. Inspect the original chart's labels and grouped
+revenue values, then copy the template to a separate review receipt and set
+`accepted` to `true` only if correct. Keep its exact PNG hash and data.
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story1_native --step 2 --environment <environment> --review-run <original-run-folder> --chart-review <review-receipt.json>
+```
+
+This rechecks retained original hashes and the independent oracle without another
+model request. A valid PNG signature alone does not establish chart meaning.
+
+#### Metadata-only Hosted lifecycle evidence
+
+Use the existing **Agents: Story 1 - 5 Assess state continuity** task with
+`story1HostedIdle = only`. The default remains `skip`, which runs the existing
+Blob reconstruction track. `observe` runs Blob reconstruction followed by the
+Hosted observation; it still includes the two Blob-track analyses.
+
+The `only` option creates one owned Hosted session, prepares a fixed synthetic
+fixture, and uses `observe` commands without submitting a native analysis or
+writing a Blob checkpoint. Hosted sessions, state, and response records can still
+incur service usage; zero model analyses does not mean zero service calls.
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story1_native --step 5 --hosted-idle only --execution preview
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story1_native --step 5 --hosted-idle only --environment <environment> --execution run --timeout 300 --max-seconds 900
+```
+
+Keep the computer awake for about nine minutes. The test uses a 300-second
+minimum quiet interval, then at most six read-only platform metadata checks,
+30 seconds apart, with a hard 480-second quiet-wait cap. The test records:
+
+1. Process/HOME markers, then authoritative platform session state `active`.
+2. No agent requests for at least 300 seconds.
+3. SDK state `idle` and a new `stopped_at` timestamp, read **before** any resume
+   request. Pending `active` samples are saved without being declared a failure
+   while the bounded metadata checks continue. Exhausting the cap, stale/missing
+   stop data, or a different session/version leaves the test blocked instead of
+   manufacturing a lifecycle witness.
+4. An authorized `observe` on the same workflow/session, followed by platform
+   state `active`, a changed process marker, and the original HOME sentinel.
+
+The report records actual quiet duration and ordered server metadata without raw
+session IDs; `hosted-lifecycle-metadata.jsonl` retains every safe snapshot even if
+a later call is interrupted. A client interruption/timeout is not a platform idle event.
+No forced stop/delete, automatic retry, redeployment, or new agent is involved.
+The `native-hosted-only` report variant is separate from the Blob recovery result.
+It can demonstrate platform-reported idle/resume and scoped HOME continuity, not
+interpreter RAM survival, VM implementation, or an unexposed internal stop reason.
+
+The five-minute observation allows for the measured platform reconciliation delay:
+one deployed v9 session with a 120-second idle setting remained active at the
+184-second sample and was subsequently reported stopped 203 seconds after its
+recorded activity. The setting is not treated as an exact stop-event deadline.
+That shorter partial run is retained rather than upgraded retrospectively.
+The subsequent five-minute run also read `active`, while a later SDK read
+reported `idle` with a stop timestamp earlier than that sample. The final state
+is therefore awaited as a condition, not assumed at an exact timer deadline.
+Only platform metadata is polled; no agent request keeps the observed session
+warm, and no retry of analysis or forced lifecycle command is involved.
+
+#### Isolation, capacity, and recovery
+
+- Use the existing **Access: Create isolated user auth profiles** task only when
+  setup is needed and separately approved. Step 4 accepts exactly two genuine
+  existing profiles; it never simulates users with headers or grants broad roles.
+- Capacity's pressure profile is finite and opt-in. Measure the interpreter's
+  observed limit, not the Hosted agent's configured 1 GiB or a historical toolbox
+  limit. A classified early failure is useful evidence but not a pressure pass.
+- Blob uses authenticated public endpoints and existing storage permissions,
+  with normal TLS verification. The runner performs the checkpoint round trip;
+  that is not autonomous Hosted recovery or private-network placement.
+- Hosted idle observation is best effort. A quiet interval alone is not a
+  lifecycle witness: the controller also requires SDK active/idle/active state
+  and a fresh stop timestamp, plus the marker/HOME checks. It does not prove
+  interpreter expiry, and no resource stop/delete is implied.
+- If an optional probe fails, retain the blocker and propose the smallest
+  redesign, its cost/impact, and revised test budget. Implement it only after
+  explicit user approval; do not silently weaken identity checks.
+
+Results use existing per-step folders and indexes under `artifacts\story-1` and
+`artifacts\story-4`. `native-agents-baseline.json` and reviewed native analytical
+evidence are distinct from the historical toolbox evidence.
+
 ### Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis agent
+
+**Historical toolbox procedure.** For current task execution use
+[native validation](#native-story-1-validation-current-branch).
 
 **Use case:** Story #1 AC1. Enables Microsoft-managed Code Interpreter on the
 **already-deployed** `data-analysis-agent`, then proves it executes in the
@@ -829,6 +1057,9 @@ flowchart TD
 
 ### Agents: Story 1 - 2 Analyze data and deliver outputs
 
+**Historical toolbox procedure.** Current tasks use
+[native validation](#native-story-1-validation-current-branch).
+
 **Use case:** Story #1 AC2. Asks the existing `data-analysis-agent` to filter,
 group, summarize, and chart the 1k-row synthetic input with model-written
 pandas/matplotlib code in the managed sandbox. It then shows how the summary,
@@ -911,6 +1142,9 @@ the nested caller guard lets the Supervisor path complete.
 
 ### Agents: Story 1 - 3 Evaluate dataset sizes
 
+**Historical toolbox procedure.** Current tasks use
+[native validation](#native-story-1-validation-current-branch).
+
 **Use case:** Story #1 AC3. Runs the same filter, group, summarize, and
 visualize workload on the 1k, 10k, and 100k-row synthetic inputs already
 mounted by the Step 1 toolbox. It records sandbox measurements, limits, and
@@ -989,6 +1223,9 @@ analysis code (Step 2).
 
 ### Agents: Story 1 - 4 Assess sandbox boundaries
 
+**Historical toolbox procedure.** Current tasks use
+[native validation](#native-story-1-validation-current-branch).
+
 **Use case:** Story #1 AC4. Documents the sandbox's security boundaries,
 session lifetime, network restrictions, and configuration options from
 benign, targeted probes. It writes a documented-versus-observed matrix. It
@@ -1051,6 +1288,9 @@ Container Apps), the internal escape resistance, or limits above the observed
 defaults.
 
 ### Agents: Story 1 - 5 Assess state continuity
+
+**Historical toolbox procedure.** Current tasks use
+[native validation](#native-story-1-validation-current-branch).
 
 **Use case:** Story #1 AC5. Tests state continuity across requests and
 rehydration after the sandbox is recreated. It also assesses which state
@@ -1482,6 +1722,9 @@ outcome. Then exercises:
 | User B reads user A's state/history | Not run by this step; the report cross-references **Agents: Test native Entra user isolation** |
 
 ### Agents: Story 4 - 6 Demonstrate Data Analysis via Supervisor
+
+**Historical toolbox procedure.** Current tasks use the bounded best-effort
+[native Supervisor probe](#native-story-1-validation-current-branch).
 
 **Use case:** Story #4 AC6. Links the latest Story 1 Step 1-5 reports from
 `artifacts\story-1\index.md` (`BLOCKED` if Step 1 and Step 2 are not `Met`),

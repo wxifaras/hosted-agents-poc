@@ -1,0 +1,219 @@
+{
+  "key": "supervisor",
+  "label": "Supervisor native-contract preflight - blocked",
+  "scope": "Native v8 deployment: preflight stopped before inference because the stateless protocol lacks the trusted native session/file contract. No Supervisor analytical pass or redesign approval.",
+  "agent_version": "8",
+  "kind": "integration",
+  "download": "evidence/supervisor.json",
+  "run_id": "{reference-20}",
+  "provenance": {
+    "scenario": "story-4-step-6",
+    "mode": "hosted",
+    "started_at": "2026-10-27T20:55:17.933796+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "variant": "native",
+    "step": "step-06-data-analysis"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "8186e0f015375f187c9fe1b72e25a81227ddbad7420ca20a5c2ff898c265a20c"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "d01eb107bbf0a2dbdd4a9c32c8f01c787f17602fdbf62bc8f1fd4829815362c5"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "d01eb107bbf0a2dbdd4a9c32c8f01c787f17602fdbf62bc8f1fd4829815362c5"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-27T20:55:23.799863+00:00 \u2014 2026-10-27T20:55:24.434075+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Native deployment binding",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:55:23.799863+00:00",
+      "expected": "Same three active agents; Data Analysis is native-only",
+      "observed": {
+        "environment": "hosted-agents-poc-dev",
+        "agents": {
+          "supervisor-agent": {
+            "version": "13",
+            "status": "active"
+          },
+          "research-agent": {
+            "version": "8",
+            "status": "active"
+          },
+          "data-analysis-agent": {
+            "version": "8",
+            "status": "active"
+          }
+        }
+      },
+      "explanation": {
+        "execution_type": "metadata_verification",
+        "purpose": "Inspect deployment/role/runtime metadata or compare source and package receipts.",
+        "api_family": "Read-only metadata and local comparison",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "See explicit metadata/role receipts; exact legacy calls are not reconstructed.",
+        "authentication_context": "Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Expected role, scope, version, key/source fingerprints and lockfile comparisons as recorded.",
+        "pass_meaning": "Prerequisites match this check, not proof of execution or isolation.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "Optional native Supervisor integration",
+      "status": "BLOCKED",
+      "timestamp": "2026-10-27T20:55:23.805570+00:00",
+      "expected": "Supported nested native session/file authorization contract before analytical delegation",
+      "observed": {
+        "blocker": "Existing stateless subtasks lack the direct native session/file authorization contract.",
+        "analytical_submission": false,
+        "next": "Propose a minimal trusted adapter and revised validation budget for explicit user approval."
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "Deployed versions unchanged",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:55:24.434075+00:00",
+      "expected": "No agent identity/version changes during validation",
+      "observed": {
+        "unchanged": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 2,
+    "BLOCKED": 1
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-4-step-6-native",
+    "title": "Story 4 Step 6: Native Supervisor contract preflight",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story1_native.NativeValidation.supervisor"
+    ],
+    "notes": [
+      "The current handler is a preflight blocker, not an implemented native analytical delivery path."
+    ],
+    "nodes": [
+      {
+        "key": "baseline",
+        "title": "Verify native deployment and version binding",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Native deployment binding",
+            "status": "PASS",
+            "anchor": "check-supervisor-1"
+          }
+        ]
+      },
+      {
+        "key": "review",
+        "title": "Require reviewed native analytical evidence",
+        "actor": "Runner baseline/evidence guard",
+        "evidence_status": "NOT RECORDED",
+        "counts": {},
+        "references": []
+      },
+      {
+        "key": "contract",
+        "title": "Check whether trusted nested session/file authorization is supported",
+        "actor": "Native integration preflight",
+        "evidence_status": "BLOCKED",
+        "counts": {
+          "BLOCKED": 1
+        },
+        "references": [
+          {
+            "name": "Optional native Supervisor integration",
+            "status": "BLOCKED",
+            "anchor": "check-supervisor-2"
+          }
+        ]
+      },
+      {
+        "key": "stop",
+        "title": "Retain the blocker before any analytical submission",
+        "actor": "No identity workaround or automatic redesign",
+        "evidence_status": "NOT RECORDED",
+        "counts": {},
+        "references": []
+      },
+      {
+        "key": "unchanged",
+        "title": "Check that the deployed versions did not change",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Deployed versions unchanged",
+            "status": "PASS",
+            "anchor": "check-supervisor-3"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 811\" role=\"img\" aria-labelledby=\"flow-supervisor-title flow-supervisor-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-supervisor-title\">Story 4 Step 6: Native Supervisor contract preflight</title><desc id=\"flow-supervisor-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-supervisor-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-supervisor-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-supervisor-arrow)\" /><path d=\"M460 485 V524\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-supervisor-arrow)\" /><path d=\"M460 625 V664\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-supervisor-arrow)\" /><g id=\"flow-supervisor-baseline\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify native deployment and version binding</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-supervisor-review\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Require reviewed native analytical evidence</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Runner baseline/evidence guard</text><text x=\"88\" y=\"304\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: NOT RECORDED</text></g><g id=\"flow-supervisor-contract\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"117\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Check whether trusted nested session/file authorization is</text><text x=\"88\" y=\"420\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">supported</text><text x=\"88\" y=\"443\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Native integration preflight</text><text x=\"88\" y=\"467\" fill=\"#805000\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: BLOCKED (BLOCKED: 1)</text></g><g id=\"flow-supervisor-stop\"><rect x=\"70\" y=\"531\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"560\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Retain the blocker before any analytical submission</text><text x=\"88\" y=\"583\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: No identity workaround or automatic redesign</text><text x=\"88\" y=\"607\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: NOT RECORDED</text></g><g id=\"flow-supervisor-unchanged\"><rect x=\"70\" y=\"671\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"700\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Check that the deployed versions did not change</text><text x=\"88\" y=\"723\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"747\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "warnings": [
+    "Cross-story reference: story-4-step-6 in Story 1 bundle. Original verdicts apply only to the declared reference scope, not combined story acceptance."
+  ],
+  "error": null
+}

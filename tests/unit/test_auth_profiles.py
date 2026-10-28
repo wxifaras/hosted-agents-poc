@@ -200,3 +200,18 @@ def test_auth_task_only_prompts_for_usernames_and_is_not_part_of_local_checks() 
     assert all(not item.get("password") for item in config["inputs"])
     assert task["label"] not in tasks["Quality: Run all local checks"]["dependsOn"]
     assert task["label"] not in tasks["Setup: Prepare local environment"]["dependsOn"]
+
+
+def test_consumer_grant_preview_is_repeatable_and_never_applies_or_signs_in() -> None:
+    config = json.loads((Path(__file__).resolve().parents[2] / ".vscode" / "tasks.json").read_text())
+    tasks = {task["label"]: task for task in config["tasks"]}
+    task = tasks["Access: Preview isolated user Consumer grants"]
+    assert task["command"] == "uv"
+    assert "scripts.common.auth_profiles" in task["args"]
+    assert "--frozen" in task["args"] and "--no-sync" in task["args"]
+    assert task["args"][task["args"].index("--rbac") + 1] == "consumer"
+    assert "${input:authProfileUsers}" in task["args"]
+    assert "${input:infraEnvironment}" in task["args"]
+    assert "--apply" not in task["args"] and "dependsOn" not in task
+    assert task["label"] not in tasks["Quality: Run all local checks"]["dependsOn"]
+    assert task["label"] not in tasks["Setup: Prepare local environment"]["dependsOn"]

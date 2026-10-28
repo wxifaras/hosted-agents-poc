@@ -13,7 +13,9 @@ from app.core.settings import get_settings
 def isolated_settings(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[None]:
     """Never read a real dotenv file or enable Azure integrations from test environment."""
     for name in tuple(os.environ):
-        if name.startswith(("APP_CONFIG_", "FOUNDRY_", "AZURE_AI_", "APPLICATIONINSIGHTS_")) or name in {
+        if name.startswith(
+            ("APP_CONFIG_", "FOUNDRY_", "AZURE_AI_", "APPLICATIONINSIGHTS_", "STORY1_NATIVE_")
+        ) or name in {
             "PORT",
             "ENVIRONMENT",
             "SUPERVISOR_PORT",

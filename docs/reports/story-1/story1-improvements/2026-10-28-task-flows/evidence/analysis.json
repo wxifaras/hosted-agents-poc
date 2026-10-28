@@ -1,0 +1,262 @@
+{
+  "key": "analysis",
+  "label": "Representative analysis and original files",
+  "scope": "Native v8, 1k synthetic rows. Numerical and original-file checks passed; chart approval was pending in this original run.",
+  "agent_version": "8",
+  "kind": "analysis",
+  "download": "evidence/analysis.json",
+  "run_id": "{reference-5}",
+  "provenance": {
+    "scenario": "story-1-step-2",
+    "mode": "hosted",
+    "started_at": "2026-10-27T20:21:08.226418+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "variant": "native",
+    "step": "step-02-analysis-and-outputs"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "431bc87dc35875bc40489850cd69abdbc2bcf9331064386ca5ad3e204d2ee7fe"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "8f9845f51ebbb719840d6539ebc834aa7de792ea8ded740f48efe2829f9519d3"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "8f9845f51ebbb719840d6539ebc834aa7de792ea8ded740f48efe2829f9519d3"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-27T20:21:14.327232+00:00 \u2014 2026-10-27T20:22:26.513628+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Native deployment binding",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:21:14.327232+00:00",
+      "expected": "Same three active agents; Data Analysis is native-only",
+      "observed": {
+        "environment": "hosted-agents-poc-dev",
+        "agents": {
+          "supervisor-agent": {
+            "version": "13",
+            "status": "active"
+          },
+          "research-agent": {
+            "version": "8",
+            "status": "active"
+          },
+          "data-analysis-agent": {
+            "version": "8",
+            "status": "active"
+          }
+        }
+      },
+      "explanation": {
+        "execution_type": "metadata_verification",
+        "purpose": "Inspect deployment/role/runtime metadata or compare source and package receipts.",
+        "api_family": "Read-only metadata and local comparison",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "See explicit metadata/role receipts; exact legacy calls are not reconstructed.",
+        "authentication_context": "Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Expected role, scope, version, key/source fingerprints and lockfile comparisons as recorded.",
+        "pass_meaning": "Prerequisites match this check, not proof of execution or isolation.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "1,000 rows: analytical originals",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:22:25.026509+00:00",
+      "expected": "Input hash, exact rows/cells/aggregates, original CSVs, and a valid PNG match",
+      "observed": {
+        "rows": 1000,
+        "bytes": 54449,
+        "input_sha256": "{reference-2}",
+        "checks": {
+          "input_sha256": true,
+          "filtered_rows": true,
+          "by_category": true,
+          "total": true,
+          "filtered_csv": true,
+          "by_category_csv": true,
+          "png": true
+        }
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "Chart meaning",
+      "status": "BLOCKED",
+      "timestamp": "2026-10-27T20:22:25.046511+00:00",
+      "expected": "Human review of original PNG labels/values, bound to its SHA-256",
+      "observed": {
+        "png_sha256": "{reference-4}",
+        "reviewed": false,
+        "next": "Review the original PNG; use --review-run and --chart-review offline, without new inference."
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 4,
+      "name": "Deployed versions unchanged",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:22:26.513628+00:00",
+      "expected": "No agent identity/version changes during validation",
+      "observed": {
+        "unchanged": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 3,
+    "BLOCKED": 1
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-1-step-2-native",
+    "title": "Story 1 Step 2: Analysis and chart review",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story1_native.NativeValidation.analyze",
+      "scripts.run_scenario.story1_native.NativeValidation.chart_review"
+    ],
+    "notes": [
+      "PNG format validity is not semantic chart approval. Missing human review remains blocked."
+    ],
+    "nodes": [
+      {
+        "key": "baseline",
+        "title": "Verify native deployment and version binding",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Native deployment binding",
+            "status": "PASS",
+            "anchor": "check-analysis-1"
+          }
+        ]
+      },
+      {
+        "key": "prepare",
+        "title": "Prepare the fixed owned input",
+        "actor": "Backend fixture / ownership checks",
+        "evidence_status": "NOT RECORDED",
+        "counts": {},
+        "references": []
+      },
+      {
+        "key": "analysis",
+        "title": "Analyze the seeded CSV and check original outputs",
+        "actor": "Native interpreter + independent runner oracle",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "1,000 rows: analytical originals",
+            "status": "PASS",
+            "anchor": "check-analysis-2"
+          }
+        ]
+      },
+      {
+        "key": "chart",
+        "title": "Review the exact original chart separately",
+        "actor": "User-approved hash-bound receipt",
+        "evidence_status": "BLOCKED",
+        "counts": {
+          "BLOCKED": 1
+        },
+        "references": [
+          {
+            "name": "Chart meaning",
+            "status": "BLOCKED",
+            "anchor": "check-analysis-3"
+          }
+        ]
+      },
+      {
+        "key": "unchanged",
+        "title": "Check that the deployed versions did not change",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Deployed versions unchanged",
+            "status": "PASS",
+            "anchor": "check-analysis-4"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 788\" role=\"img\" aria-labelledby=\"flow-analysis-title flow-analysis-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-analysis-title\">Story 1 Step 2: Analysis and chart review</title><desc id=\"flow-analysis-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-analysis-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-analysis-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-analysis-arrow)\" /><path d=\"M460 462 V501\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-analysis-arrow)\" /><path d=\"M460 602 V641\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-analysis-arrow)\" /><g id=\"flow-analysis-baseline\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify native deployment and version binding</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-analysis-prepare\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Prepare the fixed owned input</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Backend fixture / ownership checks</text><text x=\"88\" y=\"304\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: NOT RECORDED</text></g><g id=\"flow-analysis-analysis\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Analyze the seeded CSV and check original outputs</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Native interpreter + independent runner oracle</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-analysis-chart\"><rect x=\"70\" y=\"508\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"537\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Review the exact original chart separately</text><text x=\"88\" y=\"560\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: User-approved hash-bound receipt</text><text x=\"88\" y=\"584\" fill=\"#805000\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: BLOCKED (BLOCKED: 1)</text></g><g id=\"flow-analysis-unchanged\"><rect x=\"70\" y=\"648\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"677\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Check that the deployed versions did not change</text><text x=\"88\" y=\"700\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"724\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "warnings": [],
+  "error": null
+}

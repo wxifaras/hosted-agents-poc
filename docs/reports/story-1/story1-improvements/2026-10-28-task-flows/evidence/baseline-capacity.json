@@ -1,0 +1,455 @@
+{
+  "key": "baseline-capacity",
+  "label": "Native v8 baseline dataset ladder",
+  "scope": "1k, 10k, 100k analytical originals passed; the diagnostic 75 percent process-memory target was not reached.",
+  "agent_version": "8",
+  "kind": "capacity",
+  "download": "evidence/baseline-capacity.json",
+  "run_id": "{reference-9}",
+  "provenance": {
+    "scenario": "story-1-step-3",
+    "mode": "hosted",
+    "started_at": "2026-10-27T20:22:47.514845+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "variant": "native",
+    "step": "step-03-dataset-sizes"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "1074b1c678f413e27d30940bb53f977d9f8f9b9f93a91276cf70740519f20108"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "782c47a9a27d835cba164f2144a5489b7e623bf000fe2b4461bd6f2566342143"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "782c47a9a27d835cba164f2144a5489b7e623bf000fe2b4461bd6f2566342143"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-27T20:22:51.356373+00:00 \u2014 2026-10-27T20:25:16.185622+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Native deployment binding",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:22:51.356373+00:00",
+      "expected": "Same three active agents; Data Analysis is native-only",
+      "observed": {
+        "environment": "hosted-agents-poc-dev",
+        "agents": {
+          "supervisor-agent": {
+            "version": "13",
+            "status": "active"
+          },
+          "research-agent": {
+            "version": "8",
+            "status": "active"
+          },
+          "data-analysis-agent": {
+            "version": "8",
+            "status": "active"
+          }
+        }
+      },
+      "explanation": {
+        "execution_type": "metadata_verification",
+        "purpose": "Inspect deployment/role/runtime metadata or compare source and package receipts.",
+        "api_family": "Read-only metadata and local comparison",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "See explicit metadata/role receipts; exact legacy calls are not reconstructed.",
+        "authentication_context": "Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Expected role, scope, version, key/source fingerprints and lockfile comparisons as recorded.",
+        "pass_meaning": "Prerequisites match this check, not proof of execution or isolation.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "1,000 rows: analytical originals",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:23:51.052461+00:00",
+      "expected": "Input hash, exact rows/cells/aggregates, original CSVs, and a valid PNG match",
+      "observed": {
+        "rows": 1000,
+        "bytes": 54449,
+        "input_sha256": "{reference-2}",
+        "checks": {
+          "input_sha256": true,
+          "filtered_rows": true,
+          "by_category": true,
+          "total": true,
+          "filtered_csv": true,
+          "by_category_csv": true,
+          "png": true
+        }
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "1,000 rows: interpreter memory",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:23:51.061080+00:00",
+      "expected": "Measured process peak RSS and observed interpreter cgroup memory limit, in bytes",
+      "observed": {
+        "peak_rss_bytes": 124911616,
+        "memory_limit_bytes": 2147483648,
+        "cgroup_memory_peak_bytes": 362790912,
+        "pressure_fraction": 0.05816650390625,
+        "end_to_end_seconds": 43.551
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 4,
+      "name": "10,000 rows: analytical originals",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:24:30.108479+00:00",
+      "expected": "Input hash, exact rows/cells/aggregates, original CSVs, and a valid PNG match",
+      "observed": {
+        "rows": 10000,
+        "bytes": 553113,
+        "input_sha256": "{reference-7}",
+        "checks": {
+          "input_sha256": true,
+          "filtered_rows": true,
+          "by_category": true,
+          "total": true,
+          "filtered_csv": true,
+          "by_category_csv": true,
+          "png": true
+        }
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 5,
+      "name": "10,000 rows: interpreter memory",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:24:30.118413+00:00",
+      "expected": "Measured process peak RSS and observed interpreter cgroup memory limit, in bytes",
+      "observed": {
+        "peak_rss_bytes": 133300224,
+        "memory_limit_bytes": 2147483648,
+        "cgroup_memory_peak_bytes": 371703808,
+        "pressure_fraction": 0.06207275390625,
+        "end_to_end_seconds": 39.019
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 6,
+      "name": "100,000 rows: analytical originals",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:25:15.097699+00:00",
+      "expected": "Input hash, exact rows/cells/aggregates, original CSVs, and a valid PNG match",
+      "observed": {
+        "rows": 100000,
+        "bytes": 5633261,
+        "input_sha256": "{reference-8}",
+        "checks": {
+          "input_sha256": true,
+          "filtered_rows": true,
+          "by_category": true,
+          "total": true,
+          "filtered_csv": true,
+          "by_category_csv": true,
+          "png": true
+        }
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 7,
+      "name": "100,000 rows: interpreter memory",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:25:15.111160+00:00",
+      "expected": "Measured process peak RSS and observed interpreter cgroup memory limit, in bytes",
+      "observed": {
+        "peak_rss_bytes": 261029888,
+        "memory_limit_bytes": 2147483648,
+        "cgroup_memory_peak_bytes": 505753600,
+        "pressure_fraction": 0.121551513671875,
+        "end_to_end_seconds": 44.62
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 8,
+      "name": "Memory-pressure target",
+      "status": "BLOCKED",
+      "timestamp": "2026-10-27T20:25:15.133473+00:00",
+      "expected": "At least 75% of observed interpreter memory limit",
+      "observed": {
+        "target_reached": false,
+        "note": "A finite viable envelope or an earlier failure is not a pressure pass."
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 9,
+      "name": "Deployed versions unchanged",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:25:16.185622+00:00",
+      "expected": "No agent identity/version changes during validation",
+      "observed": {
+        "unchanged": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 8,
+    "BLOCKED": 1
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-1-step-3-native",
+    "title": "Story 1 Step 3: Finite dataset ladder",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story1_native.NativeValidation.capacity"
+    ],
+    "notes": [
+      "Accepting the POC envelope does not change an unreached 75% diagnostic check to PASS."
+    ],
+    "nodes": [
+      {
+        "key": "baseline",
+        "title": "Verify native deployment and version binding",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Native deployment binding",
+            "status": "PASS",
+            "anchor": "check-baseline-capacity-1"
+          }
+        ]
+      },
+      {
+        "key": "profile",
+        "title": "Select the approved baseline or pressure profile",
+        "actor": "Runner + backend limits",
+        "evidence_status": "NOT RECORDED",
+        "counts": {},
+        "references": []
+      },
+      {
+        "key": "analysis",
+        "title": "Analyze the seeded CSV and check original outputs",
+        "actor": "Native interpreter + independent runner oracle",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 3
+        },
+        "references": [
+          {
+            "name": "1,000 rows: analytical originals",
+            "status": "PASS",
+            "anchor": "check-baseline-capacity-2"
+          },
+          {
+            "name": "10,000 rows: analytical originals",
+            "status": "PASS",
+            "anchor": "check-baseline-capacity-4"
+          },
+          {
+            "name": "100,000 rows: analytical originals",
+            "status": "PASS",
+            "anchor": "check-baseline-capacity-6"
+          }
+        ]
+      },
+      {
+        "key": "memory",
+        "title": "Record interpreter RSS, cgroup limit, and timings",
+        "actor": "Interpreter readings; runner records",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 3
+        },
+        "references": [
+          {
+            "name": "1,000 rows: interpreter memory",
+            "status": "PASS",
+            "anchor": "check-baseline-capacity-3"
+          },
+          {
+            "name": "10,000 rows: interpreter memory",
+            "status": "PASS",
+            "anchor": "check-baseline-capacity-5"
+          },
+          {
+            "name": "100,000 rows: interpreter memory",
+            "status": "PASS",
+            "anchor": "check-baseline-capacity-7"
+          }
+        ]
+      },
+      {
+        "key": "target",
+        "title": "Stop at the target, first failure, or finite case ceiling",
+        "actor": "No automatic retry or limit increase",
+        "evidence_status": "BLOCKED",
+        "counts": {
+          "BLOCKED": 1
+        },
+        "references": [
+          {
+            "name": "Memory-pressure target",
+            "status": "BLOCKED",
+            "anchor": "check-baseline-capacity-8"
+          }
+        ]
+      },
+      {
+        "key": "unchanged",
+        "title": "Check that the deployed versions did not change",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Deployed versions unchanged",
+            "status": "PASS",
+            "anchor": "check-baseline-capacity-9"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 928\" role=\"img\" aria-labelledby=\"flow-baseline-capacity-title flow-baseline-capacity-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-baseline-capacity-title\">Story 1 Step 3: Finite dataset ladder</title><desc id=\"flow-baseline-capacity-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-baseline-capacity-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-baseline-capacity-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-baseline-capacity-arrow)\" /><path d=\"M460 462 V501\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-baseline-capacity-arrow)\" /><path d=\"M460 602 V641\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-baseline-capacity-arrow)\" /><path d=\"M460 742 V781\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-baseline-capacity-arrow)\" /><g id=\"flow-baseline-capacity-baseline\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify native deployment and version binding</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-baseline-capacity-profile\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Select the approved baseline or pressure profile</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Runner + backend limits</text><text x=\"88\" y=\"304\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: NOT RECORDED</text></g><g id=\"flow-baseline-capacity-analysis\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Analyze the seeded CSV and check original outputs</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Native interpreter + independent runner oracle</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 3)</text></g><g id=\"flow-baseline-capacity-memory\"><rect x=\"70\" y=\"508\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"537\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Record interpreter RSS, cgroup limit, and timings</text><text x=\"88\" y=\"560\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Interpreter readings; runner records</text><text x=\"88\" y=\"584\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 3)</text></g><g id=\"flow-baseline-capacity-target\"><rect x=\"70\" y=\"648\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"677\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Stop at the target, first failure, or finite case ceiling</text><text x=\"88\" y=\"700\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: No automatic retry or limit increase</text><text x=\"88\" y=\"724\" fill=\"#805000\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: BLOCKED (BLOCKED: 1)</text></g><g id=\"flow-baseline-capacity-unchanged\"><rect x=\"70\" y=\"788\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"817\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">6. Check that the deployed versions did not change</text><text x=\"88\" y=\"840\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"864\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "warnings": [],
+  "error": null
+}

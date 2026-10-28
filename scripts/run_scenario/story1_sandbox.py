@@ -3,8 +3,9 @@
 Both steps reuse the existing agents and the Step 1 toolbox behind the shared Step 1 baseline guard.
 They never deploy or change an agent or the Step 1 toolbox. Step 4 may create and then delete one
 separate probe-only toolbox (``--options-toolbox probe``) to test toolbox-level options, and deletes
-the sandbox containers its direct probes created. Step 5 deletes one sandbox container to test
-recreation and writes, reads, and deletes one synthetic checkpoint in the existing Blob container.
+the sandbox containers its direct probes created. Step 5 retains original containers and checkpoints
+by default; only explicit destructive mode deletes them. Required reconstruction uses verified Blob
+bytes exclusively, never the separately retained local diagnostic checkpoint.
 """
 
 import argparse
@@ -487,7 +488,13 @@ def seal_checkpoint(checkpoint: Mapping[str, JsonValue]) -> bytes:
     return json.dumps({"checkpoint": body, "sha256": sha256(canonical(body)).hexdigest()}, indent=2).encode("utf-8")
 
 
-def open_checkpoint(raw: bytes | None, dataset: Dataset, file_id: str) -> tuple[dict[str, JsonValue] | None, list[str]]:
+def open_checkpoint(
+    raw: bytes | None,
+    dataset: Dataset,
+    file_id: str,
+    *,
+    expected_source: Mapping[str, JsonValue] | None = None,
+) -> tuple[dict[str, JsonValue] | None, list[str]]:
     """Return the checkpoint only when it is present, intact, current-schema, and not stale."""
     if not raw:
         return None, ["missing"]
@@ -506,6 +513,20 @@ def open_checkpoint(raw: bytes | None, dataset: Dataset, file_id: str) -> tuple[
         problems.append("stale: dataset checksum differs from the mounted input")
     elif dataset_info.get("file_id") != file_id:
         problems.append("stale: toolbox file ID differs")
+    elif dataset_info.get("file") != dataset.filename or dataset_info.get("rows") != dataset.rows:
+        problems.append("stale: dataset identity differs")
+    source = body.get("source")
+    if expected_source is not None and (
+        not isinstance(source, dict) or any(source.get(key) != value for key, value in expected_source.items())
+    ):
+        problems.append("owner/session/source binding differs")
+    transform = body.get("transform")
+    if transform != {
+        "filter": {"status": FILTER_STATUS, "region": FILTER_REGION},
+        "group_by": "category",
+        "aggregates": ["rows", "units", "revenue_cents"],
+    }:
+        problems.append("unsupported transform")
     result = body.get("result")
     if not isinstance(result, dict) or not isinstance(result.get("by_category"), dict):
         problems.append("missing result.by_category")
@@ -558,6 +579,69 @@ def blob_status(response: httpx.Response) -> tuple[Status, str]:
     if response.status_code == 403:
         return "BLOCKED", f"HTTP 403 {code}: run 'Access: Apply developer permissions' (no roles are granted here)"
     return "FAIL", f"HTTP {response.status_code} {code}".strip()
+
+
+class BlobCheckpointError(ValueError):
+    """A required Blob checkpoint failed; callers must not substitute local bytes."""
+
+    def __init__(self, detail: str, status: Status = "FAIL") -> None:
+        super().__init__(detail)
+        self.status = status
+
+
+def read_blob_checkpoint(
+    store: BlobStore,
+    name: str,
+    dataset: Dataset,
+    file_id: str,
+    *,
+    expected_source: Mapping[str, JsonValue] | None = None,
+    expected_sha256: str | None = None,
+) -> dict[str, JsonValue]:
+    """Read authenticated Blob bytes and validate schema, integrity, input, and trusted source."""
+    try:
+        response = store.get(name)
+    except httpx.HTTPError as error:
+        raise BlobCheckpointError(f"Blob read unavailable: {sanitize_text(str(error))}") from error
+    status, detail = blob_status(response)
+    if status != "PASS":
+        raise BlobCheckpointError(f"Blob read failed: {detail}", status)
+    body, problems = open_checkpoint(response.content, dataset, file_id, expected_source=expected_source)
+    if body is None:
+        raise BlobCheckpointError("; ".join(problems))
+    if expected_sha256 is not None and sha256(response.content).hexdigest() != expected_sha256:
+        raise BlobCheckpointError("Blob checkpoint hash differs from this run's written checkpoint")
+    return body
+
+
+def persist_and_read_checkpoint(
+    store: BlobStore,
+    name: str,
+    sealed_bytes: bytes,
+    dataset: Dataset,
+    file_id: str,
+    *,
+    expected_source: Mapping[str, JsonValue] | None = None,
+) -> dict[str, JsonValue]:
+    """Write once and return only the validated read-back; never delete or fall back locally."""
+    body, problems = open_checkpoint(sealed_bytes, dataset, file_id, expected_source=expected_source)
+    if body is None:
+        raise BlobCheckpointError("; ".join(problems))
+    try:
+        response = store.put(name, sealed_bytes)
+    except httpx.HTTPError as error:
+        raise BlobCheckpointError(f"Blob write unavailable: {sanitize_text(str(error))}") from error
+    status, detail = blob_status(response)
+    if status != "PASS":
+        raise BlobCheckpointError(f"Blob write failed: {detail}", status)
+    return read_blob_checkpoint(
+        store,
+        name,
+        dataset,
+        file_id,
+        expected_source=expected_source,
+        expected_sha256=sha256(sealed_bytes).hexdigest(),
+    )
 
 
 class SandboxStep(ReusingStep):
@@ -1447,17 +1531,17 @@ CHECK_REPLY = (
     "in the Python code of an earlier user message in this conversation, or `NONCE: unknown` if there is no such "
     "earlier message. Line 2: one sentence describing the printed result."
 )
-CORE_CHECKS = ("R1 builds state", "R2 same conversation", "R3 new conversation", "Sandbox recreation", "Rehydration")
+CORE_CHECKS = ("R1 builds state", "Checkpoint in customer Blob", "Rehydration")
 
 
 def step5_verdict(statuses: Mapping[str, Status]) -> str:
     if statuses.get("R1 builds state") is None:
         return "Not evaluated"
     core = [statuses.get(name) for name in CORE_CHECKS]
-    if all(status == "PASS" for status in core):
-        return "Met" if statuses.get("Checkpoint in customer Blob") == "PASS" else "Met, with a validation gap"
     if statuses.get("Agents reused - after") == "FAIL":
         return "Not met"
+    if all(status == "PASS" for status in core):
+        return "Met"
     return "Partially met" if statuses.get("R1 builds state") == "PASS" else "Not met"
 
 
@@ -1481,6 +1565,11 @@ class Step5(SandboxStep):
         self.blob_name = f"story1/checkpoints/{self.run.run_id}.json"
         self.obs: dict[str, Any] = {}
 
+    @property
+    def destructive(self) -> bool:
+        """Only explicit destructive mode permits deletion; unknown/missing modes retain evidence."""
+        return getattr(self.args, "lifecycle_mode", "observe") == "destructive"
+
     def execute(self) -> None:
         self.header(
             AC5,
@@ -1490,7 +1579,10 @@ class Step5(SandboxStep):
         )
         self.report.paragraph(
             'Reuses the existing agents and the Step 1 toolbox without changing them. "Session recreation" means '
-            "the Code Interpreter sandbox container only; the agent is never recreated or redeployed."
+            "the Code Interpreter sandbox container only; the agent is never recreated or redeployed. "
+            "Original containers and checkpoints are retained unless explicit destructive mode is selected. "
+            "Hosted session continuity is a bounded best-effort observation, separate from required Blob "
+            "reconstruction; a failed probe does not trigger an automatic recovery redesign."
         )
         context = read_environment(self.args.environment, self.report)
         self.project_endpoint = str(context["FOUNDRY_PROJECT_ENDPOINT"]).rstrip("/")
@@ -1642,8 +1734,9 @@ class Step5(SandboxStep):
     def save_checkpoint(self, blob: BlobStore | None) -> None:
         self.report.heading("Checkpoint")
         r1 = self.replies.get("R1")
-        if r1 is None or r1.result is None or self.toolbox is None:
+        if r1 is None or r1.result is None or self.toolbox is None or self.statuses.get("R1 builds state") != "PASS":
             self.report.paragraph("Not created: R1 produced no validated state.")
+            self.record("Checkpoint in customer Blob", "BLOCKED", "Validated R1 state exists", "No validated state")
             return
         file_id = self.toolbox.file_ids.get(str(self.dataset.rows), "")
         self.checkpoint = build_checkpoint(
@@ -1664,17 +1757,21 @@ class Step5(SandboxStep):
         )
         self.report.code(sealed.decode("utf-8"), "json")
         if blob is None:
-            self.report.paragraph(
-                "Customer Blob checkpoint not written (`--blob-checkpoint skip` or no Blob endpoint)."
+            self.record(
+                "Checkpoint in customer Blob",
+                "BLOCKED",
+                "Required authenticated customer Blob write and read-back",
+                "Not run (--blob-checkpoint skip or no Blob endpoint); local bytes are diagnostic only",
             )
             return
-        written = blob.put(self.blob_name, sealed)
-        status, detail = blob_status(written)
-        if status == "PASS":
-            read_back = blob.get(self.blob_name)
-            status, detail = blob_status(read_back)
-            if status == "PASS" and read_back.content != sealed:
-                status, detail = "FAIL", "read-back bytes differ"
+        status: Status = "PASS"
+        detail = "Authenticated Blob upload and exact, validated read-back succeeded; checkpoint retained"
+        try:
+            persist_and_read_checkpoint(
+                blob, self.blob_name, sealed, self.dataset, file_id, expected_source=self.checkpoint_source()
+            )
+        except BlobCheckpointError as error:
+            status, detail = error.status, str(error)
         self.record(
             "Checkpoint in customer Blob",
             status,
@@ -1684,6 +1781,14 @@ class Step5(SandboxStep):
 
     def recreate(self, http: httpx.Client, token: str) -> None:
         self.report.heading("Session recreation")
+        if not self.destructive:
+            self.record(
+                "Sandbox recreation",
+                "SKIP",
+                "Retain the original container and files",
+                "Observe mode: deletion not attempted; reconstruction uses a separate request",
+            )
+            return
         r1 = self.replies.get("R1")
         if r1 is None or r1.container is None:
             self.record("Sandbox recreation", "BLOCKED", "R1 container known", "R1 did not return a container")
@@ -1716,16 +1821,26 @@ class Step5(SandboxStep):
         if self.checkpoint is None or self.toolbox is None:
             self.record("Rehydration", "BLOCKED", "A validated checkpoint exists", "No checkpoint")
             return
-        source = "local run folder"
-        raw = (self.run.path / "checkpoint.json").read_bytes()
-        if blob is not None and self.statuses.get("Checkpoint in customer Blob") == "PASS":
-            response = blob.get(self.blob_name)
-            if response.is_success:
-                raw, source = response.content, "customer Blob"
+        if blob is None or self.statuses.get("Checkpoint in customer Blob") != "PASS":
+            self.record(
+                "Rehydration",
+                "BLOCKED",
+                "Required reconstruction reads the verified customer Blob checkpoint",
+                "No successful Blob write/read-back; local diagnostic checkpoint is never substituted",
+            )
+            return
         file_id = self.toolbox.file_ids.get(str(self.dataset.rows), "")
-        body, problems = open_checkpoint(raw, self.dataset, file_id)
-        if body is None:
-            self.record("Rehydration", "FAIL", "Checkpoint opens: intact, current schema, not stale", problems)
+        try:
+            body = read_blob_checkpoint(
+                blob,
+                self.blob_name,
+                self.dataset,
+                file_id,
+                expected_source=self.checkpoint_source(),
+                expected_sha256=sha256(seal_checkpoint(self.checkpoint)).hexdigest(),
+            )
+        except BlobCheckpointError as error:
+            self.record("Rehydration", error.status, "Required Blob checkpoint validates without fallback", str(error))
             return
         code = sandbox_program(
             REHYDRATE_CODE, {"__CHECKPOINT__": repr(json.dumps(body)), "__RESULT__": "story1-step5-r4.json"}
@@ -1743,20 +1858,23 @@ class Step5(SandboxStep):
         saved = nested(body, "result", "by_category")
         rebuilt = result.get("by_category")
         exact = aggregates_match(rebuilt, self.expected) and rebuilt == saved
+        r1 = self.replies.get("R1")
+        different = bool(r1 and r1.container and reply.container and reply.container != r1.container)
         ok = (
             bool(reply.result)
             and result.get("input_sha256_matches") is True
             and result.get("matches_checkpoint") is True
             and exact
+            and different
         )
         self.record(
             "Rehydration",
             "PASS" if ok else ("BLOCKED" if reply.status == "BLOCKED" else "FAIL"),
             "New sandbox reloads the mounted input, verifies its SHA-256, and rebuilds exactly the checkpointed state",
             {
-                "checkpoint_source": source,
+                "checkpoint_source": "customer Blob",
                 "container": reply.container,
-                "different_sandbox_from_r1": reply.container != self.replies["R1"].container,
+                "different_sandbox_from_r1": different,
                 "input_sha256_matches": result.get("input_sha256_matches"),
                 "matches_checkpoint": result.get("matches_checkpoint"),
                 "matches_local_oracle": aggregates_match(rebuilt, self.expected),
@@ -1784,7 +1902,21 @@ class Step5(SandboxStep):
             rows,
         )
 
+    def checkpoint_source(self) -> Mapping[str, JsonValue]:
+        """Trusted source binding for this run, not values taken from downloaded Blob bytes."""
+        r1 = self.replies.get("R1")
+        return {
+            "conversation": r1.conversation if r1 else None,
+            "response_id": r1.response_id if r1 else None,
+            "container": r1.container if r1 else None,
+        }
+
     def cleanup_blob(self, blob: BlobStore) -> None:
+        if not self.destructive:
+            self.record(
+                "Blob checkpoint cleanup", "SKIP", "Retain the checkpoint", "Observe mode: deletion not attempted"
+            )
+            return
         if self.statuses.get("Checkpoint in customer Blob") != "PASS":
             return
         deleted = blob.delete(self.blob_name)
@@ -1859,7 +1991,7 @@ class Step5(SandboxStep):
                     "saved (local"
                     + (", customer Blob)" if self.statuses.get("Checkpoint in customer Blob") == "PASS" else ")"),
                     "unaffected",
-                    "used to rebuild state",
+                    "used to rebuild state" if self.statuses.get("Rehydration") == "PASS" else "not reconstructed",
                 ],
             ],
         )
@@ -1907,8 +2039,8 @@ class Step5(SandboxStep):
                 "Custom checkpoint",
                 "Run folder and the customer's `artifacts` Blob container (network security perimeter, no private "
                 "endpoint)",
-                "Yes. Customer-owned storage worked; a private endpoint is feasible because the agent or client "
-                "mediates (the sandbox cannot reach it)",
+                ("Customer-owned Blob write/read-back succeeded. " if blob else "Not proven in this run. ")
+                + "A private endpoint is an untested architectural option because the client mediates",
                 "Tested (Blob) + Architectural assessment (private endpoint)" if blob else "Architectural assessment",
                 "Custom implementation (Dev Team)",
                 ("blob_rbac", "nsp", "storage_private_endpoints"),
@@ -1955,9 +2087,13 @@ class Step5(SandboxStep):
             "Hosted agent session ID was "
             + ("the same" if r1 and r2 and r1.agent_session_id == r2.agent_session_id else "different")
             + " for R1 and R2.",
-            f"Recreation: deleting R1's container returned {nested(recreation, 'delete')}; the container and its "
-            f"files then returned {nested(recreation, 'read_after')} / {nested(recreation, 'files_after')}.",
-            f"Checkpoint: sealed JSON with no data rows, saved locally and in customer Blob ({blob or 'not run'}).",
+            (
+                f"Recreation: deleting R1's container returned {nested(recreation, 'delete')}; the container and its "
+                f"files then returned {nested(recreation, 'read_after')} / {nested(recreation, 'files_after')}."
+                if self.destructive
+                else "Recreation: original container retained; destructive lifecycle probe not run."
+            ),
+            f"Checkpoint: local diagnostic sealed JSON; required customer Blob result: {blob or 'not run'}.",
             "Rehydration: "
             + (
                 f"a new sandbox ({r4.container if r4 else '-'}) rebuilt exactly the checkpointed state from the "
@@ -2060,8 +2196,10 @@ class Step5(SandboxStep):
             ),
             Finding(
                 "Keep custom checkpoints in customer storage",
-                "Written, read back, used for rehydration, and deleted (behind a network security perimeter; private "
-                "endpoints were not tested)"
+                "Written, read back, "
+                + ("used for rehydration" if rehydrated else "but reconstruction was not completed")
+                + (", and deleted" if self.statuses.get("Blob checkpoint cleanup") == "PASS" else ", and retained")
+                + " (authenticated public Blob; private endpoints were not tested)"
                 if blob == "PASS"
                 else (
                     "Not run (--blob-checkpoint skip)"
@@ -2082,6 +2220,8 @@ class Step5(SandboxStep):
             "The POC storage account uses a network security perimeter, not a private endpoint, so private residency "
             "is an architectural assessment.",
             "Process-loss recovery and artifact rehydration boundaries are covered separately in GitHub issue #7.",
+            "Hosted session continuity and destructive lifecycle observations are separate best-effort probes. "
+            "A failure or unsupported contract is a blocker to report, not approval for automatic redesign.",
         ]
         conclusion = (
             "Continuity and rehydration have tested results, and every state layer has a scoped placement assessment."
