@@ -126,8 +126,8 @@ There is no implemented "nothing local" mode. The
 [cloud-only execution proposal](docs/tasks-detailed.md#cloud-only-execution-proposed-not-implemented)
 describes that separate, unimplemented approach.
 
-Results are linked from [the Story 1 evidence index](artifacts/story-1/index.md).
-Each run is written to
+Results are linked from the local Story 1 evidence index, `artifacts\story-1\index.md`
+(git-ignored; created by the first run). Each run is written to
 `artifacts\story-<n>\step-<NN>-<slug>\<YYYYMMDDTHHMMSSZ>-<id8>\report.md`, for example
 `artifacts\story-1\step-01-code-interpreter\20261023T120408Z-a1b2c3d4\report.md`.
 The step folder groups every rerun of a step, and the native variant is recorded in
@@ -169,8 +169,8 @@ conversation history. Run the tasks in order:
    (same identity; Research and Data Analysis are not redeployed) only when the
    Supervisor doesn't yet accept `POC_CONVERSE`, then writes the Story 3
    baseline. Use `verify` afterwards. Redeploying the Supervisor changes its
-   version, so rerun **Agents: Story 4 - 1** and **Agents: Story 1 - 1** (both
-   `verify`) before the later steps of those stories.
+   version, so rerun **Agents: Story 4 - 1** (`verify`) and **Agents: Story 1 - 1**
+   (`run`, within the approved budget) before the later steps of those stories.
 2. **Agents: Story 3 - 2** through **Agents: Story 3 - 5** reuse that baseline and
    never deploy, grant roles, or change agents.
 
@@ -193,7 +193,8 @@ invocation of a sub-agent. Run the tasks in order:
    sets `RESEARCH_TOOLBOX_ENDPOINT`, and runs `azd deploy --all` (same agents and
    identities) only when the deployed code or wiring is missing, then writes the
    Story 4 baseline. Use `verify` afterwards. Redeploying moves Data Analysis to a
-   new version, so rerun **Agents: Story 1 - 1** (`verify`) before Story 1 Steps 2-5.
+   new version, so rerun **Agents: Story 1 - 1** (`run`, within the approved budget)
+   to refresh the native baseline before Story 1 Steps 2-5.
 2. **Agents: Story 4 - 2** through **Agents: Story 4 - 7** reuse that baseline and
    never deploy, grant roles, or change agents.
 
@@ -573,9 +574,12 @@ malformed evidence or turn an incomplete test into a pass.
 | [Deployment guide](docs/deployment.md) | Detailed setup, local debugging, tasks, configuration/sizing, diagnostics, evidence, and teardown |
 | [Detailed task guide](docs/tasks-detailed.md) | Task purposes, prerequisites, side effects, test use cases, and Mermaid execution flows |
 | [Validate Hosted Agent Memory and Data Analysis Capacity (#1)](docs/issue-1-validate-hosted-agent-memory-and-data-analysis-capacity.md) | Status report: what works, what doesn't and why, and next steps |
-| [Validate Multi-Agent Conversation Management (#3)](docs/issue-3-validate-multi-agent-conversation-management.md) | Status report: what works, what doesn't and why, and next steps (hosted runs pending) |
+| [Validate Multi-Agent Conversation Management (#3)](docs/issue-3-validate-multi-agent-conversation-management.md) | Status report: what works, what doesn't and why, and next steps |
 | [Validate Representative Hosted Agent Patterns (#4)](docs/issue-4-validate-representative-hosted-agent-patterns.md) | Status report: what works, what doesn't and why, and next steps |
 | [Infrastructure guide](infra/README.md) | Bicep contracts, NSP boundaries, outputs, and provisioning/RBAC details |
+
+Published, sanitized HTML evidence snapshots are under [docs/reports](docs/reports)
+and linked from each status report.
 
 The published documentation is self-contained. Local working notes and generated
 evidence are not prerequisites for using this repository. Architecture acceptance,

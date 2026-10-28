@@ -870,11 +870,11 @@ their original folder names and index links.
 
 Failed or blocked runs keep evidence already written and do not replace the
 baseline. An interrupted process can leave a partial report without a new
-index entry. Start with [the index](../artifacts/story-1/index.md), open a
-linked report, and press `Ctrl+Shift+V` for Markdown Preview. The report is
+index entry. Start with the local index, `artifacts\story-1\index.md`
+(git-ignored), open a linked report, and press `Ctrl+Shift+V` for Markdown Preview. The report is
 also rendered in the task terminal.
 
-#### Report layout (all Story 1 and Story 4 steps)
+#### Report layout (all Story 1, Story 3, and Story 4 steps)
 
 Every Story 1, Story 3, and Story 4 report opens, directly under the title,
 with **How to read this report**: a key for the verdicts, finding outcomes,
@@ -1010,7 +1010,8 @@ prove that telemetry reached Foundry.
    also checks and applies the project read role, and runs automatically in
    **Agents: Deploy and smoke test all hosted agents**. Bare `azd deploy`
    does not run the access task or update infrastructure RBAC.
-6. Rerun Step 1 in `verify` mode. In Foundry, select the same project and
+6. Rerun **Agents: Story 1 - 1** with `run` (within the approved budget; the
+   historical toolbox procedure used `verify`). In Foundry, select the same project and
    Data Analysis agent, and a time range covering the run's UTC timestamp.
    Allow for telemetry ingestion delay and refresh the trace view. The
    hosted proof's response/session IDs are recorded in the Markdown/JSONL
@@ -1366,9 +1367,9 @@ their mapping. Reuses the three existing agents; it never creates an agent.
   Only the Supervisor needs the Story 3 code: specialists already hydrate
   history from the conversation they are called with. The Supervisor's
   identity is preserved and checked, and Research must keep its version.
-  Afterwards, rerun **Agents: Story 4 - 1** and **Agents: Story 1 - 1** in
-  `verify` mode before the later steps of those stories, because both
-  baselines record the Supervisor's version.
+  Afterwards, rerun **Agents: Story 4 - 1** (`verify`) and **Agents: Story 1 - 1**
+  (`run`, within the approved budget) before the later steps of those stories,
+  because both baselines record the Supervisor's version.
 
 **Steps:** [story3_conversations.py](../scripts/run_scenario/story3_conversations.py) `--step 1`
 
@@ -1416,7 +1417,7 @@ Run folders are under `artifacts\story-3\step-<NN>-<slug>\` and follow the
 [Story 1 naming convention](#step-1-output-files): `step-01-separate-conversations`,
 `step-02-follow-up-history`, `step-03-ownership-and-access`,
 `step-04-shared-conversation-id`, and `step-05-shared-vs-separate`. Every report
-uses the [shared report layout](#report-layout-all-story-1-and-story-4-steps),
+uses the [shared report layout](#report-layout-all-story-1-story-3-and-story-4-steps),
 with a **Requests sent** table and a **Reproduction** section. `index.md` links
 each run with its verdict; `agents-baseline.json` is the reuse guard for Steps
 2-5.
@@ -1531,8 +1532,8 @@ requires, and the shared variants produce an explicit outcome (completed or a
 4xx; a 5xx is an error, never a denial).
 
 **Observed outcome (2026-10-27, run `a17b8f9067364b8c8c3067fdcc4a2a46`):**
-the [Step 5 report](../artifacts/story-3/step-05-shared-vs-separate/20261027T211427Z-a17b8f90/report.md)
-records:
+the local (git-ignored) Step 5 report,
+`artifacts\story-3\step-05-shared-vs-separate\20261027T211427Z-a17b8f90\report.md`, records:
 
 | Variant | Observed outcome | Why / consequence |
 |---|---|---|
@@ -1577,8 +1578,9 @@ existing agents; it never creates an agent.
   `RESEARCH_TOOLBOX_ENDPOINT` in the azd environment, and runs
   `azd deploy --all`. All three agents share one image, so the new protocol
   needs all three. Identities are preserved and checked; Data Analysis keeps
-  its Story 1 toolbox. Afterwards, rerun **Agents: Story 1 - 1** in `verify`
-  mode before Story 1 Steps 2-5, because Data Analysis has a new version.
+  its native Code Interpreter configuration. Afterwards, rerun
+  **Agents: Story 1 - 1** with `run` (within the approved budget) before Story 1
+  Steps 2-5, because Data Analysis has a new version.
 
 **Steps:** [story4_agent_patterns.py](../scripts/run_scenario/story4_agent_patterns.py) `--step 1`
 
@@ -1628,7 +1630,7 @@ Run folders are under `artifacts\story-4\step-<NN>-<slug>\` and follow the
 `step-02-sync-async-and-failure`, `step-03-research-tool-call`,
 `step-04-identity-paths`, `step-05-trace-and-access`, `step-06-data-analysis`,
 and `step-07-direct-invocation`. Every
-report uses the [shared report layout](#report-layout-all-story-1-and-story-4-steps):
+report uses the [shared report layout](#report-layout-all-story-1-story-3-and-story-4-steps):
 summary first, with each finding's outcome (PASS, FAIL, PARTIAL, BLOCKED, NOT
 SUPPORTED, LIMITATION, DOCUMENTED, or NOT RUN), evidence, ownership, and
 verified Microsoft documentation links with plain-language explanations. A
@@ -1782,7 +1784,8 @@ Sequential composite:
 **Prompts:** each step asks for the environment; enter the same name every time.
 **Boundary:** not delegation, native-user isolation, recovery, or foundation provisioning.
 **Next:** on a new environment, run **Agents: Story 1 - 1 Enable Code Interpreter
-on existing Data Analysis agent** with `enable-if-missing`. For the full order,
+on existing Data Analysis agent** with `preview`, then `run` within the approved
+budget ([native validation](#native-story-1-validation-current-branch)). For the full order,
 see the [complete task sequence](deployment.md#complete-task-sequence-after-provisioning);
 for `Project not found`, see
 [troubleshooting](deployment.md#troubleshooting-project-not-found).
