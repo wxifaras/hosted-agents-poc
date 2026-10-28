@@ -567,12 +567,50 @@ repair RBAC, deploy, retry, or delete remote resources.
 | Story 1 Step 2 | One model-written analysis, exact independent row/cell/group checks, original CSV/PNG files, and separate hash-bound chart review. |
 | Story 1 Step 3 | Baseline 1k/10k/100k or optional pressure 250k/500k/1M rows, one submission per case, measured interpreter memory, stop at first failure/unavailable metric or 75% target. Pressure must also be enabled in the backend before deployment. |
 | Story 1 Step 4 | Two real existing isolated user profiles, own analytical controls, cross-user workflow/file denials, and a clean-session check. Not universal native-file isolation. |
-| Story 1 Step 5 | Required runner-driven customer-Blob checkpoint write/readback and recomputation in a fresh authorized session; optional Hosted idle observation. No local Blob fallback or default deletion. |
+| Story 1 Step 5 | `skip`: required Blob reconstruction; `observe`: Blob then Hosted; `only`: zero-analysis Hosted lifecycle observation. Independent SDK state is read before attempting resume. No local Blob fallback, forced stop, or deletion. |
 | Story 4 Step 6 | Optional bounded stateless Supervisor compatibility probe, reusing reviewed native Story 1 evidence. Unsupported trusted-context contracts remain blocked. |
 
 The existing Data Analysis deployment sets `STORY1_NATIVE_ENABLED=true`.
-`STORY1_NATIVE_PRESSURE_ENABLED` defaults to `false`; enable it explicitly in
-the backend configuration before an approved pressure-profile deployment/run.
+The runtime/local-example default for `STORY1_NATIVE_PRESSURE_ENABLED` is `false`.
+The POC deployment manifest now explicitly enables it for the sponsor-approved
+bounded pressure release. This does not start tests automatically: the task still
+defaults to `preview` and the `baseline` profile.
+
+#### Pressure testing with the existing tasks
+
+No additional validation task is needed:
+
+1. Review the backend pressure flag in [azure.yaml](../azure.yaml). To enable
+   pressure on a deployment that still has it disabled, use **Agents: Deploy all
+   hosted agents** for the existing environment. This redeploys the same agents,
+   not the infrastructure. Skip redeployment when the intended version already
+   has the approved configuration.
+2. Run **Agents: Story 1 - 1 Enable Code Interpreter on existing Data Analysis
+   agent**, selecting `run`, to refresh the native version-bound baseline after
+   deployment.
+3. Run **Agents: Story 1 - 3 Evaluate dataset sizes**, selecting `run` and
+   `pressure`. The fixed ladder is 250k, 500k, and 1M rows, one analysis per size.
+4. Stop at 75% of the observed interpreter limit, the first failure/ambiguity, or
+   an unavailable required metric. Do not retry, raise ceilings, or add cases.
+   If the last case remains below target, retain that gap rather than claiming
+   a platform maximum.
+
+The approved batch permits at most four analyses including Step 1, with a
+300-second request timeout and a 1,800-second pressure-run bound. Existing caps
+remain: 64 MiB input, 16 MiB combined runner downloads, 8,000 native output tokens,
+and one interpreter tool call per analysis. The deployed backend output ceiling
+remains 50 MiB; the runner's lower ceiling still applies. Synthetic fixture sizes
+are 14,250,540 / 28,613,347 / 57,340,679 bytes respectively, all below 64 MiB.
+
+Disabling pressure later is an explicit backend configuration/redeployment,
+not an automatic hidden cleanup operation or an increase to any runtime limit.
+
+**Current POC acceptance:** on 2026-10-27 the sponsor accepted the measured
+1M-row envelope and 39.34% process-memory reading as sufficient. No further
+pressure escalation is required for this scope. The 75% diagnostic threshold
+and original Not evaluated report are not rewritten; acceptance of a tested
+envelope is not evidence that the threshold or platform maximum was reached.
+See the [recorded decision](issue-1-validate-hosted-agent-memory-and-data-analysis-capacity.md#poc-capacity-acceptance-decision-2026-10-27).
 
 #### Repeat the tests on another computer
 
@@ -640,6 +678,56 @@ uv run --frozen --no-sync --group validation python -m scripts.run_scenario.stor
 This rechecks retained original hashes and the independent oracle without another
 model request. A valid PNG signature alone does not establish chart meaning.
 
+#### Metadata-only Hosted lifecycle evidence
+
+Use the existing **Agents: Story 1 - 5 Assess state continuity** task with
+`story1HostedIdle = only`. The default remains `skip`, which runs the existing
+Blob reconstruction track. `observe` runs Blob reconstruction followed by the
+Hosted observation; it still includes the two Blob-track analyses.
+
+The `only` option creates one owned Hosted session, prepares a fixed synthetic
+fixture, and uses `observe` commands without submitting a native analysis or
+writing a Blob checkpoint. Hosted sessions, state, and response records can still
+incur service usage; zero model analyses does not mean zero service calls.
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story1_native --step 5 --hosted-idle only --execution preview
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story1_native --step 5 --hosted-idle only --environment <environment> --execution run --timeout 300 --max-seconds 900
+```
+
+Keep the computer awake for about nine minutes. The test uses a 300-second
+minimum quiet interval, then at most six read-only platform metadata checks,
+30 seconds apart, with a hard 480-second quiet-wait cap. The test records:
+
+1. Process/HOME markers, then authoritative platform session state `active`.
+2. No agent requests for at least 300 seconds.
+3. SDK state `idle` and a new `stopped_at` timestamp, read **before** any resume
+   request. Pending `active` samples are saved without being declared a failure
+   while the bounded metadata checks continue. Exhausting the cap, stale/missing
+   stop data, or a different session/version leaves the test blocked instead of
+   manufacturing a lifecycle witness.
+4. An authorized `observe` on the same workflow/session, followed by platform
+   state `active`, a changed process marker, and the original HOME sentinel.
+
+The report records actual quiet duration and ordered server metadata without raw
+session IDs; `hosted-lifecycle-metadata.jsonl` retains every safe snapshot even if
+a later call is interrupted. A client interruption/timeout is not a platform idle event.
+No forced stop/delete, automatic retry, redeployment, or new agent is involved.
+The `native-hosted-only` report variant is separate from the Blob recovery result.
+It can demonstrate platform-reported idle/resume and scoped HOME continuity, not
+interpreter RAM survival, VM implementation, or an unexposed internal stop reason.
+
+The five-minute observation allows for the measured platform reconciliation delay:
+one deployed v9 session with a 120-second idle setting remained active at the
+184-second sample and was subsequently reported stopped 203 seconds after its
+recorded activity. The setting is not treated as an exact stop-event deadline.
+That shorter partial run is retained rather than upgraded retrospectively.
+The subsequent five-minute run also read `active`, while a later SDK read
+reported `idle` with a stop timestamp earlier than that sample. The final state
+is therefore awaited as a condition, not assumed at an exact timer deadline.
+Only platform metadata is polled; no agent request keeps the observed session
+warm, and no retry of analysis or forced lifecycle command is involved.
+
 #### Isolation, capacity, and recovery
 
 - Use the existing **Access: Create isolated user auth profiles** task only when
@@ -651,8 +739,10 @@ model request. A valid PNG signature alone does not establish chart meaning.
 - Blob uses authenticated public endpoints and existing storage permissions,
   with normal TLS verification. The runner performs the checkpoint round trip;
   that is not autonomous Hosted recovery or private-network placement.
-- Hosted idle observation is best effort. A quiet interval alone is not evidence
-  of a process restart or interpreter expiry. No resource stop/delete is implied.
+- Hosted idle observation is best effort. A quiet interval alone is not a
+  lifecycle witness: the controller also requires SDK active/idle/active state
+  and a fresh stop timestamp, plus the marker/HOME checks. It does not prove
+  interpreter expiry, and no resource stop/delete is implied.
 - If an optional probe fails, retain the blocker and propose the smallest
   redesign, its cost/impact, and revised test budget. Implement it only after
   explicit user approval; do not silently weaken identity checks.

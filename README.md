@@ -143,9 +143,10 @@ native baseline, never change agents, and retain reports under
 `step-02-analysis-and-outputs\` through `step-05-state-continuity\`.
 Step 4 uses two real existing user profiles. Step 5 retains its Blob checkpoint
 and demonstrates runner-driven reconstruction, not surviving interpreter RAM.
-Hosted idle/resume and the existing Story 4 Step 6 Supervisor integration are
-bounded best-effort probes. A blocker may lead to a redesign proposal, but
-implementation of that redesign requires explicit approval.
+Hosted idle/resume has a separate zero-analysis option (`only`) in Step 5, using
+platform lifecycle metadata plus process/HOME checks. It passed one bounded v9
+cycle. The existing Story 4 Step 6 Supervisor integration remains blocked at
+contract preflight; implementation of a redesign still requires explicit approval.
 
 For another computer, use the [repeatable user-access and validation setup](docs/tasks-detailed.md#repeat-the-tests-on-another-computer).
 Azure grants persist; local sign-in profiles and version-bound test evidence must
@@ -398,7 +399,7 @@ for setup, execution boundaries, and debugger details.
 | **Agents: Story 1 - 2 Analyze data and deliver outputs** | Native model-written CSV analysis, independent oracle and original session-file downloads. Chart meaning is reviewed offline against the PNG hash |
 | **Agents: Story 1 - 3 Evaluate dataset sizes** | Finite baseline or opt-in pressure ladder; observed interpreter memory, no retries, stop at first failure/unavailable metric or 75% target |
 | **Agents: Story 1 - 4 Assess sandbox boundaries** | Two-real-user native application/session isolation checks, owner controls, and original file access. No privileged-native-file confidentiality claim |
-| **Agents: Story 1 - 5 Assess state continuity** | Required runner-driven authenticated Blob reconstruction, retaining evidence; optional bounded Hosted idle observation. No default deletion or local-source fallback |
+| **Agents: Story 1 - 5 Assess state continuity** | `skip`: Blob reconstruction; `observe`: Blob then Hosted; `only`: zero-analysis Hosted active/idle/active metadata and process/HOME proof. Bounded read-only state checks; no forced stop/delete or local Blob fallback |
 | **Agents: Story 4 - 1 Demonstrate Supervisor delegation** | AC1. `verify` changes nothing; `prepare-if-missing` creates the Research MCP toolbox and runs `azd deploy --all` once if needed. Two paid model-routed delegations. Writes `01-supervisor-delegation.md` and the Story 4 baseline |
 | **Agents: Story 4 - 2 Assess sync and async delegation** | AC2. Paid sync and background Supervisor -> Research delegation, each with a simulated sub-agent failure, plus one direct background request. Writes `02-sync-async-and-failure.md` |
 | **Agents: Story 4 - 3 Demonstrate Research tool call** | AC3. Direct toolbox probe plus a paid Supervisor -> Research MCP tool call; caller/target/permission/trust-boundary table. Writes `03-research-tool-call.md` |

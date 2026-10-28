@@ -250,6 +250,42 @@ privileged project users. One read-only Access grant-preview task was added;
 the existing apply/profile task and six native validation entries are reused.
 See the [current Story 1 results](../issue-1-validate-hosted-agent-memory-and-data-analysis-capacity.md#native-validation-continuation-2026-10-27).
 
+The next approved pressure batch enabled only the existing POC pressure flag and
+used the same deployment task: Supervisor v14, Research v9, Data Analysis v9.
+Refreshed Step 1 `20261027T213235Z-e0429591` passed; pressure run
+`20261027T213414Z-3f842cb4` passed analytical/original-output checks for 250k,
+500k, and 1M rows. Four analyses total were used, with no case expansion.
+At 1M rows (57,340,679 input bytes), process peak RSS was 844,718,080 bytes,
+39.34% of the observed 2 GiB limit. Separate cgroup peak was 1,140,195,328 bytes.
+No failure boundary or 75% process-memory target was reached. The scoped
+1M-row envelope is viable in this run; it is not a measured platform maximum.
+No ceilings were raised, and the prior baseline was retained. A larger workload
+requires fresh approval rather than another task or an automatic input-cap bump.
+
+The sponsor subsequently accepted the tested 1M-row / 54.68 MiB input envelope
+and its 39.34% process-memory reading as sufficient for the POC. Pressure
+escalation is closed for the current scope by this explicit acceptance decision,
+not by declaring the original 75% benchmark achieved. Machine-generated verdicts
+and measurements are retained unchanged. Remaining priorities are independent
+Hosted lifecycle evidence (medium complexity), then the minimal Supervisor
+integration (high complexity), with no redesign authorized by this acceptance.
+
+Hosted lifecycle evidence was subsequently demonstrated in metadata-only run
+`20261027T232927Z-0cfaf4c1` on Data Analysis v9, with Supervisor v14 and Research
+v9 unchanged. Independent SDK state was active, then idle with a new stop timestamp
+before any resume request, then active again on the same session binding/version.
+The process boot marker changed and the HOME sentinel survived. Idle was visible
+on the second metadata check after 332.861 quiet seconds. All seven assertions
+passed with zero native analyses, Blob requests, or forced lifecycle operations.
+
+The three earlier partial observation reports are retained as partial, not
+rewritten. Revised probes were explicitly approved, not automatic retries.
+A client-only Step 5 enhancement adds `--hosted-idle only`, typed timestamp
+normalization, bounded read-only state polling, and safe snapshot persistence.
+No new validation task, agent, or deployment was needed. This evidence does not
+establish interpreter RAM survival, VM implementation, or an internal stop reason
+beyond platform-reported idle. Supervisor remains the next high-complexity gap.
+
 ### Current status
 
 Independent hosted model smoke tests have passed. Full delegation is not yet
