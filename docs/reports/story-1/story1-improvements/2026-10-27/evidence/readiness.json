@@ -1,0 +1,143 @@
+{
+  "key": "readiness",
+  "label": "Native v9 deployment readiness",
+  "scope": "One 1k-row analysis; active native-only Data Analysis v9 with Supervisor v14 and Research v9. Refreshed baseline.",
+  "agent_version": "9",
+  "kind": "readiness",
+  "download": "evidence/readiness.json",
+  "run_id": "e042959119b346e99d84e08b8e6b8a3e",
+  "provenance": {
+    "scenario": "story-1-step-1",
+    "mode": "hosted",
+    "started_at": "2026-10-27T21:32:35.838434+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "65e4fd9c3c1f621b1bda9425c80357759e87835eaeefff843623b8145bde5455"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "9fd668b583de2fc3f45a60399e0a7532238c28b6b44e4f6323694d00a4026e3c"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "9fd668b583de2fc3f45a60399e0a7532238c28b6b44e4f6323694d00a4026e3c"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-27T21:32:50.255326+00:00 \u2014 2026-10-27T21:34:02.587304+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Native deployment binding",
+      "status": "PASS",
+      "timestamp": "2026-10-27T21:32:50.255326+00:00",
+      "expected": "Same three active agents; Data Analysis is native-only",
+      "observed": {
+        "environment": "hosted-agents-poc-dev",
+        "agents": {
+          "supervisor-agent": {
+            "version": "14",
+            "status": "active"
+          },
+          "research-agent": {
+            "version": "9",
+            "status": "active"
+          },
+          "data-analysis-agent": {
+            "version": "9",
+            "status": "active"
+          }
+        }
+      },
+      "explanation": {
+        "execution_type": "metadata_verification",
+        "purpose": "Inspect deployment/role/runtime metadata or compare source and package receipts.",
+        "api_family": "Read-only metadata and local comparison",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "See explicit metadata/role receipts; exact legacy calls are not reconstructed.",
+        "authentication_context": "Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Expected role, scope, version, key/source fingerprints and lockfile comparisons as recorded.",
+        "pass_meaning": "Prerequisites match this check, not proof of execution or isolation.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "1,000 rows: analytical originals",
+      "status": "PASS",
+      "timestamp": "2026-10-27T21:34:01.519779+00:00",
+      "expected": "Input hash, exact rows/cells/aggregates, original CSVs, and a valid PNG match",
+      "observed": {
+        "rows": 1000,
+        "bytes": 54449,
+        "input_sha256": "{fingerprint-omitted}",
+        "checks": {
+          "input_sha256": true,
+          "filtered_rows": true,
+          "by_category": true,
+          "total": true,
+          "filtered_csv": true,
+          "by_category_csv": true,
+          "png": true
+        }
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "Deployed versions unchanged",
+      "status": "PASS",
+      "timestamp": "2026-10-27T21:34:02.587304+00:00",
+      "expected": "No agent identity/version changes during validation",
+      "observed": {
+        "unchanged": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 3
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "warnings": [],
+  "error": null
+}

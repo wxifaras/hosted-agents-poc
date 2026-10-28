@@ -1,0 +1,171 @@
+{
+  "key": "analysis",
+  "label": "Representative analysis and original files",
+  "scope": "Native v8, 1k synthetic rows. Numerical and original-file checks passed; chart approval was pending in this original run.",
+  "agent_version": "8",
+  "kind": "analysis",
+  "download": "evidence/analysis.json",
+  "run_id": "aea1fafe94f047788effde44ef18850b",
+  "provenance": {
+    "scenario": "story-1-step-2",
+    "mode": "hosted",
+    "started_at": "2026-10-27T20:21:08.226418+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "431bc87dc35875bc40489850cd69abdbc2bcf9331064386ca5ad3e204d2ee7fe"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "8f9845f51ebbb719840d6539ebc834aa7de792ea8ded740f48efe2829f9519d3"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "8f9845f51ebbb719840d6539ebc834aa7de792ea8ded740f48efe2829f9519d3"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-27T20:21:14.327232+00:00 \u2014 2026-10-27T20:22:26.513628+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Native deployment binding",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:21:14.327232+00:00",
+      "expected": "Same three active agents; Data Analysis is native-only",
+      "observed": {
+        "environment": "hosted-agents-poc-dev",
+        "agents": {
+          "supervisor-agent": {
+            "version": "13",
+            "status": "active"
+          },
+          "research-agent": {
+            "version": "8",
+            "status": "active"
+          },
+          "data-analysis-agent": {
+            "version": "8",
+            "status": "active"
+          }
+        }
+      },
+      "explanation": {
+        "execution_type": "metadata_verification",
+        "purpose": "Inspect deployment/role/runtime metadata or compare source and package receipts.",
+        "api_family": "Read-only metadata and local comparison",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "See explicit metadata/role receipts; exact legacy calls are not reconstructed.",
+        "authentication_context": "Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Expected role, scope, version, key/source fingerprints and lockfile comparisons as recorded.",
+        "pass_meaning": "Prerequisites match this check, not proof of execution or isolation.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "1,000 rows: analytical originals",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:22:25.026509+00:00",
+      "expected": "Input hash, exact rows/cells/aggregates, original CSVs, and a valid PNG match",
+      "observed": {
+        "rows": 1000,
+        "bytes": 54449,
+        "input_sha256": "{fingerprint-omitted}",
+        "checks": {
+          "input_sha256": true,
+          "filtered_rows": true,
+          "by_category": true,
+          "total": true,
+          "filtered_csv": true,
+          "by_category_csv": true,
+          "png": true
+        }
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "Chart meaning",
+      "status": "BLOCKED",
+      "timestamp": "2026-10-27T20:22:25.046511+00:00",
+      "expected": "Human review of original PNG labels/values, bound to its SHA-256",
+      "observed": {
+        "png_sha256": "{fingerprint-omitted}",
+        "reviewed": false,
+        "next": "Review the original PNG; use --review-run and --chart-review offline, without new inference."
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 4,
+      "name": "Deployed versions unchanged",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:22:26.513628+00:00",
+      "expected": "No agent identity/version changes during validation",
+      "observed": {
+        "unchanged": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 3,
+    "BLOCKED": 1
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "warnings": [],
+  "error": null
+}

@@ -1,0 +1,194 @@
+{
+  "key": "hosted-short",
+  "label": "Fixed short Hosted observation - partial",
+  "scope": "Native v9: still active at 184.036 quiet seconds, no stop visible. Stopped safely without attempting resume. Zero native analyses.",
+  "agent_version": "9",
+  "kind": "historical-observation",
+  "download": "evidence/hosted-short.json",
+  "run_id": "4950fd16cc0342abac32a1396e9613cf",
+  "provenance": {
+    "scenario": "story-1-step-5",
+    "mode": "hosted",
+    "started_at": "2026-10-27T22:50:46.706811+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "2f08ccfb3a615299d7a45a902f9540bf3be0e0d1e2e7138b779f3df95ff4ff71"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "5ab413778bf78640ebfed2d1a2914bd685d4f563d9d68392fc8d77f16a111013"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "5ab413778bf78640ebfed2d1a2914bd685d4f563d9d68392fc8d77f16a111013"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-27T22:50:52.838013+00:00 \u2014 2026-10-27T22:54:20.486736+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Native deployment binding",
+      "status": "PASS",
+      "timestamp": "2026-10-27T22:50:52.838013+00:00",
+      "expected": "Same three active agents; Data Analysis is native-only",
+      "observed": {
+        "environment": "hosted-agents-poc-dev",
+        "agents": {
+          "supervisor-agent": {
+            "version": "14",
+            "status": "active"
+          },
+          "research-agent": {
+            "version": "9",
+            "status": "active"
+          },
+          "data-analysis-agent": {
+            "version": "9",
+            "status": "active"
+          }
+        }
+      },
+      "explanation": {
+        "execution_type": "metadata_verification",
+        "purpose": "Inspect deployment/role/runtime metadata or compare source and package receipts.",
+        "api_family": "Read-only metadata and local comparison",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "See explicit metadata/role receipts; exact legacy calls are not reconstructed.",
+        "authentication_context": "Operator reads deployment/RBAC metadata; runtime receipts originate from the backend.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Expected role, scope, version, key/source fingerprints and lockfile comparisons as recorded.",
+        "pass_meaning": "Prerequisites match this check, not proof of execution or isolation.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "Metadata-only preparation",
+      "status": "PASS",
+      "timestamp": "2026-10-27T22:51:13.121982+00:00",
+      "expected": "One bound synthetic fixture; no analyze operation or Blob round trip",
+      "observed": {
+        "native_model_submissions": 0,
+        "deletion": false,
+        "forced_lifecycle_change": false
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "Platform state before quiet interval",
+      "status": "PASS",
+      "timestamp": "2026-10-27T22:51:14.483066+00:00",
+      "expected": "Authoritative platform state is active on the bound session",
+      "observed": {
+        "status": "active",
+        "agent_version": "9",
+        "created_at": 1793141460.0,
+        "last_accessed_at": 1793141460.0,
+        "stopped_at": null
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 4,
+      "name": "Platform state before resume",
+      "status": "BLOCKED",
+      "timestamp": "2026-10-27T22:54:19.347798+00:00",
+      "expected": "The platform reports idle and a new stop timestamp before any resume request",
+      "observed": {
+        "quiet_seconds": 184.036,
+        "status": "active",
+        "agent_version": "9",
+        "created_at": 1793141460.0,
+        "last_accessed_at": 1793141460.0,
+        "stopped_at": null
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 5,
+      "name": "Deployed versions unchanged",
+      "status": "PASS",
+      "timestamp": "2026-10-27T22:54:20.486736+00:00",
+      "expected": "No agent identity/version changes during validation",
+      "observed": {
+        "unchanged": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 4,
+    "BLOCKED": 1
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "warnings": [],
+  "error": null
+}

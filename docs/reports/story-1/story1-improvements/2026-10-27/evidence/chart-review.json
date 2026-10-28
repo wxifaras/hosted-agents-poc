@@ -1,0 +1,100 @@
+{
+  "key": "chart-review",
+  "label": "User-approved offline chart review",
+  "scope": "Rechecked retained original hashes and independent oracle; user approved original category labels and values. No new model analysis.",
+  "agent_version": "8",
+  "kind": "review",
+  "download": "evidence/chart-review.json",
+  "run_id": "3411caf3d75b4c6fb732d350cae8e233",
+  "provenance": {
+    "scenario": "story-1-step-2",
+    "mode": "hosted",
+    "started_at": "2026-10-27T20:49:40.409978+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "e39b53d3614ff4d85298f2fd94449f9571d653fb1e2fe530ac3096c996d2bd7c"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "d1b6b8e89045991e934da57edb4b2fde5350e73eb9475088d09a77048ffc111d"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "d1b6b8e89045991e934da57edb4b2fde5350e73eb9475088d09a77048ffc111d"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-27T20:49:40.448540+00:00 \u2014 2026-10-27T20:49:40.459703+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Retained analytical originals",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:49:40.448540+00:00",
+      "expected": "Original bytes and oracle match",
+      "observed": {
+        "input_sha256": true,
+        "filtered_rows": true,
+        "by_category": true,
+        "total": true,
+        "filtered_csv": true,
+        "by_category_csv": true,
+        "png": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "Chart meaning",
+      "status": "PASS",
+      "timestamp": "2026-10-27T20:49:40.459703+00:00",
+      "expected": "Review bound to the exact original PNG and expected plotted data",
+      "observed": {
+        "accepted": true,
+        "original_run": "20261027T202108Z-aea1fafe"
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{native-reference}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 2
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "warnings": [],
+  "error": null
+}
