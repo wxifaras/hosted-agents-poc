@@ -1,0 +1,637 @@
+{
+  "key": "routing",
+  "label": "Supervisor routing and baseline",
+  "scope": "Preparation began on Supervisor v14 / Research v9 / Data Analysis v9, then deployed v15 / v10 / v10 and ran both text-routing cases on the new baseline. This is not native Python execution or original-file delivery through Supervisor.",
+  "agent_version": "10",
+  "kind": "routing",
+  "download": "evidence/routing.json",
+  "run_id": "{reference-2}",
+  "provenance": {
+    "scenario": "story-4-step-1",
+    "mode": "hosted",
+    "started_at": "2026-10-28T13:52:05.950867+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "step": "step-01-supervisor-delegation"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "8bf6a42d1b5f011ac81ce7e4be5c64474dcea6c437a7ad922664e062390aa2f1"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "eb02edff9ead1974673195b2615f24707a1f7ade53f529336db8112d5c245256"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "eb02edff9ead1974673195b2615f24707a1f7ade53f529336db8112d5c245256"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-28T13:52:16.494855+00:00 \u2014 2026-10-28T13:59:34.785180+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Agents reused - before",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:52:16.494855+00:00",
+      "expected": "All three existing agents active",
+      "observed": {
+        "supervisor-agent": "14",
+        "research-agent": "9",
+        "data-analysis-agent": "9"
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "Research toolbox",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:52:17.152189+00:00",
+      "expected": "Create one Story 4 toolbox version (MCP, allow-listed)",
+      "observed": {
+        "version": "1"
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "Deploy existing agents",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:57:27.221140+00:00",
+      "expected": "New versions of the same three agents; foundation and identities reused",
+      "observed": {
+        "seconds": 220
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 4,
+      "name": "Story 4 code deployed",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:58:08.987534+00:00",
+      "expected": "After deploy: protocol supported by all three, Research wired, identities unchanged",
+      "observed": {
+        "protocol": {
+          "supervisor-agent": true,
+          "research-agent": true,
+          "data-analysis-agent": true
+        },
+        "research_toolbox_wired": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 5,
+      "name": "Supervisor response (research task)",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:58:53.792558+00:00",
+      "expected": "Completed poc-delegation-v1 report",
+      "observed": {
+        "agent": "supervisor-agent",
+        "status": "completed",
+        "seconds": 44.64,
+        "statuses_seen": [
+          "completed"
+        ]
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 6,
+      "name": "Routing decision (research task)",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:58:53.912629+00:00",
+      "expected": "decided_by supervisor-model-tool-call, expected specialist, exactly one tool call",
+      "observed": {
+        "requested": "auto",
+        "selected": "research",
+        "decided_by": "supervisor-model-tool-call",
+        "controller": "supervisor-application",
+        "model_tool_calls": 1
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 7,
+      "name": "Invocation mechanism (research task)",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:58:53.983281+00:00",
+      "expected": "Responses API on the selected specialist's agent endpoint, completed",
+      "observed": {
+        "mechanism": "responses-api-agent-endpoint",
+        "target_agent": "research-agent",
+        "mode": "sync",
+        "status": "completed",
+        "statuses_seen": [
+          "completed"
+        ],
+        "polls": 0,
+        "elapsed_ms": 25152
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 8,
+      "name": "Sub-agent -> Supervisor delivery (research task)",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:58:54.042695+00:00",
+      "expected": "Sub-agent report for the expected agent, same correlation, token present",
+      "observed": {
+        "agent": "research",
+        "marker_in_sub_agent_answer": true,
+        "correlation_echoed": true,
+        "tool_calls": [
+          "microsoft_learn___microsoft_docs_search"
+        ]
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 9,
+      "name": "Supervisor -> user delivery (research task)",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:58:54.065238+00:00",
+      "expected": "Supervisor final answer contains the sub-agent token",
+      "observed": {
+        "status": "completed",
+        "marker_in_final_answer": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 10,
+      "name": "Supervisor response (data_analysis task)",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:59:33.733740+00:00",
+      "expected": "Completed poc-delegation-v1 report",
+      "observed": {
+        "agent": "supervisor-agent",
+        "status": "completed",
+        "seconds": 39.51,
+        "statuses_seen": [
+          "completed"
+        ]
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 11,
+      "name": "Routing decision (data_analysis task)",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:59:33.891580+00:00",
+      "expected": "decided_by supervisor-model-tool-call, expected specialist, exactly one tool call",
+      "observed": {
+        "requested": "auto",
+        "selected": "data_analysis",
+        "decided_by": "supervisor-model-tool-call",
+        "controller": "supervisor-application",
+        "model_tool_calls": 1
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 12,
+      "name": "Invocation mechanism (data_analysis task)",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:59:33.940341+00:00",
+      "expected": "Responses API on the selected specialist's agent endpoint, completed",
+      "observed": {
+        "mechanism": "responses-api-agent-endpoint",
+        "target_agent": "data-analysis-agent",
+        "mode": "sync",
+        "status": "completed",
+        "statuses_seen": [
+          "completed"
+        ],
+        "polls": 0,
+        "elapsed_ms": 16622
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 13,
+      "name": "Sub-agent -> Supervisor delivery (data_analysis task)",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:59:33.985273+00:00",
+      "expected": "Sub-agent report for the expected agent, same correlation, token present",
+      "observed": {
+        "agent": "data_analysis",
+        "marker_in_sub_agent_answer": true,
+        "correlation_echoed": true,
+        "tool_calls": []
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 14,
+      "name": "Supervisor -> user delivery (data_analysis task)",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:59:34.069943+00:00",
+      "expected": "Supervisor final answer contains the sub-agent token",
+      "observed": {
+        "status": "completed",
+        "marker_in_final_answer": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 15,
+      "name": "Agents reused - after",
+      "status": "PASS",
+      "timestamp": "2026-10-28T13:59:34.785180+00:00",
+      "expected": "Same three agents, versions, identities, and toolbox wiring as at the start",
+      "observed": "No changes",
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 15
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-4-step-1",
+    "title": "Story 4 Step 1: Supervisor routing",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story4_agent_patterns.Step1",
+      "app.services.orchestration.delegate_turn"
+    ],
+    "notes": [
+      "Data Analysis here is text delegation, not native Code Interpreter execution or original-file delivery."
+    ],
+    "nodes": [
+      {
+        "key": "baseline",
+        "title": "Verify the recorded deployment baseline",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Agents reused - before",
+            "status": "PASS",
+            "anchor": "check-routing-1"
+          }
+        ]
+      },
+      {
+        "key": "prepare",
+        "title": "Reuse Research search tooling; prepare only when approved",
+        "actor": "Runner / deployment tooling",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 3
+        },
+        "references": [
+          {
+            "name": "Research toolbox",
+            "status": "PASS",
+            "anchor": "check-routing-2"
+          },
+          {
+            "name": "Deploy existing agents",
+            "status": "PASS",
+            "anchor": "check-routing-3"
+          },
+          {
+            "name": "Story 4 code deployed",
+            "status": "PASS",
+            "anchor": "check-routing-4"
+          }
+        ]
+      },
+      {
+        "key": "route",
+        "title": "Ask Supervisor to choose Research or Data Analysis",
+        "actor": "Supervisor routing model",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 2
+        },
+        "references": [
+          {
+            "name": "Routing decision (research task)",
+            "status": "PASS",
+            "anchor": "check-routing-6"
+          },
+          {
+            "name": "Routing decision (data_analysis task)",
+            "status": "PASS",
+            "anchor": "check-routing-11"
+          }
+        ]
+      },
+      {
+        "key": "invoke",
+        "title": "Invoke the selected specialist's Responses endpoint",
+        "actor": "Supervisor backend",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 2
+        },
+        "references": [
+          {
+            "name": "Invocation mechanism (research task)",
+            "status": "PASS",
+            "anchor": "check-routing-7"
+          },
+          {
+            "name": "Invocation mechanism (data_analysis task)",
+            "status": "PASS",
+            "anchor": "check-routing-12"
+          }
+        ]
+      },
+      {
+        "key": "result",
+        "title": "Return the specialist result to Supervisor",
+        "actor": "Research / Data Analysis text handler",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 2
+        },
+        "references": [
+          {
+            "name": "Sub-agent -> Supervisor delivery (research task)",
+            "status": "PASS",
+            "anchor": "check-routing-8"
+          },
+          {
+            "name": "Sub-agent -> Supervisor delivery (data_analysis task)",
+            "status": "PASS",
+            "anchor": "check-routing-13"
+          }
+        ]
+      },
+      {
+        "key": "deliver",
+        "title": "Check the final result delivered to the caller",
+        "actor": "Supervisor + validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 4
+        },
+        "references": [
+          {
+            "name": "Supervisor response (research task)",
+            "status": "PASS",
+            "anchor": "check-routing-5"
+          },
+          {
+            "name": "Supervisor -> user delivery (research task)",
+            "status": "PASS",
+            "anchor": "check-routing-9"
+          },
+          {
+            "name": "Supervisor response (data_analysis task)",
+            "status": "PASS",
+            "anchor": "check-routing-10"
+          },
+          {
+            "name": "Supervisor -> user delivery (data_analysis task)",
+            "status": "PASS",
+            "anchor": "check-routing-14"
+          }
+        ]
+      },
+      {
+        "key": "unchanged",
+        "title": "Check that the deployed agents did not change",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Agents reused - after",
+            "status": "PASS",
+            "anchor": "check-routing-15"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 1068\" role=\"img\" aria-labelledby=\"flow-routing-title flow-routing-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-routing-title\">Story 4 Step 1: Supervisor routing</title><desc id=\"flow-routing-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-routing-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-routing-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-routing-arrow)\" /><path d=\"M460 462 V501\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-routing-arrow)\" /><path d=\"M460 602 V641\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-routing-arrow)\" /><path d=\"M460 742 V781\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-routing-arrow)\" /><path d=\"M460 882 V921\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-routing-arrow)\" /><g id=\"flow-routing-baseline\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify the recorded deployment baseline</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-routing-prepare\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Reuse Research search tooling; prepare only when approved</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Runner / deployment tooling</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 3)</text></g><g id=\"flow-routing-route\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Ask Supervisor to choose Research or Data Analysis</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Supervisor routing model</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 2)</text></g><g id=\"flow-routing-invoke\"><rect x=\"70\" y=\"508\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"537\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Invoke the selected specialist's Responses endpoint</text><text x=\"88\" y=\"560\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Supervisor backend</text><text x=\"88\" y=\"584\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 2)</text></g><g id=\"flow-routing-result\"><rect x=\"70\" y=\"648\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"677\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Return the specialist result to Supervisor</text><text x=\"88\" y=\"700\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Research / Data Analysis text handler</text><text x=\"88\" y=\"724\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 2)</text></g><g id=\"flow-routing-deliver\"><rect x=\"70\" y=\"788\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"817\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">6. Check the final result delivered to the caller</text><text x=\"88\" y=\"840\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Supervisor + validation runner</text><text x=\"88\" y=\"864\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 4)</text></g><g id=\"flow-routing-unchanged\"><rect x=\"70\" y=\"928\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"957\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">7. Check that the deployed agents did not change</text><text x=\"88\" y=\"980\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"1004\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "warnings": [],
+  "error": null
+}

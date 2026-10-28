@@ -1,0 +1,317 @@
+{
+  "key": "direct",
+  "label": "Direct Research conversation",
+  "scope": "Same version-bound baseline. Research answered directly and recalled the code in its own conversation; no Supervisor model invocation in this step. This single-caller check is not a two-user isolation test.",
+  "agent_version": "10",
+  "kind": "direct",
+  "download": "evidence/direct.json",
+  "run_id": "{reference-8}",
+  "provenance": {
+    "scenario": "story-4-step-7",
+    "mode": "hosted",
+    "started_at": "2026-10-28T14:12:34.023742+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "step": "step-07-direct-invocation"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "b6c838c83a9ee3b489d8895a7f6711f3741c370f704b9062b83abfd180887eff"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "4d95168ae307493842e4d420ee86a70cee63d14e6e8cd03e16b83144fe8f44d8"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "4d95168ae307493842e4d420ee86a70cee63d14e6e8cd03e16b83144fe8f44d8"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-28T14:12:44.203689+00:00 \u2014 2026-10-28T14:13:29.031224+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Agents reused - before",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:12:44.203689+00:00",
+      "expected": "Identical to the Story 4 Step 1 baseline (versions, identities, toolbox wiring)",
+      "observed": {
+        "supervisor-agent": "15",
+        "research-agent": "10",
+        "data-analysis-agent": "10"
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "Separate conversation IDs",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:12:58.121973+00:00",
+      "expected": "Conversation B created on Research's endpoint, distinct from Supervisor conversation A",
+      "observed": {},
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "Direct response from Research",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:13:19.206147+00:00",
+      "expected": "Completed Responses API reply from Research without the Supervisor",
+      "observed": {
+        "agent": "research-agent",
+        "status": "completed",
+        "seconds": 21.06,
+        "statuses_seen": [
+          "completed"
+        ]
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 4,
+      "name": "Conversation continuity on Research",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:13:28.323978+00:00",
+      "expected": "Research recalls the code word from conversation B history",
+      "observed": {
+        "agent": "research-agent",
+        "status": "completed",
+        "seconds": 9.06,
+        "statuses_seen": [
+          "completed"
+        ],
+        "code_recalled": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 5,
+      "name": "Supervisor (Agent A) not invoked",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:13:28.335068+00:00",
+      "expected": "Every model request in this step targeted Research only",
+      "observed": {
+        "agents_called": [
+          "research-agent"
+        ]
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 6,
+      "name": "Agents reused - after",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:13:29.031224+00:00",
+      "expected": "Same three agents, versions, identities, and toolbox wiring as at the start",
+      "observed": "No changes",
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 6
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-4-step-7",
+    "title": "Story 4 Step 7: Direct Research invocation",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story4_agent_patterns.Step7"
+    ],
+    "notes": [
+      "Direct access bypasses Supervisor routing; this single-caller task does not establish two-user isolation."
+    ],
+    "nodes": [
+      {
+        "key": "baseline",
+        "title": "Verify the recorded deployment baseline",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Agents reused - before",
+            "status": "PASS",
+            "anchor": "check-direct-1"
+          }
+        ]
+      },
+      {
+        "key": "conversations",
+        "title": "Create separate Supervisor and Research conversations",
+        "actor": "Client metadata operations",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Separate conversation IDs",
+            "status": "PASS",
+            "anchor": "check-direct-2"
+          }
+        ]
+      },
+      {
+        "key": "first",
+        "title": "Send the synthetic code word directly to Research",
+        "actor": "Client -> Research",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Direct response from Research",
+            "status": "PASS",
+            "anchor": "check-direct-3"
+          }
+        ]
+      },
+      {
+        "key": "recall",
+        "title": "Ask Research to recall it in the same conversation",
+        "actor": "Client -> Research",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Conversation continuity on Research",
+            "status": "PASS",
+            "anchor": "check-direct-4"
+          }
+        ]
+      },
+      {
+        "key": "bypass",
+        "title": "Verify the client did not invoke the Supervisor model",
+        "actor": "Runner request inventory",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Supervisor (Agent A) not invoked",
+            "status": "PASS",
+            "anchor": "check-direct-5"
+          }
+        ]
+      },
+      {
+        "key": "unchanged",
+        "title": "Check that the deployed agents did not change",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Agents reused - after",
+            "status": "PASS",
+            "anchor": "check-direct-6"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 928\" role=\"img\" aria-labelledby=\"flow-direct-title flow-direct-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-direct-title\">Story 4 Step 7: Direct Research invocation</title><desc id=\"flow-direct-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-direct-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-direct-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-direct-arrow)\" /><path d=\"M460 462 V501\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-direct-arrow)\" /><path d=\"M460 602 V641\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-direct-arrow)\" /><path d=\"M460 742 V781\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-direct-arrow)\" /><g id=\"flow-direct-baseline\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify the recorded deployment baseline</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-direct-conversations\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Create separate Supervisor and Research conversations</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Client metadata operations</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-direct-first\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Send the synthetic code word directly to Research</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Client -&gt; Research</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-direct-recall\"><rect x=\"70\" y=\"508\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"537\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Ask Research to recall it in the same conversation</text><text x=\"88\" y=\"560\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Client -&gt; Research</text><text x=\"88\" y=\"584\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-direct-bypass\"><rect x=\"70\" y=\"648\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"677\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Verify the client did not invoke the Supervisor model</text><text x=\"88\" y=\"700\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Runner request inventory</text><text x=\"88\" y=\"724\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-direct-unchanged\"><rect x=\"70\" y=\"788\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"817\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">6. Check that the deployed agents did not change</text><text x=\"88\" y=\"840\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"864\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "warnings": [],
+  "error": null
+}

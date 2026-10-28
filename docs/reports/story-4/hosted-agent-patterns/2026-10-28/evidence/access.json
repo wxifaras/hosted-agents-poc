@@ -1,0 +1,358 @@
+{
+  "key": "access",
+  "label": "Correlation and access observations",
+  "scope": "Same version-bound baseline. Application correlation and successful public-tool route, allowed delegated header with an existing grant, local target allow-list rejection, and explicit excluded-tool allowed_tools PermissionDenied were observed. Not joined distributed tracing, OAuth OBO, or nested two-user isolation.",
+  "agent_version": "10",
+  "kind": "access",
+  "download": "evidence/access.json",
+  "run_id": "{reference-7}",
+  "provenance": {
+    "scenario": "story-4-step-5",
+    "mode": "hosted",
+    "started_at": "2026-10-28T14:18:37.259808+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "step": "step-05-trace-and-access"
+  },
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "fd04fdf63d2b059e1ff6872c3fe1ad6e1331f1a17d9b266483efd1e6f756b565"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "0074261d51db6d225219b2947f6facdb1b4e10c42d80b0f8a612f74ea0ad74aa"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "0074261d51db6d225219b2947f6facdb1b4e10c42d80b0f8a612f74ea0ad74aa"
+    }
+  ],
+  "completion": "Recorded checks, no finish-event recorded.",
+  "evidence_span": "2026-10-28T14:18:44.830173+00:00 \u2014 2026-10-28T14:20:26.084259+00:00 (recorded evidence timestamps, not execution duration)",
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Agents reused - before",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:18:44.830173+00:00",
+      "expected": "Identical to the Story 4 Step 1 baseline (versions, identities, toolbox wiring)",
+      "observed": {
+        "supervisor-agent": "15",
+        "research-agent": "10",
+        "data-analysis-agent": "10"
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "Trace: original user and correlation",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:19:31.684116+00:00",
+      "expected": "Supervisor sees the original user; correlation ID matches at Supervisor and Research",
+      "observed": {
+        "supervisor_user": "operator (original user)",
+        "research_user": "absent (no user context visible)",
+        "tool_calls": [
+          {
+            "name": "microsoft_learn___microsoft_docs_search",
+            "succeeded": true
+          }
+        ]
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "Allowed: operator -> Supervisor -> Research -> tool",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:19:31.693688+00:00",
+      "expected": "Completed with a successful tool call",
+      "observed": {
+        "outcome": "allowed"
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 4,
+      "name": "Platform enforcement: delegated user header",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:20:08.529004+00:00",
+      "expected": "allowed",
+      "observed": {
+        "outcome": "allowed",
+        "granted": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 5,
+      "name": "Application enforcement: Supervisor allow-list",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:20:20.408306+00:00",
+      "expected": "Denied by the Supervisor before any outbound call",
+      "observed": {
+        "outcome": "denied by Supervisor allow-list"
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 6,
+      "name": "Platform enforcement: toolbox allowed_tools",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:20:24.966280+00:00",
+      "expected": "microsoft_docs_fetch is not listed and its call is rejected",
+      "observed": {
+        "listed": false,
+        "rejected": true
+      },
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    },
+    {
+      "ordinal": 7,
+      "name": "Agents reused - after",
+      "status": "PASS",
+      "timestamp": "2026-10-28T14:20:26.084259+00:00",
+      "expected": "Same three agents, versions, identities, and toolbox wiring as at the start",
+      "observed": "No changes",
+      "explanation": {
+        "execution_type": "local_assertion",
+        "purpose": "Compare the recorded evidence with this check's expected condition.",
+        "api_family": "Local evidence verification",
+        "method": "Not applicable",
+        "route_template": "Not applicable",
+        "{reference-1}": "No network request for this local comparison.",
+        "authentication_context": "No credential needed for the local comparison.",
+        "prompt_applicability": "Not applicable: this check does not invoke a model.",
+        "prompt": "No prompt is sent by this operation.",
+        "controls": "Use the separately recorded input/runtime/byte receipts; do not infer missing evidence.",
+        "pass_meaning": "Only this recorded comparison satisfied its expected condition.",
+        "limitations": "Not proof of VM isolation, privileged-user isolation, or another API's authorization.",
+        "evidence_basis": "Implementation explanation for a legacy check, not a captured request or reconstructed outcome."
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 7
+  },
+  "additional_event_count": 0,
+  "additional_events": [],
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-4-step-5",
+    "title": "Story 4 Step 5: Correlation and access observations",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story4_identity.Step5"
+    ],
+    "notes": [
+      "Application correlation is not a joined distributed trace or authenticated tool-side user.",
+      "A recorded PASS is preserved, not re-audited here: generic transport/parsing failures cannot prove denial.",
+      "An allowed delegated header with an existing grant is not a grant-absence negative control."
+    ],
+    "nodes": [
+      {
+        "key": "baseline",
+        "title": "Verify the recorded deployment baseline",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Agents reused - before",
+            "status": "PASS",
+            "anchor": "check-access-1"
+          }
+        ]
+      },
+      {
+        "key": "correlation",
+        "title": "Observe original caller presence and application correlation",
+        "actor": "Supervisor / Research reports",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Trace: original user and correlation",
+            "status": "PASS",
+            "anchor": "check-access-2"
+          }
+        ]
+      },
+      {
+        "key": "allowed",
+        "title": "Exercise the permitted Research/tool route",
+        "actor": "Caller -> Supervisor -> Research -> toolbox",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Allowed: operator -> Supervisor -> Research -> tool",
+            "status": "PASS",
+            "anchor": "check-access-3"
+          }
+        ]
+      },
+      {
+        "key": "header",
+        "title": "Compare delegated-header behavior with the role inventory",
+        "actor": "Foundry agent endpoint",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Platform enforcement: delegated user header",
+            "status": "PASS",
+            "anchor": "check-access-4"
+          }
+        ]
+      },
+      {
+        "key": "target",
+        "title": "Request an excluded target; expect no outbound delegation",
+        "actor": "Supervisor application allow-list",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Application enforcement: Supervisor allow-list",
+            "status": "PASS",
+            "anchor": "check-access-5"
+          }
+        ]
+      },
+      {
+        "key": "excluded",
+        "title": "Probe an excluded tool on the configured endpoint",
+        "actor": "Foundry toolbox allowed_tools",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Platform enforcement: toolbox allowed_tools",
+            "status": "PASS",
+            "anchor": "check-access-6"
+          }
+        ]
+      },
+      {
+        "key": "unchanged",
+        "title": "Check that the deployed agents did not change",
+        "actor": "Validation runner",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Agents reused - after",
+            "status": "PASS",
+            "anchor": "check-access-7"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 1068\" role=\"img\" aria-labelledby=\"flow-access-title flow-access-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-access-title\">Story 4 Step 5: Correlation and access observations</title><desc id=\"flow-access-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-access-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-access-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-access-arrow)\" /><path d=\"M460 462 V501\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-access-arrow)\" /><path d=\"M460 602 V641\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-access-arrow)\" /><path d=\"M460 742 V781\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-access-arrow)\" /><path d=\"M460 882 V921\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-access-arrow)\" /><g id=\"flow-access-baseline\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify the recorded deployment baseline</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-access-correlation\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Observe original caller presence and application correlation</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Supervisor / Research reports</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-access-allowed\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Exercise the permitted Research/tool route</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Caller -&gt; Supervisor -&gt; Research -&gt; toolbox</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-access-header\"><rect x=\"70\" y=\"508\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"537\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Compare delegated-header behavior with the role inventory</text><text x=\"88\" y=\"560\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Foundry agent endpoint</text><text x=\"88\" y=\"584\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-access-target\"><rect x=\"70\" y=\"648\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"677\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Request an excluded target; expect no outbound delegation</text><text x=\"88\" y=\"700\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Supervisor application allow-list</text><text x=\"88\" y=\"724\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-access-excluded\"><rect x=\"70\" y=\"788\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"817\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">6. Probe an excluded tool on the configured endpoint</text><text x=\"88\" y=\"840\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Foundry toolbox allowed_tools</text><text x=\"88\" y=\"864\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-access-unchanged\"><rect x=\"70\" y=\"928\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"957\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">7. Check that the deployed agents did not change</text><text x=\"88\" y=\"980\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Validation runner</text><text x=\"88\" y=\"1004\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "warnings": [],
+  "error": null
+}
