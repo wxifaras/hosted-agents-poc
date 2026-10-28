@@ -350,6 +350,182 @@ A configured 120-second idle policy is not evidence of an actual lifecycle
 transition. The [ADR snapshot](docs/adr/0001-hosted-agents-poc.md#implementation-and-evidence-snapshot)
 separates implementation from observed hosted results.
 
+## Generate HTML reports after validation runs
+
+HTML generation is **offline**: it reads saved evidence, not the deployed agents.
+It does not rerun tests, call models/Azure, deploy, grant permissions, or turn
+partial evidence into a passing story. Use the same workflow for Stories 1 and 4,
+and for later stories.
+
+### 1. Select the evidence
+
+Run the relevant existing validation tasks first. Each run normally retains
+`manifest.json`, `results.jsonl`, `events.jsonl`, and a Markdown report under
+`artifacts\story-<n>\step-<NN>-<slug>\<run-folder>`.
+Keep failed, blocked, and partial runs when they explain the outcome. Do not mix
+versions or environments without identifying each run's scope.
+
+Create a local JSON bundle, for example
+`artifacts\story-4\report-input.json`:
+
+```json
+{
+  "schema": "story-report-bundle-v1",
+  "story": 4,
+  "title": "Story 4 - Hosted Agent Patterns",
+  "environment": "hosted-agents-poc-dev",
+  "runs": [
+    {
+      "key": "routing",
+      "label": "Supervisor routing",
+      "run_dir": "artifacts\\story-4\\step-01-supervisor-delegation\\<run-folder>",
+      "scope": "Routing and text delivery only; not native code execution."
+    }
+  ],
+  "decisions": [],
+  "traceability": [
+    {
+      "requirement": "Supervisor routing",
+      "status": "Recorded evidence",
+      "summary": "Interpret the selected run's checks within its actual version and scope.",
+      "run_keys": ["routing"]
+    }
+  ]
+}
+```
+
+Replace `<run-folder>` with an actual run directory. Add one `runs` entry per
+selected run, with a unique lowercase slug `key` (for example `research-tool`);
+use those keys in `traceability[].run_keys`.
+This one-run example is not a complete Story 4 report. Choose the title, story
+number, scope, and requirements for the evidence being reported.
+
+| Bundle field | Purpose |
+|---|---|
+| `story` | Story number; selects supported story-specific context, never a pass/fail policy |
+| `runs` | Explicit saved run directories and descriptions; no automatic assumption that all required tasks ran |
+| `traceability` | Requirement, scoped status/interpretation, and supporting run keys; use this when a Markdown summary is historical or not current |
+| `decisions` | Optional acceptance decisions as `area`, `status`, `detail`, and `evidence_keys`; keep sponsor acceptance separate from measured results |
+| `runs[].kind` | Optional run category. In the new schema, use `cross-story-reference` explicitly when including a run from another story, and explain its limited relevance in `scope` |
+
+Relative paths resolve from the command's current directory. Run from the
+repository root. Input bundles and original evidence are local/ignored; a fresh
+clone does not contain them. Use the locked environment from **Setup: Prepare
+local environment** and prepare an input bundle from evidence available on that
+computer. Never copy authentication caches as report inputs.
+
+### 2. Generate and open the HTML
+
+Use the shared [report entry point](scripts/story_report.py):
+
+```powershell
+# Story 1: use the existing local bundle, or prepare one from the relevant runs.
+uv run --frozen --no-sync --group validation python -m scripts.story_report --input artifacts\story-1\report-input.json --output artifacts\story-1\html-report\<snapshot-name>
+
+# Story 4: use the same command with the Story 4 bundle.
+uv run --frozen --no-sync --group validation python -m scripts.story_report --input artifacts\story-4\report-input.json --output artifacts\story-4\html-report\<snapshot-name>
+```
+
+Replace `<snapshot-name>` with a new dated/descriptive directory, such as
+`2026-10-28-current`. Open the printed `index.html` path in a browser. The report
+is self-contained, uses local sanitized downloads, and requires no web server,
+JavaScript, or CDN. Review the report's warnings and exit code as well as the
+page itself: generating HTML is not validation success.
+
+For the shared report command, exit codes describe **report generation**, not
+the outcome of the tests:
+
+| Exit code | Meaning |
+|---|---|
+| `0` | Evidence rendered without input errors; recorded failed/blocked checks may still be present |
+| `1` | I/O failure; check local files and output permissions |
+| `2` | Invalid configuration or evidence; an HTML report may still have been written with invalid bindings explicitly identified |
+
+The existing [Story 1 command](scripts/story1_report.py) and
+`story1-report-bundle-v1` inputs remain supported. Story 1's optional
+`summary_source` can bind its current Markdown Summary; only use a genuinely
+current summary in the supported Story 1 table format. Both `summary_source`
+and chart imports are Story 1-specific; other stories use explicit
+`traceability` instead. An optional synthetic chart must be bound to its original
+hash and review receipt, not substituted with a newly regenerated image.
+
+### What each task validates: shared flow diagrams
+
+Expand **What this task validates — flow diagram and evidence mapping** inside
+each recorded run. Both the shared bundle and single-run reports reuse the
+[task-flow definitions and SVG renderer](scripts/report_task_flows.py) and the
+[same Jinja fragment](scripts/report_assets/task_flow.html).
+
+The diagram shows reviewed actors, plan actions, and their relationships.
+Its badges describe exact linked check records—not automatically inferred
+execution, identity propagation, or distributed trace spans. `NOT RECORDED`
+does not mean an action ran or failed; `MIXED` preserves conflicting check
+outcomes rather than converting them into a task pass.
+
+Definitions cover the selected Story 1 native tasks and Story 4 task paths.
+Offline chart review, Blob reconstruction, and metadata-only Hosted observation
+have separate plans. The native Supervisor preflight depicts its blocker, not
+an implemented analytical delivery path. Unknown scenarios/variants receive an
+explicit unmapped notice instead of a guessed diagram.
+
+For a future task, add a reviewed `TaskFlow` using the existing `FlowStep` /
+`FlowEdge` structure and exact recorded-check selectors, register its scenario
+and variant, and add an offline mapping test. Reuse the renderer; do not write
+another drawing engine or infer behavior by parsing arbitrary Python code.
+Versioned definitions describe current reviewed code; historical run outcomes
+remain separate. No visualization libraries or live service calls are required.
+
+### 3. Interpret, retain, and optionally publish
+
+| Story/context | Reporting boundary |
+|---|---|
+| Story 1 | Show native analytical originals, memory/capacity, and Hosted/Blob observations when recorded. Keep the accepted capacity envelope distinct from the original unreached pressure threshold |
+| Story 4 | Show routing, background behavior, Research tool use, identity/access observations, and direct invocation. Text delegation is not native Code Interpreter evidence; correlation is not a verified distributed trace or OAuth OBO |
+| Future stories | Reuse the same run/requirement/decision bundle. Unknown story numbers use neutral evidence views; add reviewed story-specific context only when that story actually needs it |
+
+- Keep each run's source/version binding and original PASS/FAIL/BLOCKED/SKIP
+  observations. Missing finish records, timings, or trace links remain missing;
+  the renderer must not manufacture them.
+- The shared command enforces output under the repository working directory's
+  ignored `artifacts` folder, outside every selected source run directory.
+  Choose a new output directory when inputs change. `--overwrite` permits
+  regeneration only for an existing snapshot whose input/evidence fingerprint
+  is unchanged.
+- Review sanitized HTML/JSON/downloads before sharing. Do not publish raw reports,
+  user/session/native identifiers, credentials, private paths, original CSV
+  payloads, or generated interpreter code. Sanitization is not a substitute for
+  reviewing what a report claims.
+- If publication is requested, copy only the reviewed sanitized snapshot and
+  its relative assets to a tracked reports directory. Add an HTML Preview link
+  in the corresponding story document. GitHub preview requires a committed,
+  pushed snapshot; generation does not commit or push automatically.
+- Existing published reports are dated snapshots, not living pages. Updating
+  documentation or running new tests does not silently rewrite an old report.
+
+For a single saved run, the legacy
+[single-run renderer](scripts/generate_report.py) is also available:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.generate_report --run-dir artifacts\story-4\step-01-supervisor-delegation\<run-folder> --title "Story 4 - Supervisor routing"
+```
+
+Unlike the shared bundle command, the single-run renderer prints a new report
+directory within that source run. `--allow-incomplete` permits a truncated final
+JSONL record for inspection with disclosed gaps; it does not accept arbitrary
+malformed evidence or turn an incomplete test into a pass.
+
+### Troubleshooting report generation
+
+| Problem | What to check |
+|---|---|
+| Run directory or evidence file missing | Original evidence and input bundles are ignored/local. Select an existing retained run; do not invent missing results. Run commands from the repository root, not the bundle's directory |
+| Output location rejected | For the shared command, choose a directory under `artifacts` that is not a selected source run or nested inside one |
+| Output already exists or fingerprint changed | Choose a new snapshot directory. Use `--overwrite` only for unchanged inputs/evidence; do not delete original runs to bypass the check |
+| Run belongs to another story | In the shared schema, explicitly set that run's `kind` to `cross-story-reference` and explain its limited relevance in `scope` |
+| `summary_source` or chart import rejected | Those inputs are Story 1-only. Use explicit `traceability` for Story 4/future stories; Story 1 Markdown summaries must retain the supported table structure |
+| HTML exists but the command returned `2` | Inspect the report's invalid-input warnings and terminal error. Fix the selected evidence/configuration and use a new snapshot directory; do not interpret the page as a successful validation |
+| Task diagram is unavailable | The scenario/variant has no reviewed flow definition. The evidence is still shown; add a reviewed definition and mapping test rather than guessing an execution flow |
+
 ## Documentation
 
 | Document | Purpose |
