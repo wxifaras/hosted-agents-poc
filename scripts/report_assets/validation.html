@@ -38,13 +38,14 @@ footer { color:var(--muted); padding:15px; font-size:.9rem; } .file { border-top
 </header>
 <main>
 <nav aria-label="Report sections">
-<a href="#overview">Overview</a><a href="#architecture">Architecture</a><a href="#checks">Checks</a>
+<a href="#overview">Overview</a>{% if diagrams %}<a href="#architecture">Architecture</a>{% endif %}<a href="#checks">Checks</a>
 {% if api_groups %}<a href="#api-catalog">API / SDK catalog</a>{% endif %}
 <a href="#timeline">Execution timeline / HTTP</a><a href="#files">Generated files</a><a href="#downloads">Downloads</a>
 <a href="#technical-appendix">Technical appendix</a>
 </nav>
 <section id="overview">
 <h2>Run overview and evidence limits</h2>
+{% if consumer %}
 <h3>Consumer-facing isolation acceptance: {{ acceptance }}</h3>
 <p><strong>{{ mandatory_completed }} / {{ mandatory_total }}</strong> mandatory acceptance checks have recorded
 assertions. COMPLETE is scoped to the recorded consumer-facing analysis, original JSON/PNG delivery and
@@ -62,6 +63,10 @@ is a referenced platform statement, not an application test PASS. Reference revi
 Privileged-project-user isolation and chart aesthetics are outside Consumer isolation acceptance;
 PNG format, numerical correctness, original-byte integrity and authorization remain mandatory.</p>
 <p>Read every PASS as scoped to the recorded assertion and configuration. Hosted Session Files authorization is not a universal native-container API isolation claim.</p>
+{% else %}
+<h3>Recorded evidence only</h3>
+<p>Only assertions saved in this run are represented. No story-specific acceptance policy, identity propagation, architecture, tool execution, or additional coverage is inferred. Missing completion and timing remain explicitly unrecorded.</p>
+{% endif %}
 <div class="cards">
 {% for status in ['PASS','FAIL','BLOCKED','SKIP'] %}
 <div class="card"><span class="badge {{ status }}">{{ status }}</span><strong>{{ counts.get(status,0) }}</strong>recorded assertions</div>
@@ -82,7 +87,7 @@ and implementation reference. Missing fields are not inferred from a selected su
 {% for entry in boundary_appendix %}<tr><td><a href="#{{ entry.identifier }}">{{ entry.name }}</a></td><td>{{ entry.status }}</td><td>{{ entry.evidence }}</td></tr>{% endfor %}
 </tbody></table></div>
 </section>
-<section id="architecture">
+{% if diagrams %}<section id="architecture">
 <h2>Architecture and trust boundaries</h2>
 <p class="warning">These are reviewed <strong>architecture-under-test</strong> views, not a live topology inventory or proof that every depicted boundary passed. Compare the diagrams with the actual checks below.</p>
 {% for diagram in diagrams %}<details open><summary>{{ diagram.name }}</summary>
@@ -90,6 +95,7 @@ and implementation reference. Missing fields are not inferred from a selected su
 </details>{% endfor %}
 <p>The backend credential plus trusted call context is not end-user OAuth on-behalf-of authentication. Editable diagram data is included in Downloads.</p>
 </section>
+{% endif %}
 {% if api_groups %}
 <section id="api-catalog">
 <h2>API and SDK code-call reference</h2>
@@ -121,6 +127,7 @@ No full code snippets or raw resource identifiers are included.</p>
 {% endif %}
 <section id="checks">
 <h2>Recorded checks: detailed intent, expected and observed results</h2>
+{% include "task_flow.html" %}
 {% for case in cases %}
 <details id="check-{{ case.id }}">
 <summary><span class="badge {{ case.status }}">{{ case.status }}</span>{{ case.ordinal }}. {{ case.name }}</summary>
@@ -208,14 +215,15 @@ The model generates Python in managed Code Interpreter to produce result.json (t
 Numbered flows explain the reviewed current code or a separately proposed validation approach. They do
 not attest that this exact source/SDK version was deployed for an older run. Recorded values and check
 outcomes remain separate. No optional, excluded or undocumented test becomes PASS through this appendix.</p>
-<p>SDK families: <strong>azure-ai-projects</strong> (AIProjectClient and Hosted Session Files),
+{% if consumer %}<p>SDK families: <strong>azure-ai-projects</strong> (AIProjectClient and Hosted Session Files),
 <strong>openai</strong> (AsyncOpenAI Responses, Files and Containers), <strong>azure-identity</strong>
 (authenticated clients), and Python's <strong>asyncio</strong> (deadlines). Backend managed credentials
 and trusted platform call context are not an end-user OAuth on-behalf-of token.
 For versions actually recorded by the deployment, inspect the runtime/source checks under
 <a href="#checks">Checks</a> and the <a href="#timeline">timeline</a>; local installed versions are not substituted.
 {% if api_groups %}SDK method names below link to the <a href="#api-catalog">API / SDK catalog</a> when applicable.{% endif %}
-References are file/symbol names, not executable snippets or external file dependencies.</p>
+References are file/symbol names, not executable snippets or external file dependencies.</p>{% else %}
+<p>References explain recorded local fields only; no SDK calls or story-specific execution flow are inferred.</p>{% endif %}
 <nav aria-label="Appendix contents">
 <a href="#appendix-boundaries">Boundary explanations</a><a href="#appendix-counters">Completion field explanations</a>
 {% for diagram in appendix_diagrams %}<a href="#{{ diagram.id }}">{{ diagram.name }}</a>{% endfor %}

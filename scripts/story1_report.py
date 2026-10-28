@@ -1,11 +1,16 @@
-"""Render an offline, sanitized Story 1 evidence bundle using the shared report assets.
+"""Shared offline, sanitized story evidence engine and legacy Story 1 entry point.
 
 Run with ``python -m scripts.story1_report --input CONFIG --output DIRECTORY``.
 Paths in ``runs[].run_dir`` are relative to the repository working directory.
-Config schema: story1-report-bundle-v1; title, environment, summary_source,
+Config schema: story-report-bundle-v1 with positive integer story, or legacy
+story1-report-bundle-v1 (Story 1 only); title, environment, summary_source,
 runs (key, label, run_dir, scope, agent_version?, kind?), decisions (area,
 status, detail, evidence_keys), chart? (run_key, path, review_path).
 Explicit traceability rows and sponsor_decisions are also supported.
+summary_source and approved chart imports are Story 1-only. Other stories use
+explicit traceability; unknown future stories receive neutral evidence-only context.
+Legacy Story 1 bundles retain cross-story references; shared-schema bundles must
+explicitly declare kind cross-story-reference for a mismatched story.
 No runner is imported.
 Exit codes: 0 rendered recorded evidence, 1 I/O error, 2 invalid evidence/config.
 Generation is not an acceptance verdict. --overwrite requires unchanged sources.
@@ -24,11 +29,13 @@ from hashlib import sha256
 from importlib.resources import files
 from pathlib import Path
 
-from jinja2 import Environment, StrictUndefined
+from jinja2 import Environment, PackageLoader, StrictUndefined
 from pydantic import JsonValue
 
 from scripts.check_details import describe_check
 from scripts.generate_report import Redactor, ReportError, pretty, read_bytes, read_object, read_records
+from scripts.report_story_context import story4_api_catalog
+from scripts.report_task_flows import build_task_flow
 
 SOURCE_COMMIT = "e139a6917c86fda32b8570545e8ec54eca04ccf4"
 STATUSES = frozenset({"PASS", "FAIL", "BLOCKED", "SKIP"})
@@ -36,7 +43,7 @@ SAFE_KEY = re.compile(r"[a-z0-9][a-z0-9-]{0,79}\Z")
 RUN_ID = re.compile(r"[A-Za-z0-9_.:-]{1,128}\Z")
 POSIX_PATH = re.compile(r"(?<![\w:])/(?:home|Users|mnt|var|etc|opt|workspace|workspaces|root)/[^\s<>\"']+")
 UNC_PATH = re.compile(r"\\\\[^\s<>\"']+")
-FINGERPRINT = re.compile(r"\b[0-9a-f]{64}\b", re.I)
+FINGERPRINT = re.compile(r"\b(?:[0-9a-f]{16}|[0-9a-f]{32}|[0-9a-f]{64})\b", re.I)
 NATIVE_ID = re.compile(
     r"\b(?:session|workflow|thread|msg|user|principal|container|conversation|request|agent)_[\w-]+\b"
 )
@@ -146,6 +153,45 @@ OBSERVED_KEYS = frozenset(
         "seconds",
         "blocker",
         "analytical_submission",
+        "agent",
+        "selected",
+        "requested",
+        "decided_by",
+        "controller",
+        "model_tool_calls",
+        "mechanism",
+        "target_agent",
+        "invocation",
+        "statuses_seen",
+        "polls",
+        "elapsed_ms",
+        "stage",
+        "http_status",
+        "code",
+        "handled_by",
+        "retried",
+        "protocol",
+        "research_toolbox_wired",
+        "marker_in_sub_agent_answer",
+        "marker_in_final_answer",
+        "correlation_echoed",
+        "correlation_header_matches",
+        "call_id_present",
+        "user_id_present",
+        "tool_calls",
+        "name",
+        "succeeded",
+        "agents_called",
+        "code_recalled",
+        "granted",
+        "granting_roles",
+        "outcome",
+        "research_sees",
+        "supervisor_user",
+        "research_user",
+        "listed",
+        "rejected",
+        "met",
     }
 )
 
@@ -156,8 +202,15 @@ class BundleRedactor(Redactor):
     def text(self, value: str) -> str:
         value = POSIX_PATH.sub("{local-path}", value)
         value = UNC_PATH.sub("{local-path}", value)
-        value = FINGERPRINT.sub("{fingerprint-omitted}", value)
-        value = NATIVE_ID.sub("{native-reference}", value)
+        for pattern in (FINGERPRINT, NATIVE_ID):
+
+            def reference(match: re.Match[str]) -> str:
+                original = match.group(0)
+                if original not in self.aliases:
+                    self.aliases[original] = f"{{reference-{len(self.aliases) + 1}}}"
+                return self.aliases[original]
+
+            value = pattern.sub(reference, value)
         return super().text(value)
 
 
@@ -197,7 +250,13 @@ def _unique(records: list[dict[str, JsonValue]]) -> list[dict[str, JsonValue]]:
     return result
 
 
-def _load_run(entry: dict[str, JsonValue], redactor: BundleRedactor) -> dict[str, JsonValue]:
+def _load_run(
+    entry: dict[str, JsonValue],
+    redactor: BundleRedactor,
+    story: int = 1,
+    *,
+    legacy_references: bool = False,
+) -> dict[str, JsonValue]:
     run_path = entry.get("run_dir")
     if not isinstance(run_path, str):
         raise ReportError("run_dir must be a local directory.")
@@ -210,11 +269,20 @@ def _load_run(entry: dict[str, JsonValue], redactor: BundleRedactor) -> dict[str
         raise ReportError("Manifest must contain a safe, nonempty run_id.")
     if not isinstance(manifest.get("scenario"), str):
         raise ReportError("Manifest must contain a scenario.")
+    scenario_story = re.match(r"story[-_](\d+)(?:[-_]|$)", str(manifest["scenario"]))
+    cross_story = bool(scenario_story and int(scenario_story[1]) != story)
+    if cross_story and not legacy_references and entry.get("kind") != "cross-story-reference":
+        raise ReportError("Manifest story does not match bundle story; use kind cross-story-reference explicitly.")
     if not (run / "results.jsonl").is_file():
         raise ReportError("results.jsonl was not recorded.")
     results, warnings = read_records(run / "results.jsonl")
     events, event_warnings = read_records(run / "events.jsonl")
     warnings.extend(event_warnings)
+    if cross_story:
+        warnings.append(
+            f"Cross-story reference: {manifest['scenario']} in Story {story} bundle. "
+            "Original verdicts apply only to the declared reference scope, not combined story acceptance."
+        )
     if not results:
         warnings.append("No recorded result checks.")
     for result in results:
@@ -275,16 +343,18 @@ def _load_run(entry: dict[str, JsonValue], redactor: BundleRedactor) -> dict[str
             "project_version",
             "maf_version",
             "agentserver_version",
+            "variant",
+            "step",
         )
         if field in manifest
     }
     timestamps = sorted(str(result["timestamp"]) for result in results if isinstance(result.get("timestamp"), str))
     return {
-        "run_id": run_id,
+        "run_id": redactor.text(run_id),
         "provenance": provenance,
         "sources": sources,
         "completion": (
-            "Explicit finish record present; this is not combined Story 1 acceptance."
+            "Explicit finish record present; this is not combined story acceptance."
             if conclusion.get("state") == "finished"
             else "Recorded checks, no finish-event recorded."
         ),
@@ -297,6 +367,7 @@ def _load_run(entry: dict[str, JsonValue], redactor: BundleRedactor) -> dict[str
         "counts": dict(Counter(str(result["status"]) for result in results)),
         "additional_event_count": len(extra_events),
         "additional_events": [],
+        "task_flow": build_task_flow(provenance, _objects(cases, "task-flow checks"), prefix=str(entry["key"])),
         "warnings": [str(warning) for warning in warnings],
         "error": None,
     }
@@ -666,8 +737,16 @@ def _chart(config: dict[str, JsonValue], redactor: BundleRedactor) -> dict[str, 
 
 def build_bundle(config: dict[str, JsonValue]) -> dict[str, JsonValue]:
     """Validate bundle bindings and preserve original check verdicts without rollup success."""
-    if config.get("schema", "story1-report-bundle-v1") != "story1-report-bundle-v1":
+    schema = config.get("schema", "story1-report-bundle-v1")
+    if not isinstance(schema, str) or schema not in {"story1-report-bundle-v1", "story-report-bundle-v1"}:
         raise ReportError("Unsupported report bundle schema.")
+    story = config.get("story", 1) if schema == "story1-report-bundle-v1" else config.get("story")
+    if type(story) is not int or story < 1:
+        raise ReportError("story must be a positive integer.")
+    if schema == "story1-report-bundle-v1" and story != 1:
+        raise ReportError("Legacy Story 1 schema cannot bind another story.")
+    if story != 1 and ("summary_source" in config or "chart" in config):
+        raise ReportError("summary_source and chart are Story 1-only; supply explicit traceability.")
     redactor = BundleRedactor()
     entries = _objects(config.get("runs"), "runs")
     if not entries:
@@ -694,7 +773,7 @@ def build_bundle(config: dict[str, JsonValue]) -> dict[str, JsonValue]:
             "download": f"evidence/{key}.json",
         }
         try:
-            binding.update(_load_run(entry, redactor))
+            binding.update(_load_run(entry, redactor, story, legacy_references=schema == "story1-report-bundle-v1"))
         except (OSError, ValueError, UnicodeError) as error:
             binding.update(
                 {
@@ -711,6 +790,10 @@ def build_bundle(config: dict[str, JsonValue]) -> dict[str, JsonValue]:
                     "evidence_span": "Unavailable",
                     "additional_event_count": 0,
                     "additional_events": [],
+                    "task_flow": {
+                        "available": False,
+                        "notice": "Invalid evidence: no task flow or check outcomes are inferred.",
+                    },
                 }
             )
         if binding["error"] is None:
@@ -744,23 +827,38 @@ def build_bundle(config: dict[str, JsonValue]) -> dict[str, JsonValue]:
         }
         for item in _objects(decision_entries, "sponsor_decisions")
     ]
+    for decision in decisions:
+        if isinstance(decision, dict):
+            refs = decision["run_keys"]
+            if not isinstance(refs, list) or any(not isinstance(key, str) or key not in seen for key in refs):
+                raise ReportError("Sponsor decision run_keys must reference bound runs.")
     traceability: list[JsonValue] = []
     for item in _objects(config.get("traceability", []), "traceability"):
-        keys = item.get("run_keys")
+        keys = item.get("run_keys", [])
         if not isinstance(keys, list) or any(not isinstance(key, str) or key not in seen for key in keys):
             raise ReportError("Traceability run_keys must reference existing bindings.")
         traceability.append(
             {
                 **{
-                    field: _text(item.get(field), f"traceability.{field}", redactor)
+                    field: _text(
+                        item.get(field, item.get("works") if field == "summary" else None),
+                        f"traceability.{field}",
+                        redactor,
+                    )
                     for field in ("requirement", "status", "summary")
                 },
                 "run_keys": keys,
+                **{
+                    field: _text(item[field], f"traceability.{field}", redactor)
+                    for field in ("id", "limitations", "next_step")
+                    if field in item
+                },
             }
         )
     summary, summary_hash = _summary(config, seen, redactor)
     return {
-        "title": _text(config.get("title", "Story 1 evidence report"), "title", redactor),
+        "story": story,
+        "title": _text(config.get("title", f"Story {story} evidence report"), "title", redactor),
         "environment_label": _text(
             config.get("environment", config.get("environment_label", "Local evidence")), "environment", redactor
         ),
@@ -772,9 +870,9 @@ def build_bundle(config: dict[str, JsonValue]) -> dict[str, JsonValue]:
         "traceability": traceability or summary,
         "summary_sha256": summary_hash,
         "chart": _chart(config, redactor),
-        "memory": _memory_rows(runs),
-        "native_api_catalog": _native_api_catalog(),
-        "lifecycle_timeline": _lifecycle_timeline(runs),
+        "memory": _memory_rows(runs) if story == 1 else [],
+        "native_api_catalog": _native_api_catalog() if story == 1 else story4_api_catalog() if story == 4 else [],
+        "lifecycle_timeline": _lifecycle_timeline(runs) if story == 1 else [],
         "errors": [run["key"] for run in runs if run["error"]],
     }
 
@@ -821,7 +919,9 @@ def generate_bundle(input_path: Path, output: Path, *, overwrite: bool = False) 
                 for path in evidence.iterdir()
             ):
                 raise ReportError("Output evidence directory contains unrelated files or links.")
-    environment = Environment(autoescape=True, undefined=StrictUndefined)
+    environment = Environment(
+        autoescape=True, undefined=StrictUndefined, loader=PackageLoader("scripts.report_assets", package_path="")
+    )
     environment.filters["json_pretty"] = pretty
     template = environment.from_string(
         files("scripts.report_assets").joinpath("story1.html").read_text(encoding="utf-8")

@@ -1,0 +1,25 @@
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+{% if task_flow.available %}
+<h4>{{ task_flow.title }}</h4>
+<p>{{ task_flow.notice }}</p>
+{{ task_flow.svg|safe }}
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>{% for node in task_flow.nodes %}
+<tr><th scope="row">{{ node.title }}<br><small>{{ node.actor }}</small></th>
+<td>{{ node.evidence_status }}{% for status, count in node.counts.items() %}<br>{{ status }}: {{ count }}{% endfor %}</td>
+<td>{% for ref in node.references %}<a href="#{{ ref.anchor }}">{{ ref.name }} — {{ ref.status }}</a>{% if not loop.last %}<br>{% endif %}{% else %}No exact recorded assertion mapped.{% endfor %}</td></tr>
+{% endfor %}</tbody></table></div>
+{% for note in task_flow.notes %}<p><strong>Scope:</strong> {{ note }}</p>{% endfor %}
+<p><strong>Reviewed implementation references:</strong>
+{% for source in task_flow.sources %}<code>{{ source }}</code>{% if not loop.last %}; {% endif %}{% endfor %}.
+Definition version: <code>{{ task_flow.version }}</code>. Current definitions may differ from historical runner versions.</p>
+{% else %}
+<p>{{ task_flow.notice }}</p>
+{% endif %}
+</details>

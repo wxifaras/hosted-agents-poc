@@ -21,13 +21,14 @@ from uuid import uuid4
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from app.core.redaction import sanitize, sanitize_text
-from jinja2 import Environment, StrictUndefined
+from jinja2 import Environment, PackageLoader, StrictUndefined
 from pydantic import JsonValue
 
 from scripts.check_details import describe_check
 from scripts.report_api_catalog import api_catalog, related_api_ids
 from scripts.report_appendix import build_appendix
 from scripts.report_diagrams import architecture_svg, diagram_sources, native_bypass_sequence_svg, sequence_svg
+from scripts.report_task_flows import build_task_flow
 
 MAX_EVIDENCE_BYTES = 16 * 1024 * 1024
 MAX_ATTACHMENT_BYTES = 1024 * 1024
@@ -546,14 +547,20 @@ def generate_report(
         }
         for event in events
     ]
-    render = Environment(autoescape=True, undefined=StrictUndefined)
+    render = Environment(
+        autoescape=True, undefined=StrictUndefined, loader=PackageLoader("scripts.report_assets", package_path="")
+    )
     template = render.from_string(
         files("scripts.report_assets").joinpath("validation.html").read_text(encoding="utf-8")
     )
-    diagrams = [
-        {"name": "Trust-boundary architecture under test", "svg": architecture_svg()},
-        {"name": "Request and original-file delivery sequence under test", "svg": sequence_svg()},
-    ]
+    diagrams = (
+        [
+            {"name": "Trust-boundary architecture under test", "svg": architecture_svg()},
+            {"name": "Request and original-file delivery sequence under test", "svg": sequence_svg()},
+        ]
+        if consumer
+        else []
+    )
     coverage = (
         [
             ("Application workflow/artifact controls", "Recorded checks; inspect per-user verdicts"),
@@ -639,6 +646,12 @@ def generate_report(
     if not isinstance(safe_conclusion, dict):
         raise ReportError("Sanitized conclusion must remain an object.")
     boundary_appendix, counter_appendix = build_appendix(coverage_rows, safe_conclusion, cases, catalog)
+    task_flow = build_task_flow(
+        {"scenario": manifest.get("scenario"), "variant": manifest.get("variant")},
+        [{"name": case["name"], "status": case["status"], "ordinal": index} for index, case in enumerate(cases, 1)],
+        prefix="single-run",
+        anchors={index: f"check-{case['id']}" for index, case in enumerate(cases, 1)},
+    )
     bundle = {
         "manifest": redactor.value(manifest),
         "conclusion": redactor.value(conclusion),
@@ -648,25 +661,39 @@ def generate_report(
         "warnings": [redactor.text(warning) for warning in warnings],
         "verdict": verdict,
         "consumer_acceptance": acceptance,
-        "acceptance_scope": "Consumer-facing analysis, original-file delivery and recorded authorization checks",
-        "acceptance_policy": "consumer-facing-v1; native bypass is optional Advanced scope",
+        "acceptance_scope": (
+            "Consumer-facing analysis, original-file delivery and recorded authorization checks"
+            if consumer
+            else "Recorded assertions only; no story-specific acceptance inferred"
+        ),
+        "acceptance_policy": (
+            "consumer-facing-v1; native bypass is optional Advanced scope" if consumer else "recorded-evidence-only"
+        ),
         "advanced_native_acceptance": advanced_acceptance,
         "mandatory_total": len(required),
         "mandatory_missing": [name for _, name in mandatory_missing],
-        "alias_policy": "user1=first verified UPN; user2=second; legacy directions normalized only where recorded.",
+        "alias_policy": (
+            "user1=first verified UPN; user2=second; legacy directions normalized only where recorded."
+            if consumer
+            else "No identity or resource ownership inferred."
+        ),
+        "task_flow": task_flow,
     }
     downloads = [
         {
             "name": "sanitized-evidence.json",
             "media": "application/json",
             "url": "data:application/json;base64," + base64.b64encode(pretty(bundle).encode()).decode(),
-        },
-        {
-            "name": "architecture-source.json",
-            "media": "application/json",
-            "url": "data:application/json;base64," + base64.b64encode(diagram_sources().encode()).decode(),
-        },
+        }
     ]
+    if consumer:
+        downloads.append(
+            {
+                "name": "architecture-source.json",
+                "media": "application/json",
+                "url": "data:application/json;base64," + base64.b64encode(diagram_sources().encode()).decode(),
+            }
+        )
     if consumer:
         downloads.append(
             {
@@ -676,6 +703,7 @@ def generate_report(
             }
         )
     html = template.render(
+        consumer=consumer,
         title=redactor.text(title),
         generated_at=datetime.now(UTC).isoformat(),
         verdict=verdict,
@@ -683,6 +711,7 @@ def generate_report(
         conclusion=pretty(redactor.value(conclusion)),
         counts=counts,
         cases=cases,
+        task_flow=task_flow,
         missing=missing,
         warnings=[redactor.text(value) for value in warnings],
         events=timeline,
@@ -730,13 +759,17 @@ def generate_report(
     output.mkdir(exist_ok=False)
     (output / "index.html").write_text(html, encoding="utf-8")
     (output / "sanitized-evidence.json").write_text(pretty(bundle), encoding="utf-8")
-    (output / "architecture-source.json").write_text(diagram_sources(), encoding="utf-8")
     if consumer:
+        (output / "architecture-source.json").write_text(diagram_sources(), encoding="utf-8")
         (output / "api-catalog.json").write_text(pretty(catalog), encoding="utf-8")
     for name, content in (
-        ("architecture.svg", architecture_svg()),
-        ("sequence.svg", sequence_svg()),
-        ("native-bypass-sequence.svg", native_bypass_sequence_svg()),
+        (
+            ("architecture.svg", architecture_svg()),
+            ("sequence.svg", sequence_svg()),
+            ("native-bypass-sequence.svg", native_bypass_sequence_svg()),
+        )
+        if consumer
+        else ()
     ):
         (output / name).write_text(content, encoding="utf-8")
     for attachment in artifacts:

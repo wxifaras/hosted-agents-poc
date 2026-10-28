@@ -459,7 +459,7 @@ def build_appendix(
             counter_reference = CounterReference(
                 "Preserve an additional recorded completion field without inventing its semantics.",
                 ("Inspect the original completion schema and the generating runner for this field.",),
-                RUNNER + " — main (field semantics not established by this exporter)",
+                EXPORTER + " — generate_report (field semantics not established by this exporter)",
                 "Unknown field: no unit, SDK call, success interpretation or missing-value default is assumed.",
             )
         counter_entries.append(

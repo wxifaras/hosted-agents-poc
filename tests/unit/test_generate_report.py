@@ -298,10 +298,17 @@ def test_appendix_covers_boundaries_completion_and_every_html_anchor(tmp_path: P
     assert "<script" not in html
     assert all(url.startswith("data:") for url in parsed.images)
     with ZipFile(path.parent / "report.zip") as archive:
-        svg = archive.read("native-bypass-sequence.svg").decode()
-        assert "OPTIONAL native bypass" in svg
-        sources = json.loads(archive.read("architecture-source.json"))
-        assert len(sources["optional_native_bypass_sequence"]) == 12
+        if scenario == "consumer-native-ci":
+            svg = archive.read("native-bypass-sequence.svg").decode()
+            assert "OPTIONAL native bypass" in svg
+            sources = json.loads(archive.read("architecture-source.json"))
+            assert len(sources["optional_native_bypass_sequence"]) == 12
+        else:
+            assert "native-bypass-sequence.svg" not in archive.namelist()
+            assert "architecture-source.json" not in archive.namelist()
+            assert parsed.images == []
+            assert data["acceptance_policy"] == "recorded-evidence-only"
+            assert "Consumer-facing isolation acceptance:" not in html
 
 
 def test_completion_definitions_reference_existing_catalog_entries() -> None:
