@@ -10,10 +10,10 @@ Status report: what works, what doesn't and why, and what to do next, for
 each requirement of issue #1 (Story 1 tasks in this repository).
 
 **Detailed HTML evidence report (2026-10-27):**
-[View with HTML Preview](https://htmlpreview.github.io/?https://github.com/wxifaras/hosted-agents-poc/blob/story1-improvements/docs/reports/story-1/story1-improvements/2026-10-27/index.html)
+[View with HTML Preview](https://htmlpreview.github.io/?https://github.com/wxifaras/hosted-agents-poc/blob/feature/hosted-agents-enhancements/docs/reports/story-1/story1-improvements/2026-10-27/index.html)
 · [Report source and sanitized downloads](reports/story-1/story1-improvements/2026-10-27/index.html).
 The GitHub preview becomes available after this snapshot is committed and pushed
-to `story1-improvements`. It records separate version-bound results and POC
+to `feature/hosted-agents-enhancements`. It records separate version-bound results and POC
 acceptance decisions, not a combined completion verdict.
 
 | Field | Value |
