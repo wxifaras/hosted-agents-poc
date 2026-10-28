@@ -10,8 +10,7 @@ Status report: what works, what doesn't and why, and what to do next, for
 each requirement of issue #1 (Story 1 tasks in this repository).
 
 **Detailed HTML report with task flows (generated 2026-10-28; evidence 2026-10-27):**
-[View with HTML Preview](https://htmlpreview.github.io/?https://github.com/wxifaras/hosted-agents-poc/blob/feature/hosted-agents-enhancements/docs/reports/story-1/story1-improvements/2026-10-28-task-flows/index.html)
-· [Report source and sanitized downloads](reports/story-1/story1-improvements/2026-10-28-task-flows/index.html).
+[View with HTML Preview](https://htmlpreview.github.io/?https://github.com/wxifaras/hosted-agents-poc/blob/feature/hosted-agents-enhancements/docs/reports/story-1/story1-improvements/2026-10-28-task-flows/index.html).
 Regenerated from the same retained results; no validation was rerun. Expand each
 run's task-flow section for the reviewed plan and its linked recorded checks,
 not an inferred execution trace. The new GitHub preview requires this snapshot
@@ -291,8 +290,8 @@ unresolved blockers for accepted capacity, storage, or Hosted continuity.
 Findings summarize retained, version-bound runs. Per
 [ADR-0001](adr/0001-hosted-agents-poc.md#recovery-and-validation), original
 reports remain local. The published
-[HTML snapshot and sanitized downloads](reports/story-1/story1-improvements/2026-10-28-task-flows/index.html)
-preserve the detailed run ledger, original statuses, measurements, and sponsor
+[HTML report](https://htmlpreview.github.io/?https://github.com/wxifaras/hosted-agents-poc/blob/feature/hosted-agents-enhancements/docs/reports/story-1/story1-improvements/2026-10-28-task-flows/index.html)
+preserves the detailed run ledger, original statuses, measurements, and sponsor
 decisions. The sponsor requested this new task-flow edition from the same saved
 results: its generation date changed, not the tested environment/version or
 acceptance evidence. The superseded published folder is removed; original local
