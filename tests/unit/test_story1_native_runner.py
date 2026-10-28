@@ -5,7 +5,8 @@ import hashlib
 import io
 import json
 import struct
-from dataclasses import asdict
+from dataclasses import asdict, replace
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
@@ -121,6 +122,7 @@ def test_chart_review_requires_hash_and_actual_grouped_values() -> None:
         ["--step", "3", "--max-seconds", "1900"],
         ["--step", "2", "--profile", "pressure"],
         ["--step", "2", "--hosted-idle", "observe"],
+        ["--step", "5", "--hosted-idle", "only", "--max-seconds", "300"],
         ["--step", "2", "--review-run", "previous"],
     ],
 )
@@ -485,3 +487,234 @@ async def test_readiness_uses_native_flag_and_hashes_identity() -> None:
     observed, version = await native.snapshots(project)
     assert version == "7" and len(observed) == 3
     assert principal not in json.dumps(observed)
+
+
+def lifecycle_record(status: str, stopped: int | None, *, session: str = "private-session-ref") -> dict[str, object]:
+    return {
+        "agent_session_id": session,
+        "version_indicator": {"agent_version": "9"},
+        "status": status,
+        "created_at": 1000,
+        "last_accessed_at": 1280 if status == "active" and stopped is not None else 1100,
+        "stopped_at": stopped,
+    }
+
+
+def test_platform_idle_witness_requires_new_stop_and_same_binding() -> None:
+    before = native.HostedLifecycleSnapshot("active", "9", 1000, 1100, None)
+    idle = native.HostedLifecycleSnapshot("idle", "9", 1000, 1100, 1220)
+    after = native.HostedLifecycleSnapshot("active", "9", 1000, 1280, 1220)
+    assert native.idle_boundary_witness(before, idle, after)
+    assert native.idle_boundary_witness(before, idle, replace(after, stopped_at=0))
+    assert native.idle_boundary_witness(before, idle, replace(after, stopped_at=None))
+    assert not native.idle_boundary_witness(before, replace(idle, stopped_at=None), after)
+    assert not native.idle_boundary_witness(before, replace(idle, status="active"), after)
+    assert not native.idle_boundary_witness(before, replace(idle, status="stopped"), after)
+    assert not native.idle_boundary_witness(replace(before, stopped_at=1220), idle, after)
+    assert not native.idle_boundary_witness(before, replace(idle, created_at=1001), after)
+    assert not native.idle_boundary_witness(replace(before, last_accessed_at=1300), idle, after)
+    assert not native.idle_boundary_witness(before, idle, replace(after, agent_version="10"))
+    assert not native.idle_boundary_witness(before, idle, replace(after, last_accessed_at=1100))
+    assert not native.idle_boundary_witness(before, idle, replace(after, status="idle"))
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"status": None},
+        {"created_at": True},
+        {"created_at": "1000"},
+        {"created_at": datetime(2026, 10, 27)},
+        {"created_at": float("nan")},
+        {"last_accessed_at": -1},
+        {"stopped_at": "1220"},
+        {"version_indicator": {"agent_version": "8"}},
+    ],
+)
+def test_lifecycle_snapshot_does_not_invent_missing_or_invalid_metadata(changes: dict[str, object]) -> None:
+    with pytest.raises(native.Blocked):
+        native.HostedLifecycleSnapshot.from_record({**lifecycle_record("active", None), **changes}, "9")
+
+
+def test_lifecycle_timestamps_accept_sdk_datetimes_and_wire_unix_seconds() -> None:
+    date = datetime(2026, 10, 27, 20, 47, 29, tzinfo=UTC)
+    record = {
+        **lifecycle_record("idle", 1793134447),
+        "created_at": date,
+        "last_accessed_at": datetime(2026, 10, 27, 20, 50, tzinfo=UTC),
+    }
+    snapshot = native.HostedLifecycleSnapshot.from_record(record, "9")
+    assert snapshot.created_at == date.timestamp()
+    assert snapshot.last_accessed_at == 1793134200
+    assert snapshot.stopped_at == 1793134447
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("idle_status", "stopped", "process_changed", "home_retained", "expected"),
+    [
+        ("idle", 1220, True, True, ["PASS", "PASS", "PASS", "PASS"]),
+        ("active", None, True, True, ["PASS", "BLOCKED"]),
+        ("idle", None, True, True, ["PASS", "BLOCKED"]),
+        ("stopped", 1220, True, True, ["PASS", "BLOCKED"]),
+        ("idle", 1220, False, True, ["PASS", "PASS", "BLOCKED", "PASS"]),
+        ("idle", 1220, True, False, ["PASS", "PASS", "FAIL", "PASS"]),
+    ],
+)
+async def test_hosted_observation_reads_idle_state_before_resuming(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    idle_status: str,
+    stopped: int | None,
+    process_changed: bool,
+    home_retained: bool,
+    expected: list[str],
+) -> None:
+    clock = {"seconds": 0.0}
+    monkeypatch.setattr(native, "perf_counter", lambda: clock["seconds"])
+    validation = make_validation(tmp_path, 5)
+    validation.version = "9"
+    events: list[str] = []
+    waits = (
+        1
+        if idle_status == "stopped" or (idle_status == "idle" and stopped is not None)
+        else native.HOSTED_IDLE_METADATA_READS
+    )
+    records = iter(
+        [lifecycle_record("active", None)]
+        + [lifecycle_record(idle_status, stopped) for _ in range(waits)]
+        + [lifecycle_record("active", stopped)]
+    )
+    observations = iter(
+        [
+            {"process_boot_id": "first-process", "home_sentinel": "original-home"},
+            {
+                "process_boot_id": "new-process" if process_changed else "first-process",
+                "home_sentinel": "original-home" if home_retained else "wrong-home",
+            },
+        ]
+    )
+
+    async def command(actor: native.NativeActor, request: dict[str, object]) -> dict[str, object]:
+        assert request == {"operation": "observe", "workflow_id": "workflow"}
+        events.append("observe")
+        return {"observation": next(observations)}
+
+    async def metadata(agent: str, session: str) -> SimpleNamespace:
+        assert agent == "data-analysis-agent" and session == "private-session-ref"
+        value = next(records)
+        events.append(str(value["status"]))
+        return SimpleNamespace(as_dict=lambda: value)
+
+    async def quiet(seconds: float) -> None:
+        assert seconds in (native.HOSTED_QUIET_SECONDS, native.HOSTED_IDLE_POLL_SECONDS)
+        events.append("quiet" if seconds == native.HOSTED_QUIET_SECONDS else "metadata-wait")
+        clock["seconds"] += seconds
+
+    project = Mock()
+    project.agents.get_session = AsyncMock(side_effect=metadata)
+    project.agents.stop_session = Mock(side_effect=AssertionError("No forced stop is allowed."))
+    project.agents.delete_session = Mock(side_effect=AssertionError("No deletion is allowed."))
+    monkeypatch.setattr(validation, "command", command)
+    monkeypatch.setattr(validation, "analyze", AsyncMock(side_effect=AssertionError("No native analysis is allowed.")))
+    monkeypatch.setattr(native.asyncio, "sleep", quiet)
+    actor = native.NativeActor(project, Mock(), "private-session-ref", "conversation")
+    await validation.hosted_observation(actor, "workflow")
+    assert validation.run.statuses == expected
+    assert events[:4] == ["observe", "active", "quiet", idle_status]
+    if expected[1] == "PASS":
+        assert events == ["observe", "active", "quiet", "idle", "observe", "active"]
+    else:
+        assert events.count("observe") == 1
+        assert project.agents.get_session.await_count == 1 + waits
+        assert events.count("metadata-wait") == waits - 1
+        assert native.result_verdict(validation.run.statuses) == "Not evaluated"
+    assert "private-session-ref" not in validation.report.path.read_text(encoding="utf-8")
+    assert "private-session-ref" not in (validation.run.path / "hosted-lifecycle-metadata.jsonl").read_text()
+
+
+@pytest.mark.asyncio
+async def test_lifecycle_metadata_cannot_switch_session(tmp_path: Path) -> None:
+    validation = make_validation(tmp_path, 5)
+    validation.version = "9"
+    project = Mock()
+    project.agents.get_session = AsyncMock(
+        return_value=SimpleNamespace(as_dict=lambda: lifecycle_record("active", None, session="different-session"))
+    )
+    with pytest.raises(native.Blocked, match="different session"):
+        await validation.lifecycle_snapshot(native.NativeActor(project, Mock(), "private-session-ref", "conversation"))
+
+
+@pytest.mark.asyncio
+async def test_hosted_only_never_submits_native_analysis(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    validation = make_validation(tmp_path, 5)
+    workflow = str(uuid4())
+    command = AsyncMock(return_value={"status": "prepared", "workflow_id": workflow})
+    observe = AsyncMock()
+    analyze = AsyncMock(side_effect=AssertionError("Metadata-only mode cannot submit analysis."))
+    monkeypatch.setattr(validation, "command", command)
+    monkeypatch.setattr(validation, "hosted_observation", observe)
+    monkeypatch.setattr(validation, "analyze", analyze)
+    actor = native.NativeActor(Mock(), Mock(), "private-session-ref", "conversation")
+    await validation.hosted_only(actor)
+    command.assert_awaited_once_with(actor, {"operation": "prepare", "rows": 1000, "profile": "baseline"})
+    observe.assert_awaited_once_with(actor, workflow)
+    analyze.assert_not_called()
+    assert validation.run.statuses == ["PASS"]
+
+
+def test_metadata_only_selector_is_explicit_and_preview_is_credential_free(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    args = native.build_parser().parse_args(["--step", "5", "--hosted-idle", "only"])
+    result = native.preview(args)
+    assert result["analyses_max"] == 0 and result["quiet_seconds"] == native.HOSTED_QUIET_SECONDS
+    assert result["idle_metadata_reads_max"] == 6 and result["quiet_wait_seconds_max"] == 480
+    assert result["hosted_idle"] == "only"
+    monkeypatch.setattr(native, "AIProjectClient", Mock(side_effect=AssertionError("Preview cannot contact Azure.")))
+    monkeypatch.setattr(native, "AzureCliCredential", Mock(side_effect=AssertionError("Preview cannot authenticate.")))
+    assert native.main(["--step", "5", "--hosted-idle", "only"]) == 0
+
+
+@pytest.mark.asyncio
+async def test_delayed_idle_metadata_is_polled_without_resuming_early(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    clock = {"seconds": 0.0}
+    monkeypatch.setattr(native, "perf_counter", lambda: clock["seconds"])
+    validation = make_validation(tmp_path, 5)
+    validation.version = "9"
+    initial = native.HostedLifecycleSnapshot("active", "9", 1000, 1100, None)
+    idle = native.HostedLifecycleSnapshot("idle", "9", 1000, 1100, 1220)
+    active = native.HostedLifecycleSnapshot("active", "9", 1000, 1600, 1220)
+    metadata = AsyncMock(side_effect=[initial, initial, initial, idle, active])
+    observations = iter(
+        [
+            {"observation": {"process_boot_id": "first", "home_sentinel": "original"}},
+            {"observation": {"process_boot_id": "resumed", "home_sentinel": "original"}},
+        ]
+    )
+    calls = []
+
+    async def command(actor: native.NativeActor, request: dict[str, object]) -> dict[str, object]:
+        calls.append(request["operation"])
+        if len(calls) == 2:
+            assert metadata.await_count == 4
+        return next(observations)
+
+    sleeps = []
+
+    async def sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+        clock["seconds"] += seconds
+
+    monkeypatch.setattr(validation, "command", command)
+    monkeypatch.setattr(validation, "lifecycle_snapshot", metadata)
+    monkeypatch.setattr(native.asyncio, "sleep", sleep)
+    await validation.hosted_observation(
+        native.NativeActor(Mock(), Mock(), "private-session-ref", "conversation"), "workflow"
+    )
+    assert sleeps == [native.HOSTED_QUIET_SECONDS, native.HOSTED_IDLE_POLL_SECONDS, native.HOSTED_IDLE_POLL_SECONDS]
+    assert calls == ["observe", "observe"]
+    assert validation.run.statuses == ["PASS", "PASS", "PASS", "PASS"]
+    assert metadata.await_count == 5

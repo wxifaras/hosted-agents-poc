@@ -244,7 +244,7 @@
       "type": "process",
       "command": "uv",
       "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story1_native", "--execution", "${input:story1Execution}", "--hosted-idle", "${input:story1HostedIdle}", "--step", "5", "--environment", "${input:infraEnvironment}"],
-      "detail": "Native runner-driven Blob checkpoint write/readback and reconstruction in a fresh bound session (two paid analyses). Optional Hosted idle observation is bounded best effort. Preview is local; run uses authenticated public storage. Never silently substitutes local checkpoint bytes, deletes evidence, or redesigns on failure.",
+      "detail": "Step 5 selector: skip = Blob reconstruction (two analyses); observe = Blob then Hosted; only = zero-analysis Hosted idle/resume probe. Hosted proof checks platform active/idle/stopped metadata before resume, then process/HOME continuity. Preview is local. No deletion, forced stop, retries, or redesign.",
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": []
     },
@@ -451,8 +451,8 @@
     {
       "id": "story1HostedIdle",
       "type": "pickString",
-      "description": "skip = no optional Hosted idle probe; observe = one bounded no-request interval and marker check, never force-stop/delete. Redesign requires approval.",
-      "options": ["skip", "observe"],
+      "description": "skip = Blob only (two analyses); observe = Blob then Hosted; only = zero-analysis Hosted probe. Five-minute minimum quiet, up to six read-only state checks, eight-minute quiet cap. Keep machine awake. No forced stop/delete.",
+      "options": ["skip", "observe", "only"],
       "default": "skip"
     },
     {

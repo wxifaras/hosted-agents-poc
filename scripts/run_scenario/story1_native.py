@@ -66,6 +66,10 @@ NATIVE_BASELINE = "native-agents-baseline.json"
 PRESSURE_SIZES = (250_000, 500_000, 1_000_000)
 OUTPUT_NAMES = ("result.json", "filtered.csv", "by_category.csv", "revenue_by_category.png")
 MAX_OUTPUT_BYTES = 16 * 1024 * 1024
+HOSTED_QUIET_SECONDS = 300
+HOSTED_IDLE_POLL_SECONDS = 30
+HOSTED_IDLE_METADATA_READS = 6
+HOSTED_QUIET_LIMIT_SECONDS = 480
 COMMAND_PREFIX = "POC_STORY1_NATIVE "
 PROTOCOL = "poc-story1-native-v1"
 SPECS = {
@@ -95,6 +99,87 @@ class NativeActor:
     hosted: AsyncOpenAI
     session: str
     conversation: str
+
+
+@dataclass(frozen=True)
+class HostedLifecycleSnapshot:
+    """Authoritative session state without raw identifiers or application content."""
+
+    status: str
+    agent_version: str
+    created_at: float
+    last_accessed_at: float | None
+    stopped_at: float | None
+
+    @classmethod
+    def from_record(cls, record: Mapping[str, object], version: str) -> HostedLifecycleSnapshot:
+        """Validate SDK lifecycle fields rather than inferring state from quiet time."""
+        status = record.get("status")
+        indicator = record.get("version_indicator")
+        if not isinstance(status, str) or not status:
+            raise Blocked("Platform session metadata has no supported status.")
+        if not isinstance(indicator, dict) or indicator.get("agent_version") != version:
+            raise Blocked("Platform session metadata does not match the bound agent version.")
+        created = lifecycle_timestamp(record.get("created_at"), "created_at")
+        if created is None or created <= 0:
+            raise Blocked("Platform session metadata has no supported creation timestamp.")
+        return cls(
+            status.casefold(),
+            version,
+            created,
+            lifecycle_timestamp(record.get("last_accessed_at"), "last_accessed_at"),
+            lifecycle_timestamp(record.get("stopped_at"), "stopped_at"),
+        )
+
+
+def lifecycle_timestamp(value: object, field: str) -> float | None:
+    """Normalize documented Unix seconds or SDK-aware datetimes, never guess a timezone."""
+    if value is None:
+        return None
+    try:
+        if isinstance(value, datetime):
+            if value.tzinfo is None or value.utcoffset() is None:
+                raise Blocked(f"Platform {field} timestamp has no timezone.")
+            seconds = value.timestamp()
+        elif isinstance(value, int | float) and not isinstance(value, bool):
+            seconds = float(value)
+        else:
+            raise Blocked(f"Platform session metadata has an unsupported {field} timestamp.")
+    except (OverflowError, OSError, ValueError) as error:
+        raise Blocked(f"Platform {field} timestamp cannot be normalized.") from error
+    if not math.isfinite(seconds) or seconds < 0:
+        raise Blocked(f"Platform session metadata has an invalid {field} timestamp.")
+    return seconds
+
+
+def idle_stop_witness(before: HostedLifecycleSnapshot, idle: HostedLifecycleSnapshot) -> bool:
+    """Require a new platform-reported idle stop after the last known activity."""
+    return (
+        before.status == "active"
+        and idle.status == "idle"
+        and before.agent_version == idle.agent_version
+        and before.created_at == idle.created_at
+        and idle.stopped_at is not None
+        and idle.stopped_at >= before.created_at
+        and idle.stopped_at >= (before.last_accessed_at or before.created_at)
+        and idle.stopped_at > (before.stopped_at or 0)
+    )
+
+
+def idle_boundary_witness(
+    before: HostedLifecycleSnapshot,
+    idle: HostedLifecycleSnapshot,
+    resumed: HostedLifecycleSnapshot,
+) -> bool:
+    """Require active/idle/active states and ordered server timestamps on one binding."""
+    return (
+        idle_stop_witness(before, idle)
+        and resumed.status == "active"
+        and resumed.agent_version == before.agent_version
+        and resumed.created_at == before.created_at
+        and resumed.stopped_at in (None, 0, idle.stopped_at)
+        and (resumed.last_accessed_at is None or resumed.last_accessed_at >= (idle.stopped_at or 0))
+    )
 
 
 async def create_actor(
@@ -333,7 +418,10 @@ class NativeValidation:
                 if self.args.step == 3:
                     await self.capacity(actor)
                 elif self.args.step == 5:
-                    await self.recovery(actor, credential, context, stack)
+                    if self.args.hosted_idle == "only":
+                        await self.hosted_only(actor)
+                    else:
+                        await self.recovery(actor, credential, context, stack)
                 else:
                     dataset = build_dataset(1000)
                     _, files, _ = await self.analyze(actor, dataset, save_to=self.run.path / "outputs")
@@ -619,22 +707,120 @@ class NativeValidation:
         else:
             self.report.paragraph("Optional Hosted idle/resume probe not run. No idle or interpreter-expiry claim.")
 
+    async def hosted_only(self, actor: NativeActor) -> None:
+        """Prepare one fixed fixture and observe Hosted state without native analysis."""
+        self.report.paragraph(
+            "Metadata-only Hosted track: no native analysis, Blob round trip, forced stop, or deletion. "
+            "This is separate from the required Blob reconstruction track."
+        )
+        prepared = await self.command(actor, {"operation": "prepare", "rows": 1000, "profile": "baseline"})
+        workflow = prepared.get("workflow_id")
+        if not isinstance(workflow, str) or prepared.get("status") != "prepared":
+            raise ValueError("Metadata-only preparation did not return an authorized workflow.")
+        self.record(
+            "Metadata-only preparation",
+            "PASS",
+            "One bound synthetic fixture; no analyze operation or Blob round trip",
+            {
+                "native_model_submissions": 0,
+                "session_sha256": hashlib.sha256(actor.session.encode()).hexdigest(),
+                "deletion": False,
+                "forced_lifecycle_change": False,
+            },
+        )
+        await self.hosted_observation(actor, workflow)
+
+    async def lifecycle_snapshot(self, actor: NativeActor) -> HostedLifecycleSnapshot:
+        """Read session state from the platform, not the agent's recollection."""
+        async with asyncio.timeout(self.remaining()):
+            resource = await actor.project.agents.get_session("data-analysis-agent", actor.session)
+        record: Mapping[str, object] = resource.as_dict()
+        if record.get("agent_session_id") != actor.session:
+            raise Blocked("Platform metadata returned a different session binding.")
+        return HostedLifecycleSnapshot.from_record(record, self.version)
+
+    def save_lifecycle_snapshot(
+        self, phase: str, snapshot: HostedLifecycleSnapshot, quiet_seconds: float | None = None
+    ) -> None:
+        """Retain safe state observations even if a later request is interrupted."""
+        with (self.run.path / "hosted-lifecycle-metadata.jsonl").open("a", encoding="utf-8") as stream:
+            stream.write(
+                json.dumps(
+                    {
+                        "observed_at": datetime.now(UTC).isoformat(),
+                        "phase": phase,
+                        "quiet_seconds": quiet_seconds,
+                        **asdict(snapshot),
+                    }
+                )
+                + "\n"
+            )
+
     async def hosted_observation(self, actor: NativeActor, workflow: str) -> None:
-        """One no-request interval; no lifecycle mutation or automatic redesign."""
+        """Witness platform idle before resuming; never force a lifecycle transition."""
         try:
             seeded = await self.command(actor, {"operation": "observe", "workflow_id": workflow})
             before = seeded.get("observation")
             if not isinstance(before, dict):
                 raise Blocked("The native runtime exposes no supported Hosted observation contract.")
-            if not isinstance(before.get("process_boot_id"), str) or not isinstance(before.get("home_sentinel"), str):
+            if not all(
+                isinstance(before.get(key), str) and before[key] for key in ("process_boot_id", "home_sentinel")
+            ):
                 raise Blocked("The native runtime exposes no supported Hosted process/HOME observation contract.")
-            if self.args.max_seconds - (perf_counter() - self.started) < 180 + self.args.timeout:
-                raise Blocked("The approved budget cannot cover the one 180-second optional quiet interval.")
-            await asyncio.sleep(180)
+            initial = await self.lifecycle_snapshot(actor)
+            self.save_lifecycle_snapshot("before_quiet", initial)
+            self.record(
+                "Platform state before quiet interval",
+                "PASS" if initial.status == "active" else "BLOCKED",
+                "Authoritative platform state is active on the bound session",
+                asdict(initial),
+            )
+            if initial.status != "active":
+                return
+            if self.args.max_seconds - (perf_counter() - self.started) < HOSTED_QUIET_LIMIT_SECONDS + self.args.timeout:
+                raise Blocked(
+                    f"The approved budget cannot cover the bounded {HOSTED_QUIET_LIMIT_SECONDS}-second idle wait."
+                )
+            quiet_started = perf_counter()
+            await asyncio.sleep(HOSTED_QUIET_SECONDS)
+            samples: list[dict[str, object]] = []
+            idle: HostedLifecycleSnapshot | None = None
+            quiet_seconds = 0.0
+            idle_seen = False
+            for attempt in range(HOSTED_IDLE_METADATA_READS):
+                quiet_remaining = HOSTED_QUIET_LIMIT_SECONDS - (perf_counter() - quiet_started)
+                if quiet_remaining <= 0:
+                    raise Blocked("The approved quiet-wait window elapsed before idle was witnessed.")
+                async with asyncio.timeout(min(self.remaining(), quiet_remaining)):
+                    idle = await self.lifecycle_snapshot(actor)
+                quiet_seconds = perf_counter() - quiet_started
+                self.save_lifecycle_snapshot("idle_check", idle, round(quiet_seconds, 3))
+                samples.append({"quiet_seconds": round(quiet_seconds, 3), **asdict(idle)})
+                idle_seen = idle_stop_witness(initial, idle) and quiet_seconds >= HOSTED_QUIET_SECONDS
+                if idle_seen or idle.status not in ("active", "idle"):
+                    break
+                if attempt + 1 < HOSTED_IDLE_METADATA_READS:
+                    if quiet_seconds + HOSTED_IDLE_POLL_SECONDS >= HOSTED_QUIET_LIMIT_SECONDS:
+                        break
+                    await asyncio.sleep(HOSTED_IDLE_POLL_SECONDS)
+            if idle is None:
+                raise Blocked("No platform idle-state observation was collected.")
+            self.record(
+                "Platform state before resume",
+                "PASS" if idle_seen else "BLOCKED",
+                "The platform reports idle and a new stop timestamp before any resume request",
+                {"quiet_seconds": round(quiet_seconds, 3), "metadata_reads": len(samples), "samples": samples},
+            )
+            if not idle_seen:
+                return
             resumed = await self.command(actor, {"operation": "observe", "workflow_id": workflow})
             after = resumed.get("observation")
             if not isinstance(after, dict):
                 raise Blocked("The resumed runtime returned no Hosted observation.")
+            if not all(isinstance(after.get(key), str) and after[key] for key in ("process_boot_id", "home_sentinel")):
+                raise Blocked("The resumed runtime omitted its process/HOME markers.")
+            active = await self.lifecycle_snapshot(actor)
+            self.save_lifecycle_snapshot("after_resume", active)
         except (NativeFailure, OpenAIError, AzureError, Blocked, ValueError, TimeoutError) as error:
             self.record(
                 "Optional Hosted idle/resume",
@@ -647,15 +833,27 @@ class NativeValidation:
         retained = before["home_sentinel"] == after.get("home_sentinel")
         self.record(
             "Optional Hosted marker observation",
-            "PASS" if changed and retained else "BLOCKED",
+            "FAIL" if not retained else "PASS" if changed else "BLOCKED",
             "Changed process marker and retained HOME sentinel after a measured no-request interval",
-            {"seconds": 180, "process_changed": changed, "home_retained": retained},
+            {"quiet_seconds": round(quiet_seconds, 3), "process_changed": changed, "home_retained": retained},
         )
+        witnessed = idle_boundary_witness(initial, idle, active)
         self.record(
             "Platform idle boundary witness",
-            "BLOCKED",
-            "Independent platform lifecycle evidence before an idle/resume pass",
-            {"note": "Quiet time and markers alone do not identify the platform lifecycle transition."},
+            "PASS" if witnessed else "BLOCKED",
+            "Independent SDK metadata reports active -> idle/new stop -> active on the same session",
+            {
+                "before": asdict(initial),
+                "idle_before_resume": asdict(idle),
+                "after_resume": asdict(active),
+                "same_session_binding": True,
+                "forced_lifecycle_change": False,
+            },
+        )
+        self.report.paragraph(
+            "Scope: platform-reported Hosted idle/resume, process marker, and HOME sentinel. "
+            "This does not prove a specific VM implementation, interpreter RAM survival, "
+            "or a provider-internal stop reason beyond the reported idle state."
         )
 
     async def supervisor(self, project: AIProjectClient) -> None:
@@ -803,7 +1001,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-seconds", type=float, default=1800)
     parser.add_argument("--users", default="", help="Step 4: two existing isolated CLI user profiles, comma-separated.")
     parser.add_argument("--blob-container", default="artifacts")
-    parser.add_argument("--hosted-idle", choices=("skip", "observe"), default="skip")
+    parser.add_argument(
+        "--hosted-idle",
+        choices=("skip", "observe", "only"),
+        default="skip",
+        help="Step 5: skip = Blob only; observe = Blob then Hosted; only = zero-analysis Hosted lifecycle probe.",
+    )
     parser.add_argument("--chart-review", type=Path, help="Human review receipt tied to the original chart SHA-256.")
     parser.add_argument(
         "--review-run", type=Path, help="Offline chart review of a prior native Step 2 run; no new model request."
@@ -824,11 +1027,15 @@ def validate_arguments(parser: argparse.ArgumentParser, args: argparse.Namespace
         parser.error("--review-run requires Step 2, --chart-review, and preview execution (offline only).")
     if args.hosted_idle != "skip" and args.step != 5:
         parser.error("--hosted-idle applies only to Step 5.")
+    if args.hosted_idle != "skip" and args.max_seconds < HOSTED_QUIET_LIMIT_SECONDS + args.timeout:
+        parser.error("--max-seconds must cover the maximum Hosted idle wait and a request timeout.")
 
 
 def preview(args: argparse.Namespace) -> dict[str, object]:
     """Describe the exact intended operations without resolving Azure configuration."""
     analyses = {1: 1, 2: 1, 3: len(profile_sizes(args.profile)), 4: 2, 5: 2, 6: 0}
+    if args.step == 5 and args.hosted_idle == "only":
+        analyses[5] = 0
     return {
         "agent": "data-analysis-agent",
         "execution": "native-managed-code-interpreter",
@@ -836,6 +1043,10 @@ def preview(args: argparse.Namespace) -> dict[str, object]:
         "profile": args.profile,
         "rows": list(profile_sizes(args.profile)) if args.step == 3 else [1000],
         "analyses_max": analyses[args.step],
+        "hosted_idle": args.hosted_idle,
+        "quiet_seconds": HOSTED_QUIET_SECONDS if args.step == 5 and args.hosted_idle != "skip" else 0,
+        "quiet_wait_seconds_max": HOSTED_QUIET_LIMIT_SECONDS if args.step == 5 and args.hosted_idle != "skip" else 0,
+        "idle_metadata_reads_max": HOSTED_IDLE_METADATA_READS if args.step == 5 and args.hosted_idle != "skip" else 0,
         "supervisor_contract": "Currently blocked before inference" if args.step == 6 else "Not used",
         "timeout_seconds": args.timeout,
         "max_seconds": args.max_seconds,
@@ -928,6 +1139,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     spec = SPECS[args.step]
     args.output_dir = args.output_dir / f"story-{spec.story}"
+    hosted_only = args.step == 5 and args.hosted_idle == "only"
+    variant = "native-hosted-only" if hosted_only else "native"
     run = ValidationRun(
         spec.scenario,
         "hosted",
@@ -935,9 +1148,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         no_color=args.no_color,
         verbose=args.verbose,
         step=spec,
-        variant="native",
+        variant=variant,
     )
-    report = MarkdownReport(run.path / REPORT_FILE, f"Story {spec.story} / Step {spec.number} - Native validation")
+    title = "Hosted lifecycle metadata" if hosted_only else "Native validation"
+    report = MarkdownReport(run.path / REPORT_FILE, f"Story {spec.story} / Step {spec.number} - {title}")
     validation = NativeValidation(args, run, report)
     try:
         if args.review_run:
@@ -970,13 +1184,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             {"failure": classify_native_failure(error), "retry": False},
         )
     verdict = result_verdict(run.statuses)
+    scope = (
+        "Metadata-only Hosted track; zero native analyses or Blob requests."
+        if hosted_only
+        else "Native execution only."
+    )
     report.summary(
-        f"**Verdict: {verdict}.** Native execution only; this report does not certify every Story 1 requirement. "
+        f"**Verdict: {verdict}.** {scope} This report does not certify every Story 1 requirement. "
         "Optional blockers require an approved redesign proposal before further implementation."
     )
     report.render(run.console)
     index = args.output_dir / "index.md"
-    update_index(index, index_entry(index, spec.label("native"), verdict, run.path))
+    update_index(index, index_entry(index, spec.label(variant), verdict, run.path))
     return run.finish()
 
 

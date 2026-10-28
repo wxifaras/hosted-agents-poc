@@ -580,7 +580,7 @@ def test_tasks_and_inputs() -> None:
     for name, options, default in (
         ("story1Execution", ["preview", "run"], "preview"),
         ("story1CapacityProfile", ["baseline", "pressure"], "baseline"),
-        ("story1HostedIdle", ["skip", "observe"], "skip"),
+        ("story1HostedIdle", ["skip", "observe", "only"], "skip"),
     ):
         assert inputs[name]["options"] == options
         assert inputs[name]["default"] == default
