@@ -83,9 +83,9 @@ def test_summary_renders_in_reading_order_with_links_and_explicit_gaps() -> None
         ["Follow up."],
     )
     order = [
+        "## How to read this report",
         "## Summary",
         "**Acceptance verdict: Met.** Concluded.",
-        "[How to read this report](#how-to-read-this-report)",
         "### Key results",
         "### Findings",
         "**Outcomes:** ✅ PASS: 1 · 🚫 NOT SUPPORTED: 1 · ⚠️ LIMITATION: 1",
@@ -93,17 +93,19 @@ def test_summary_renders_in_reading_order_with_links_and_explicit_gaps() -> None
         "### Gaps and follow-ups",
         "### Microsoft documentation referenced",
         "| Microsoft page | What Microsoft says | What it means here | Supports finding |",
-        "### How to read this report",
         "Detailed evidence",
     ]
     positions = [text.index(item) for item in order]
     assert positions == sorted(positions)
+    assert text.startswith("## How to read this report")
     assert "| 1 | ✅ PASS | Documented thing | Worked |" in text
     assert "| 3 | 🚫 NOT SUPPORTED | Missing capability |" in text
     assert NO_DOC in text and text.count(DOCS["ci_sandbox"].url) == 2  # findings cell + referenced list
     assert DOCS["ci_isolation"].quote in text and DOCS["ci_isolation"].meaning in text
     assert f"| {DOCS['ci_isolation'].meaning} | 3 |" in text
-    legend = text[text.index("### How to read this report") :]
+    legend = text[: text.index("## Summary")]
+    assert "**Check status:**" not in text
+    assert "each check's status is an icon" not in text
     for name, (_, meaning) in OUTCOMES.items():
         assert name in legend and meaning in legend
     for label in ("Not evaluated", "BLOCKED", "Tested", "Custom implementation (Dev Team)"):

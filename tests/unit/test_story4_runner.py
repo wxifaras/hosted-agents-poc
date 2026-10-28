@@ -200,7 +200,7 @@ def test_every_step_summary_renders_with_verified_documentation(tmp_path: Path, 
     assert step.task_label.startswith("Agents: Story 4 - ") and step.ac
     assert (step_class.spec.story, step_class.spec.number, step_class.number) == (4, number, number)
     rows = [line for line in text.splitlines() if re.match(r"\| \d+ \| ", line)]
-    assert rows and "### How to read this report" in text
+    assert rows and text.index("## How to read this report") < text.index("## Summary")
     for row in rows:
         assert re.match(r"\| \d+ \| (✅|❌|🟡|⛔|🚫|⚠️|📄|⏭️) [A-Z ]+ \| ", row), row
         assert "✅ PASS" not in row, f"A blocked run must not report PASS: {row}"
