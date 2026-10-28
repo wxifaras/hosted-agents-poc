@@ -59,6 +59,44 @@ def test_reviewed_story4_tasks_use_one_accessible_renderer(number: int) -> None:
     assert "COMPLETE" not in result["svg"]
 
 
+@pytest.mark.parametrize("number", [1, 2, 3, 4, 5])
+def test_story3_tasks_preserve_blockers_without_claiming_unrecorded_actions(number: int) -> None:
+    data = flows.build_task_flow(
+        {"scenario": f"story-3-step-{number}"},
+        [{"name": "Prerequisite", "status": "BLOCKED", "ordinal": 1}],
+        prefix=f"story3-{number}",
+    )
+    assert data["definition"] == f"story-3-step-{number}"
+    root = ET.fromstring(data["svg"])
+    assert root.attrib["role"] == "img" and root.attrib["aria-labelledby"]
+    for node in data["nodes"]:
+        assert node["evidence_status"] == ("BLOCKED" if node["key"] == "prerequisite" else "NOT RECORDED")
+
+
+@pytest.mark.parametrize(
+    "number,name,node",
+    [
+        (1, "Mapping re-read from the state store", "mapping"),
+        (2, "Prior history stored in the sub-agent conversation", "followup"),
+        (3, "Client lists the Supervisor-created sub-agent conversation", "reads"),
+        (4, "B invoked with A's conversation ID (call-context identity)", "shared"),
+        (5, "Variant shared / placeholder / call-context", "shared"),
+    ],
+)
+def test_story3_selectors_link_exact_recorded_names(number: int, name: str, node: str) -> None:
+    data = flows.build_task_flow(
+        {"scenario": f"story-3-step-{number}"},
+        [
+            {"name": name, "status": "FAIL", "ordinal": 1},
+            {"name": name + " unrecorded suffix", "status": "PASS", "ordinal": 2},
+        ],
+        prefix="conversation",
+    )
+    matched = next(item for item in data["nodes"] if item["key"] == node)
+    assert matched["counts"] == {"FAIL": 1}
+    assert [ref["anchor"] for ref in matched["references"]] == ["check-conversation-1"]
+
+
 @pytest.mark.parametrize(
     "provenance",
     [
@@ -68,6 +106,8 @@ def test_reviewed_story4_tasks_use_one_accessible_renderer(number: int) -> None:
         {"scenario": "story-4-step-1", "variant": "future-contract"},
         {"scenario": "story-1-step-2", "variant": "native-future"},
         {"scenario": "story-1-step-3"},
+        {"scenario": "story-3-step-6"},
+        {"scenario": "story-3-step-1", "variant": "future-contract"},
         {},
     ],
 )

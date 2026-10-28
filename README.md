@@ -383,7 +383,7 @@ separates implementation from observed hosted results.
 
 HTML generation is **offline**: it reads saved evidence, not the deployed agents.
 It does not rerun tests, call models/Azure, deploy, grant permissions, or turn
-partial evidence into a passing story. Use the same workflow for Stories 1 and 4,
+partial evidence into a passing story. Use the same workflow for Stories 1, 3 and 4,
 and for later stories.
 
 ### 1. Select the evidence
@@ -391,8 +391,10 @@ and for later stories.
 Run the relevant existing validation tasks first. Each run normally retains
 `manifest.json`, `results.jsonl`, `events.jsonl`, and a Markdown report under
 `artifacts\story-<n>\step-<NN>-<slug>\<run-folder>`.
-Keep failed, blocked, and partial runs when they explain the outcome. Do not mix
-versions or environments without identifying each run's scope.
+For a current-execution report, select the latest execution of each relevant
+task, including its actual failed, blocked, or partial results. Exclude superseded
+attempts from the HTML and downloads; retain their original local artifacts
+separately. Do not mix versions or environments without identifying each run's scope.
 
 Create a local JSON bundle, for example
 `artifacts\story-4\report-input.json`:
@@ -453,6 +455,9 @@ uv run --frozen --no-sync --group validation python -m scripts.story_report --in
 
 # Story 4: use the same command with the Story 4 bundle.
 uv run --frozen --no-sync --group validation python -m scripts.story_report --input artifacts\story-4\report-input.json --output artifacts\story-4\html-report\<snapshot-name>
+
+# Story 3: bind saved conversation-management runs, including blockers.
+uv run --frozen --no-sync --group validation python -m scripts.story_report --input artifacts\story-3\report-input.json --output artifacts\story-3\html-report\<snapshot-name>
 ```
 
 Replace `<snapshot-name>` with a new dated/descriptive directory, such as
@@ -491,7 +496,12 @@ execution, identity propagation, or distributed trace spans. `NOT RECORDED`
 does not mean an action ran or failed; `MIXED` preserves conflicting check
 outcomes rather than converting them into a task pass.
 
-Definitions cover the selected Story 1 native tasks and Story 4 task paths.
+Definitions cover the selected Story 1 native tasks, all five Story 3 conversation
+tasks, and Story 4 task paths. Story 3 has its own architecture/API context and
+sanitized mapping/history counters; raw history, code words, and conversation
+identifiers are not published. Passing shared-ID evaluation checks can record
+HTTP 404 outcomes, not successful shared history. Unexpected allowed reads retain
+their original failed checks.
 Offline chart review, Blob reconstruction, and metadata-only Hosted observation
 have separate plans. The native Supervisor preflight depicts its blocker, not
 an implemented analytical delivery path. Unknown scenarios/variants receive an

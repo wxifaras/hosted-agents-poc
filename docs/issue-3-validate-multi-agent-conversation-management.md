@@ -9,6 +9,27 @@
 Status report: what was done, what worked, what didn't and why, and what to
 do next, for each requirement of issue #3 (Story 3 tasks in this repository).
 
+**Detailed HTML evidence report (2026-10-28):**
+[Open report and sanitized downloads](reports/story-3/conversation-management/2026-10-28/index.html)
+· [View with HTML Preview](https://htmlpreview.github.io/?https://github.com/wxifaras/hosted-agents-poc/blob/integration/hosted-agents-story3/docs/reports/story-3/conversation-management/2026-10-28/index.html).
+The preview will only become available if this local integration branch and snapshot
+are committed and pushed; neither is implied by report generation.
+
+The new report uses **hosted-agents-poc-dev**, Supervisor **v16**, Research **v10**,
+and Data Analysis **v10** (baseline-only). Only Supervisor was redeployed.
+It shows only the **latest execution of each of the five tasks**, with per-task
+flow diagrams and **46 recorded checks: 45 PASS and 1 FAIL**. Superseded attempts
+are excluded from the HTML and its downloads; original local artifacts are retained.
+Steps 1 and 2 were Met; Step 3 was Partially met because
+the operator unexpectedly read the Supervisor-created Research conversation.
+Steps 4 and 5 met their evaluation/comparison criteria, but shared-ID calls
+returned HTTP 404 and did not demonstrate shared-history delivery.
+
+The **2026-10-27 historical findings below remain unchanged** and refer to a
+different environment and versions. Their original artifacts were not available
+locally and were not reconstructed. The new Story 3 evidence is not a rerun of
+Story 1 or Story 4, nor proof of least-privileged two-user isolation.
+
 | Field | Value |
 |---|---|
 | Report date | 2026-10-27; all five hosted steps completed |

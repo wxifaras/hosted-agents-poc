@@ -88,6 +88,85 @@ def test_future_story_is_neutral(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
         assert forbidden not in html
 
 
+def test_story3_context_preserves_failure_outcomes_and_private_history(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(socket, "create_connection", lambda *a, **k: pytest.fail("No network"))
+    source, run, output = saved_bundle(tmp_path, 3)
+    (run / "manifest.json").write_text(json.dumps({"run_id": "recorded-run", "scenario": "story-3-step-3"}))
+    records = [
+        {
+            "run_id": "recorded-run",
+            "step": "Client lists the Supervisor-created sub-agent conversation",
+            "status": "FAIL",
+            "observed": {
+                "observed": "allowed (2 items)",
+                "enforced_by": "Foundry (conversation ownership)",
+                "mapping": {
+                    "owner": "supervisor-application",
+                    "user_isolated": True,
+                    "found": True,
+                    "key": "conversation-map/PRIVATE_MAPPING",
+                },
+                "history": {
+                    "items": 2,
+                    "hop_inputs": 0,
+                    "other_assistant": 0,
+                    "messages": ["PRIVATE_HISTORY"],
+                    "token_hits": [1],
+                },
+                "supervisor_conversation_id": "conv_PRIVATE_CONVERSATION",
+                "answer": "PRIVATE_MODEL_ANSWER",
+            },
+        },
+        {
+            "run_id": "recorded-run",
+            "step": "Explicit failure outcome",
+            "status": "PASS",
+            "observed": {
+                "outcome": "denied (HTTP 404, not_found)",
+                "received": "nothing (sub-agent call did not complete)",
+                "failure": {"http_status": 404, "code": "not_found", "message": "PRIVATE_ERROR"},
+                "note": "conv_PRIVATE_FREE_TEXT caresp_PRIVATE_RESPONSE resp_PRIVATE_RESPONSE",
+            },
+        },
+    ]
+    for filename in ("results.jsonl", "events.jsonl"):
+        (run / filename).write_text("".join(json.dumps(record) + "\n" for record in records))
+    originals = {path.name: path.read_bytes() for path in run.iterdir()}
+    assert story_report.main(["--input", str(source), "--output", str(output)]) == 0
+    html = (output / "index.html").read_text()
+    data = json.loads((output / "sanitized-evidence.json").read_text())
+    assert data["runs"][0]["counts"] == {"FAIL": 1, "PASS": 1}
+    check = data["runs"][0]["checks"][0]
+    assert check["observed"]["observed"] == "allowed (2 items)"
+    assert check["observed"]["mapping"] == {
+        "owner": "supervisor-application",
+        "user_isolated": True,
+        "found": True,
+    }
+    assert check["observed"]["history"] == {"items": 2, "hop_inputs": 0, "other_assistant": 0}
+    assert data["runs"][0]["checks"][1]["observed"]["failure"] == {"http_status": 404, "code": "not_found"}
+    assert data["memory"] == data["lifecycle_timeline"] == []
+    assert len(data["native_api_catalog"]) == 6
+    for expected in (
+        "Story 3 conversation architecture",
+        "POC_CONVERSE",
+        "poc-conversation-v1",
+        "allowed (2 items)",
+        "HTTP 404",
+        "does not mean shared history worked",
+        "least-privileged",
+        "NOT AN EXECUTION TRACE",
+    ):
+        assert expected in html
+    exports = "\n".join(path.read_text() for path in output.rglob("*") if path.is_file())
+    for forbidden in ("PRIVATE_", "POC_STORY1_NATIVE", 'id="memory"', 'id="lifecycle"'):
+        assert forbidden not in exports
+    assert originals == {path.name: path.read_bytes() for path in run.iterdir()}
+
+
 @pytest.mark.parametrize("story", [None, "4", True, 0, -1, 4.5])
 def test_story_requires_positive_integer(tmp_path: Path, story: object) -> None:
     source, _, output = saved_bundle(tmp_path, story)

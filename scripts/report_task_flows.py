@@ -75,6 +75,186 @@ ANALYSIS = FlowStep(
     (r"[0-9][0-9,]* rows: analytical originals",),
 )
 
+STORY3_READY = _step(
+    "prerequisite", "Require Story 3 support and its saved baseline", "Validation runner", "Prerequisite"
+)
+STORY3: dict[int, TaskFlow] = {
+    1: TaskFlow(
+        "story-3-step-1",
+        "Story 3 Step 1: Separate conversations and mapping",
+        (
+            BASELINE,
+            STORY3_READY,
+            _step(
+                "capability", "Verify Supervisor accepts the conversation protocol", "Runner", "Story 3 code deployed"
+            ),
+            _step(
+                "create",
+                "Create Supervisor and distinct Research conversations",
+                "Operator -> Supervisor -> Research",
+                "Supervisor conversation created by the client",
+                "Supervisor turn in the Supervisor conversation",
+                "Separate sub-agent conversation",
+            ),
+            _step(
+                "mapping",
+                "Persist and re-read the application-owned child mapping",
+                "Supervisor / user-isolated Foundry state",
+                "Mapping owned and stored by the Supervisor",
+                "Mapping re-read from the state store",
+            ),
+            _step(
+                "metadata",
+                "Check the custom parent metadata link",
+                "Runner / Supervisor inspect",
+                "Parent link stored on the sub-agent conversation",
+            ),
+            END,
+        ),
+        ("scripts.run_scenario.story3_conversations.Step1", "app.services.conversations.separate_turn"),
+        ("Parent metadata is application-written; child creation and mapping persistence are not atomic.",),
+    ),
+    2: TaskFlow(
+        "story-3-step-2",
+        "Story 3 Step 2: Reuse independent Research history",
+        (
+            BASELINE,
+            STORY3_READY,
+            _step(
+                "first",
+                "Remember a synthetic code word in a new child",
+                "Operator -> Supervisor -> Research",
+                "Supervisor conversation created by the client",
+                "First turn created the sub-agent conversation",
+            ),
+            _step(
+                "followup",
+                "Reuse the mapping and recall without resending the code word",
+                "Supervisor -> Research",
+                "Follow-up reused the same sub-agent conversation",
+                "Prior history stored in the sub-agent conversation",
+                "Sub-agent recalled its own history",
+            ),
+            _step(
+                "isolate",
+                "Check separate histories and a new-parent control",
+                "Runner / model-free Supervisor inspect",
+                "Sub-agent history not copied into the Supervisor conversation",
+                "Another Supervisor conversation has no mapping",
+            ),
+            END,
+        ),
+        ("scripts.run_scenario.story3_conversations.Step2", "app.services.conversations.separate_turn"),
+        ("Recall is checked alongside stored-item counts, not treated alone as deterministic persistence proof.",),
+    ),
+    3: TaskFlow(
+        "story-3-step-3",
+        "Story 3 Step 3: Ownership, correlation and access",
+        (
+            BASELINE,
+            STORY3_READY,
+            _step(
+                "setup",
+                "Create the parent and mapped child",
+                "Operator -> Supervisor -> Research",
+                "Supervisor conversation created by the client",
+                "Sub-agent conversation created by the Supervisor",
+            ),
+            _step(
+                "context",
+                "Check original-user binding and custom correlation",
+                "Supervisor platform context / runner",
+                "Original user bound at the Supervisor",
+                "Custom correlation recorded with the mapping",
+            ),
+            _step(
+                "reads",
+                "Record owner, cross-endpoint and agent-context reads",
+                "Operator / Supervisor -> Foundry",
+                "Owner lists its Supervisor conversation",
+                "Owner lists its Supervisor conversation through the Research endpoint",
+                "Client lists the Supervisor-created sub-agent conversation",
+                "Supervisor lists its sub-agent conversation (agent identity)",
+                "Supervisor lists its sub-agent conversation (call-context identity)",
+            ),
+            _step(
+                "guards",
+                "Reject unmapped claims and missing parent context",
+                "Supervisor application guards",
+                "Client supplies an unmapped sub-agent conversation ID",
+                "Another Supervisor conversation claims the sub-agent conversation",
+                "Request without a Supervisor conversation",
+            ),
+            END,
+        ),
+        ("scripts.run_scenario.story3_conversations.Step3", "app.services.conversations.separate_turn"),
+        ("Operator reads do not establish least-privileged two-user isolation or the reason for unexpected access.",),
+    ),
+    4: TaskFlow(
+        "story-3-step-4",
+        "Story 3 Step 4: Evaluate a shared conversation ID",
+        (
+            BASELINE,
+            STORY3_READY,
+            _step(
+                "seed",
+                "Seed Supervisor history with a synthetic code word",
+                "Operator -> Supervisor",
+                "Supervisor conversation created by the client",
+                "Supervisor conversation seeded",
+            ),
+            _step(
+                "shared",
+                "Attempt Research calls with the Supervisor ID in both modes",
+                "Supervisor -> Research",
+                "B invoked with A's conversation ID (agent identity)",
+                "B invoked with A's conversation ID (call-context identity)",
+            ),
+            _step(
+                "inspect",
+                "Inspect later history and run the same-principal control",
+                "Supervisor inspect / operator -> Research",
+                "Later Supervisor invocation observed its hydrated history",
+                "Control: owner uses A's conversation on B's endpoint",
+            ),
+            END,
+        ),
+        ("scripts.run_scenario.story3_conversations.Step4", "app.services.conversations.shared_turn"),
+        ("PASS records an explicit outcome, including HTTP 404; it does not mean shared history worked.",),
+    ),
+    5: TaskFlow(
+        "story-3-step-5",
+        "Story 3 Step 5: Compare result, placeholder and shared history",
+        (
+            BASELINE,
+            STORY3_READY,
+            _step(
+                "separate",
+                "Compare explicit result and placeholder delivery",
+                "Supervisor -> mapped Research child / later inspect",
+                "Variant separate / result / agent",
+                "Variant separate / placeholder / agent",
+            ),
+            _step(
+                "shared",
+                "Classify shared-ID outcomes in both identity modes",
+                "Supervisor -> Research / later inspect",
+                "Variant shared / placeholder / agent",
+                "Variant shared / placeholder / call-context",
+            ),
+            END,
+        ),
+        (
+            "scripts.run_scenario.story3_conversations.Step5",
+            "scripts.run_scenario.story3_conversations.classify_received",
+        ),
+        (
+            "Classification uses recorded results and history counters; "
+            "shared-call rejection is not successful delivery.",
+        ),
+    ),
+}
+
 STORY4: dict[int, TaskFlow] = {
     1: TaskFlow(
         "story-4-step-1",
@@ -539,6 +719,8 @@ def select_task_flow(provenance: Mapping[str, object], checks: Sequence[Mapping[
     variant = provenance.get("variant")
     native = variant in ("native", "native-hosted-only", "native-hosted-observation")
     names = {check.get("name") for check in checks if isinstance(check.get("name"), str)}
+    if story == 3:
+        return STORY3.get(number) if variant in (None, "") else None
     if story == 4:
         if number == 6:
             return NATIVE_SUPERVISOR if native else None

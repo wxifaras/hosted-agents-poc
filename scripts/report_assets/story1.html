@@ -42,7 +42,7 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <a href="#summary">Summary and interpretation</a> · <a href="#traceability">Requirement traceability</a> ·
 <a href="#decisions">Sponsor decisions</a> ·
 {% if memory %}<a href="#memory">Numerical memory evidence</a> ·{% endif %}
-{% if story in [1,4] %}<a href="#architecture">Architecture reference</a> · <a href="#native-api">Current SDK/API reference</a> ·{% endif %}
+{% if story in [1,3,4] %}<a href="#architecture">Architecture reference</a> · <a href="#native-api">Current SDK/API reference</a> ·{% endif %}
 {% if story == 1 %}<a href="#lifecycle">Hosted lifecycle timeline</a> ·{% endif %}
 <a href="#runs">Detailed recorded runs</a> · <a href="#provenance">Provenance and downloads</a>
 <ol>{% for run in runs %}<li><a href="#run-{{ run.key }}">{{ run.label }}</a></li>{% endfor %}</ol>
@@ -53,6 +53,9 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 {% if story == 1 %}
 <p>Measured results and sponsor-accepted envelopes are separate. A 75% pressure target not reached remains <strong>not evaluated at 75%</strong>; accepting a lower measured envelope does not relabel an original BLOCKED check.</p>
 <p>Blob authentication and Hosted/native execution are different boundaries. Authenticated public Blob access does not prove a private endpoint or private-network equivalence. Hosted runtime memory is not native interpreter memory. Supervisor remains blocked unless separately evidenced.</p>
+{% elif story == 3 %}
+<p>Separate conversation mapping, independent Research history, access checks, shared-ID experiments, and delivery classification are separate evidence boundaries. The protocol is <code>POC_CONVERSE</code> / <code>poc-conversation-v1</code>; Data Analysis is baseline-only in these tasks.</p>
+<p>Acceptance of a shared-ID evaluation does not mean shared history worked: an explicit HTTP 404 can pass a recording check. Unexpected allowed reads remain failures; elevated operator access is not least-privileged two-user isolation proof. Application correlation is not distributed-trace proof. Historical findings and different deployment versions are not merged into a new acceptance verdict.</p>
 {% elif story == 4 %}
 <p>Supervisor delegation, Research tool use, identity and access checks are separate evidence boundaries. Data Analysis in this delegation path is text-only; the native Code Interpreter adapter is pending. Story 4 Step 6 native execution is not established by these reports.</p>
 <p>No original-user context, absence-of-impersonation-grant negative control, protected-tool OAuth, or actual distributed trace is inferred from passing application checks. Application correlation is not distributed-trace proof. Explicit assessments below retain their stated limitations.</p>
@@ -124,6 +127,23 @@ details { border:1px solid var(--line); padding:12px; margin:12px 0; } summary {
 <path class="arrow" d="M45 320 V550 H850 V500"/><text class="small" x="260" y="573">Separate runner PUT/GET + verified checkpoint; fresh authorized recomputation</text>
 </svg>
 <p>The original native files remain backend-mediated. Owning users receive approved session-file paths and verified original bytes, not backend native-file privileges. The runner's Blob recovery experiment is separate from metadata-only Hosted idle/resume observations.</p>
+</section>
+{% elif story == 3 %}
+<section id="architecture">
+<h2>Story 3 conversation architecture — code/reference context</h2>
+<p class="notice">Reference design, not an execution trace. Separate and shared paths are alternatives. Only the linked recorded checks establish which calls completed, what was denied, and what history was observed.</p>
+<svg class="architecture" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 390" role="img" aria-labelledby="story3-title story3-description">
+<title id="story3-title">Supervisor-owned mapping and independent Research history</title>
+<desc id="story3-description">The operator creates a Supervisor conversation. Supervisor stores a user-isolated mapping to a distinct Research conversation and reuses it for follow-up. Each endpoint hydrates its own history. Result or placeholder delivery is explicit. The alternative shared-ID experiment supplies the Supervisor ID to Research and records its outcome; it does not establish support.</desc>
+<defs><marker id="native-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 Z" fill="#25629f"/></marker></defs>
+<rect class="node" x="15" y="95" width="160" height="100" rx="8"/><text class="label" x="30" y="125">Operator</text><text class="small" x="30" y="155">Creates parent S</text><text class="small" x="30" y="178">POC_CONVERSE</text>
+<rect class="node" x="245" y="75" width="240" height="140" rx="8"/><text class="label" x="260" y="105">Supervisor / history S</text><text class="small" x="260" y="135">Mapping guards</text><text class="small" x="260" y="160">Result or placeholder</text><text class="small" x="260" y="185">Model-free inspect</text>
+<rect class="node" x="650" y="75" width="330" height="140" rx="8"/><text class="label" x="665" y="105">Research / separate history C</text><text class="small" x="665" y="135">Follow-up reuses C</text><text class="small" x="665" y="160">No copying turns into S</text><text class="small" x="665" y="185">Own history hydration</text>
+<rect class="node" x="245" y="275" width="340" height="90" rx="8"/><text class="label" x="260" y="305">Foundry state: mapping S to C</text><text class="small" x="260" y="335">Application-owned, user-isolated</text>
+<rect class="blocked" x="650" y="275" width="330" height="90" rx="8"/><text class="label" x="665" y="305">Alternative: shared ID S</text><text class="small" x="665" y="335">Attempt and record; not assumed supported</text>
+<path class="arrow" d="M175 145 H245"/><path class="arrow" d="M485 120 H650"/><text class="small" x="500" y="105">Separate: use C</text><path class="arrow" d="M650 185 H485"/><text class="small" x="500" y="210">Explicit delivery</text><path class="arrow" d="M365 215 V275"/><path class="arrow" stroke-dasharray="7 5" d="M485 235 L650 305"/>
+</svg>
+<p>Custom parent metadata is not a native parent-child contract. Conversation creation and mapping writes are separate operations; crash recovery is not demonstrated. Operator access, agent identity, forwarded call context, and cross-endpoint scope require distinct checks.</p>
 </section>
 {% elif story == 4 %}
 <section id="architecture">

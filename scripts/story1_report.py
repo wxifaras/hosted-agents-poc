@@ -34,7 +34,7 @@ from pydantic import JsonValue
 
 from scripts.check_details import describe_check
 from scripts.generate_report import Redactor, ReportError, pretty, read_bytes, read_object, read_records
-from scripts.report_story_context import story4_api_catalog
+from scripts.report_story_context import story3_api_catalog, story4_api_catalog
 from scripts.report_task_flows import build_task_flow
 
 SOURCE_COMMIT = "e139a6917c86fda32b8570545e8ec54eca04ccf4"
@@ -45,7 +45,7 @@ POSIX_PATH = re.compile(r"(?<![\w:])/(?:home|Users|mnt|var|etc|opt|workspace|wor
 UNC_PATH = re.compile(r"\\\\[^\s<>\"']+")
 FINGERPRINT = re.compile(r"\b(?:[0-9a-f]{16}|[0-9a-f]{32}|[0-9a-f]{64})\b", re.I)
 NATIVE_ID = re.compile(
-    r"\b(?:session|workflow|thread|msg|user|principal|container|conversation|request|agent)_[\w-]+\b"
+    r"\b(?:session|workflow|thread|msg|user|principal|container|conversation|request|agent|conv|caresp|resp)_[\w-]+\b"
 )
 FORBIDDEN_KEY = re.compile(
     r"principal|identity|fingerprint|session.?id|workflow.?id|conversation|"
@@ -192,6 +192,36 @@ OBSERVED_KEYS = frozenset(
         "listed",
         "rejected",
         "met",
+        "supervisor_version",
+        "mapping",
+        "owner",
+        "store",
+        "user_isolated",
+        "found",
+        "created_now",
+        "metadata_linked",
+        "listing_before",
+        "listing_after",
+        "items_after_turn",
+        "items_before_follow_up",
+        "items_after_follow_up",
+        "items",
+        "user_messages",
+        "assistant_messages",
+        "hop_inputs",
+        "protocol_replies",
+        "other_assistant",
+        "history",
+        "before_b",
+        "b_read",
+        "input_appended",
+        "output_appended",
+        "sees_b_messages",
+        "received",
+        "observed",
+        "enforced_by",
+        "header_matched",
+        "mapping_correlation_matches",
     }
 )
 
@@ -871,7 +901,15 @@ def build_bundle(config: dict[str, JsonValue]) -> dict[str, JsonValue]:
         "summary_sha256": summary_hash,
         "chart": _chart(config, redactor),
         "memory": _memory_rows(runs) if story == 1 else [],
-        "native_api_catalog": _native_api_catalog() if story == 1 else story4_api_catalog() if story == 4 else [],
+        "native_api_catalog": (
+            _native_api_catalog()
+            if story == 1
+            else story3_api_catalog()
+            if story == 3
+            else story4_api_catalog()
+            if story == 4
+            else []
+        ),
         "lifecycle_timeline": _lifecycle_timeline(runs) if story == 1 else [],
         "errors": [run["key"] for run in runs if run["error"]],
     }
