@@ -1,0 +1,34 @@
+# Template: stage with scripts.deploy.story6_package before using azd --cwd.
+# Do not deploy from this source directory: it intentionally has no copied source/lock/env.
+name: hosted-agents-poc-story6
+requiredVersions:
+  azd: '>=1.36.0'
+  extensions:
+    azure.ai.agents: '>=1.0.0-beta.19'
+services:
+  story6-coordinator-agent:
+    host: azure.ai.agent
+    kind: hosted
+    name: story6-coordinator-agent
+    description: Isolated public-first Story6 approval coordinator; existing Research is unchanged.
+    sessionConfiguration:
+      idleTimeoutSeconds: 120
+    project: .
+    language: docker
+    docker:
+      path: Dockerfile
+      context: .
+      remoteBuild: true
+    protocols:
+      - protocol: responses
+        version: 2.0.0
+    env:
+      AZURE_AI_MODEL_DEPLOYMENT_NAME: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
+      ENVIRONMENT: hosted
+      STORY6_ENABLED: 'true'
+      STORY6_REQUEST_TIMEOUT_SECONDS: '120'
+      STORY6_TOOLBOX_VERSION: ${STORY6_TOOLBOX_VERSION}
+    container:
+      resources:
+        cpu: '0.5'
+        memory: 1Gi
