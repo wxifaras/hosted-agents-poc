@@ -17,6 +17,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
+from app.services.story6_approval import EntraRoute
 from dotenv import dotenv_values
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -46,6 +47,8 @@ class PackageRecord(BaseModel):
     service: str = SERVICE
     environment: str
     toolbox_version: str | None = Field(default=None, pattern=r"^[1-9][0-9]{0,9}$")
+    mcp_url: str | None = None
+    mcp_scope: str | None = None
     files: dict[str, str]
     context_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     root_manifest_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
@@ -122,7 +125,21 @@ def deployment_context(path: Path, environment: str) -> dict[str, str]:
     if toolbox_version and not re.fullmatch(r"[1-9][0-9]{0,9}", toolbox_version):
         raise ValueError("STORY6_TOOLBOX_VERSION must be blank/public or a positive immutable version.")
     selected["STORY6_TOOLBOX_VERSION"] = toolbox_version
+    selected["STORY6_MCP_URL"] = values.get("STORY6_MCP_URL") or ""
+    selected["STORY6_MCP_SCOPE"] = values.get("STORY6_MCP_SCOPE") or ""
+    validate_route(selected)
     return selected
+
+
+def validate_route(context: dict[str, str]) -> None:
+    """Validate complete custom-route inputs before writing any package."""
+    url, scope = context["STORY6_MCP_URL"], context["STORY6_MCP_SCOPE"]
+    if bool(url) != bool(scope):
+        raise ValueError("Both MCP URL and custom API scope are required.")
+    if url:
+        if context["STORY6_TOOLBOX_VERSION"]:
+            raise ValueError("Entra MCP and toolbox cannot be selected together.")
+        EntraRoute(url, scope, {}).endpoint()
 
 
 def context_digest(context: dict[str, str]) -> str:
@@ -135,6 +152,9 @@ def payload_sources(root: Path) -> dict[str, Path]:
     template = root / "experiments" / "story6"
     sources = {name: template / name for name in ("azure.yaml", "Dockerfile", ".dockerignore")}
     sources.update({name: root / name for name in ("pyproject.toml", "uv.lock", "LICENSE")})
+    fixture_dockerfile = root / "experiments" / "story6-mcp" / "Dockerfile"
+    if fixture_dockerfile.is_file():
+        sources["story6-mcp.Dockerfile"] = fixture_dockerfile
     for directory in (root / "src" / "backend" / "app", root / "scripts"):
         for path in directory.rglob("*"):
             relative = path.relative_to(root)
@@ -168,7 +188,15 @@ def safe_package_path(root: Path, package: Path) -> Path:
     return resolved
 
 
-def prepare(root: Path, environment: str, output_dir: Path, *, toolbox_version: str | None = None) -> Path:
+def prepare(
+    root: Path,
+    environment: str,
+    output_dir: Path,
+    *,
+    toolbox_version: str | None = None,
+    mcp_url: str | None = None,
+    mcp_scope: str | None = None,
+) -> Path:
     """Create one immutable local context, without azd calls or cloud mutations."""
     validate_environment(environment)
     env_path = root / ".azure" / environment / ".env"
@@ -179,6 +207,12 @@ def prepare(root: Path, environment: str, output_dir: Path, *, toolbox_version: 
         if not re.fullmatch(r"[1-9][0-9]{0,9}", toolbox_version):
             raise ValueError("Select a positive immutable toolbox version.")
         context["STORY6_TOOLBOX_VERSION"] = toolbox_version
+    if mcp_url is not None or mcp_scope is not None:
+        context["STORY6_MCP_URL"] = mcp_url or ""
+        context["STORY6_MCP_SCOPE"] = mcp_scope or ""
+        if toolbox_version is None:
+            context["STORY6_TOOLBOX_VERSION"] = ""
+    validate_route(context)
     sources = payload_sources(root)
     package = safe_package_path(root, output_dir / f"{datetime.now(UTC):%Y%m%dT%H%M%SZ}-{uuid4().hex[:8]}")
     package.mkdir(parents=True, exist_ok=False)
@@ -202,6 +236,8 @@ def prepare(root: Path, environment: str, output_dir: Path, *, toolbox_version: 
     record = PackageRecord(
         environment=environment,
         toolbox_version=toolbox_version,
+        mcp_url=mcp_url,
+        mcp_scope=mcp_scope,
         files=hashes,
         context_sha256=context_digest(context),
         root_manifest_sha256=digest((root / "azure.yaml").read_bytes()),
@@ -239,6 +275,12 @@ def verify(root: Path, package: Path) -> PackageRecord:
     original = deployment_context(root / ".azure" / record.environment / ".env", record.environment)
     if record.toolbox_version is not None:
         original["STORY6_TOOLBOX_VERSION"] = record.toolbox_version
+    if record.mcp_url is not None or record.mcp_scope is not None:
+        original["STORY6_MCP_URL"] = record.mcp_url or ""
+        original["STORY6_MCP_SCOPE"] = record.mcp_scope or ""
+        if record.toolbox_version is None:
+            original["STORY6_TOOLBOX_VERSION"] = ""
+    validate_route(original)
     if context_digest(context) != record.context_sha256 or context_digest(original) != record.context_sha256:
         raise ValueError("Deployment environment binding changed; review a new package.")
     if digest((root / "azure.yaml").read_bytes()) != record.root_manifest_sha256:
@@ -251,6 +293,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--environment", required=True)
     parser.add_argument("--toolbox-version", help="Isolated package override only; root env is not modified.")
+    parser.add_argument("--mcp-url", help="Exact Container App /mcp URL; stage-only override.")
+    parser.add_argument("--mcp-scope", help="api://<API-client-ID>/.default; stage-only override.")
     actions = parser.add_mutually_exclusive_group()
     actions.add_argument("--prepare", action="store_true")
     actions.add_argument("--verify", type=Path)
@@ -264,6 +308,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.toolbox_version and not args.prepare:
         parser.error("--toolbox-version is only valid with --prepare.")
+    if (args.mcp_url or args.mcp_scope) and not args.prepare:
+        parser.error("--mcp-url/--mcp-scope are only valid with --prepare.")
     try:
         validate_environment(args.environment)
         if args.verify:
@@ -272,7 +318,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                 raise ValueError("Selected environment does not match the reviewed package.")
             print(json.dumps({"verified": True, "service": record.service, "files": len(record.files)}))
         elif args.prepare:
-            package = prepare(ROOT, args.environment, args.output_dir, toolbox_version=args.toolbox_version or None)
+            package = prepare(
+                ROOT,
+                args.environment,
+                args.output_dir,
+                toolbox_version=args.toolbox_version or None,
+                mcp_url=args.mcp_url,
+                mcp_scope=args.mcp_scope,
+            )
             print(json.dumps({"prepared": str(package), "service": SERVICE, "deployed": False}, indent=2))
         else:
             print(

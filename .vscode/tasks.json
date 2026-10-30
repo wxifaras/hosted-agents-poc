@@ -401,6 +401,84 @@
       "problemMatcher": []
     },
     {
+      "label": "Agents: Story6 MCP - Test local fixture and approval route",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "pytest", "-q", "tests\\unit\\test_story6_mcp.py", "tests\\unit\\test_story6_coordinator.py", "tests\\unit\\test_story6_host.py", "tests\\unit\\test_story6_hosted.py", "tests\\unit\\test_story6_package.py", "tests\\unit\\test_story6_mcp_identity.py"],
+      "detail": "Local signed-JWT/MCP boundary and coordinator protocol checks only. No Azure writes, model requests or hosted validation claim.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Access: Story6 MCP - Preview API permission",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "python", "-m", "scripts.deploy.story6_mcp_identity", "--environment", "${input:infraEnvironment}"],
+      "detail": "Read-only Graph check: exact API name/settings and verified coordinator workload identity (Foundry ServiceIdentity or ManagedIdentity). No users, secrets or grants.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Access: Story6 MCP - Apply API permission",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "python", "-m", "scripts.deploy.story6_mcp_identity", "--environment", "${input:infraEnvironment}", "--apply"],
+      "dependsOn": ["Access: Story6 MCP - Preview API permission"],
+      "dependsOrder": "sequence",
+      "detail": "Explicit identity write: one single-tenant API and Story6.Invoke assignment for the selected coordinator. Prints API audience/scope. No client secrets, user grants, agent or tool deployment.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story6 MCP - Prepare coordinator package",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "python", "-m", "scripts.deploy.story6_package", "--environment", "${input:infraEnvironment}", "--prepare", "--mcp-url", "${input:story6McpUrl}", "--mcp-scope", "api://${input:story6McpAudience}/.default"],
+      "detail": "Local stage-only direct-Entra override. Does not edit root env, change old routes, build or deploy. Use the existing Verify/Deploy Story6 coordinator tasks afterward.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story6 MCP - Build tool image",
+      "type": "process",
+      "command": "az",
+      "args": ["acr", "build", "--subscription", "${input:infraSubscription}", "--registry", "${input:story6McpRegistry}", "--image", "story6-approval-mcp:${input:story6McpImageTag}", "--file", "${input:story6PackageDir}\\story6-mcp.Dockerfile", "${input:story6PackageDir}"],
+      "dependsOn": ["Agents: Verify Story6 deployment package"],
+      "dependsOrder": "sequence",
+      "detail": "Explicit remote image build from the verified allowlisted package, not the worktree. No credentials in build context. Choose a new immutable test tag; no agent deployment.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story6 MCP - Preview tool infrastructure",
+      "type": "process",
+      "command": "az",
+      "args": ["deployment", "group", "what-if", "--subscription", "${input:infraSubscription}", "--resource-group", "${input:story6McpGroup}", "--name", "story6-approval-mcp", "--template-file", "${workspaceFolder}\\experiments\\story6-mcp\\main.bicep", "--parameters", "registryName=${input:story6McpRegistry}", "imageTag=${input:story6McpImageTag}", "audience=${input:story6McpAudience}", "callerId=${input:story6McpCaller}"],
+      "detail": "Read-only what-if: isolated tool app/environment/pull identity and registry-scoped AcrPull. Existing registry must be in this group. No original agent resources.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story6 MCP - Deploy tool",
+      "type": "process",
+      "command": "az",
+      "args": ["deployment", "group", "create", "--subscription", "${input:infraSubscription}", "--resource-group", "${input:story6McpGroup}", "--name", "story6-approval-mcp", "--template-file", "${workspaceFolder}\\experiments\\story6-mcp\\main.bicep", "--parameters", "registryName=${input:story6McpRegistry}", "imageTag=${input:story6McpImageTag}", "audience=${input:story6McpAudience}", "callerId=${input:story6McpCaller}"],
+      "dependsOn": ["Agents: Story6 MCP - Preview tool infrastructure"],
+      "dependsOrder": "sequence",
+      "detail": "Explicit provision/deploy after separately building the image. One replica, one process, HTTPS + app-validated Entra auth. Outputs MCP URL/scope; does not deploy any agent.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story6 MCP - Hosted approval test",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story6_approval", "--step", "2", "--execution", "run", "--environment", "${input:infraEnvironment}", "--action", "${input:story6CaseAction}", "--case-state", "${input:story6CaseState}", "--expected-mcp-route", "entra-mcp"],
+      "detail": "Use start/inspect/approve on one case, then start/reject on a NEW case. Requires the direct-Entra coordinator deployment. Review pending case_id before deciding; compare actual server counts/logs separately.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story6 MCP - Observe execution receipts",
+      "type": "process",
+      "command": "az",
+      "args": ["containerapp", "logs", "show", "--subscription", "${input:infraSubscription}", "--resource-group", "${input:story6McpGroup}", "--name", "story6-approval-mcp", "--type", "console", "--tail", "100", "--format", "text"],
+      "detail": "Read-only bounded log view. Match case ID and epoch; absence of a log alone is not proof of no execution. Use /health total/epoch before and after each sequential case.",
+      "problemMatcher": []
+    },
+    {
       "label": "Agents: Prepare isolated Story6 deployment package",
       "type": "process",
       "command": "uv",
@@ -700,6 +778,37 @@
     }
   ],
   "inputs": [
+    {
+      "id": "story6McpCaller",
+      "type": "promptString",
+      "description": "Actual Story6 coordinator workload PRINCIPAL OBJECT ID printed by Preview API permission. Not client ID, project ID or tool-host pull identity."
+    },
+    {
+      "id": "story6McpAudience",
+      "type": "promptString",
+      "description": "Custom MCP API application/client ID printed by Apply API permission. Never use a Foundry audience or token."
+    },
+    {
+      "id": "story6McpUrl",
+      "type": "promptString",
+      "description": "Exact HTTPS Container App /mcp URL printed by tool deployment. No query string or credentials."
+    },
+    {
+      "id": "story6McpRegistry",
+      "type": "promptString",
+      "description": "Existing POC ACR name (not URL), in the selected tool resource group."
+    },
+    {
+      "id": "story6McpGroup",
+      "type": "promptString",
+      "description": "Existing POC resource group containing the selected ACR. Tool-only resources are created here."
+    },
+    {
+      "id": "story6McpImageTag",
+      "type": "promptString",
+      "description": "New image tag for this reviewed fixture build; do not overwrite a tag used by an earlier test.",
+      "default": "entra-poc-1"
+    },
     {
       "id": "story6DeniedToolUser",
       "type": "promptString",

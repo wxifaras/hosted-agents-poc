@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
 
-from app.services.story6_approval import SEARCH_QUERY, Command
+from app.services.story6_approval import Command
 from azure.ai.projects.aio import AIProjectClient
 from azure.ai.projects.models import VersionRefIndicator
 from azure.identity.aio import AzureCliCredential
@@ -22,7 +22,7 @@ from scripts.common.auth_profiles import parse_users
 from scripts.common.reporting import Status
 from scripts.deploy.story6_package import ROOT, SERVICE, deployment_context
 from scripts.run_scenario.native_user_isolation import NativeUser, ProfileCredential, prepare_user
-from scripts.run_scenario.story6_hosted import Case, load, public_observation, save, send
+from scripts.run_scenario.story6_hosted import Case, expected_arguments, load, public_observation, save, send
 
 Record = Callable[[str, Status, str, object], None]
 MISSING_OPERATION = "Story6 operation is missing; continuation cannot create it."
@@ -164,7 +164,7 @@ async def execute(
             case = load(state_file, environment)
             if case.version != version or case.last_reply is None or case.last_reply.pending is None:
                 raise ValueError("The original owner case must still have its version-bound pending approval.")
-            if case.last_reply.pending.arguments != {"query": SEARCH_QUERY}:
+            if not expected_arguments(case.last_reply):
                 raise ValueError("The saved pending query differs from the fixed public Learn query.")
             if action == "inspect":
                 command = Command(operation="inspect", operation_id=case.operation_id)

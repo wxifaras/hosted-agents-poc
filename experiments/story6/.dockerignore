@@ -1,5 +1,6 @@
 **
 !Dockerfile
+!story6-mcp.Dockerfile
 !pyproject.toml
 !uv.lock
 !LICENSE

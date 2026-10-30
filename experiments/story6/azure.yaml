@@ -28,6 +28,8 @@ services:
       STORY6_ENABLED: 'true'
       STORY6_REQUEST_TIMEOUT_SECONDS: '120'
       STORY6_TOOLBOX_VERSION: ${STORY6_TOOLBOX_VERSION}
+      STORY6_MCP_URL: ${STORY6_MCP_URL}
+      STORY6_MCP_SCOPE: ${STORY6_MCP_SCOPE}
     container:
       resources:
         cpu: '0.5'

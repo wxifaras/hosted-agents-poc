@@ -62,6 +62,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--action", choices=("start", "inspect", "approve", "reject"), default="start")
     parser.add_argument("--case-state", default="")
     parser.add_argument(
+        "--expected-mcp-route",
+        choices=("public-learn", "foundry-toolbox", "entra-mcp"),
+        help="Fail rather than validate a different deployed route.",
+    )
+    parser.add_argument(
         "--capture-history", action="store_true", help="Read actual conversation items and caller correlation."
     )
     parser.add_argument("--users", default="", help="Exactly two existing isolated CLI profile users for Step6.")
@@ -230,6 +235,7 @@ def hosted_case(args: argparse.Namespace) -> int:
                     state_file,
                     timeout=args.max_seconds,
                     capture_history=args.capture_history,
+                    expected_route=args.expected_mcp_route,
                     evidence=capture,
                 )
                 return story6_hosted.public_observation(reply), story6_hosted.load(state_file, args.environment).version

@@ -1,6 +1,7 @@
 """Validate editor task wiring without requiring an interactive VS Code session."""
 
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -44,8 +45,8 @@ def test_task_dependency_graph_and_inputs() -> None:
     for label, task in tasks.items():
         visit(label, set())
         for argument in task.get("args", []) if isinstance(task.get("args", []), list) else []:
-            if argument.startswith("${input:"):
-                assert argument.removeprefix("${input:").removesuffix("}") in inputs
+            for input_id in re.findall(r"\$\{input:([^}]+)\}", argument):
+                assert input_id in inputs
 
 
 def test_setup_is_frozen_sequential_and_preserves_extras() -> None:

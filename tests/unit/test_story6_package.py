@@ -96,6 +96,36 @@ def test_isolated_package_keeps_original_manifest_env_and_secrets_out_of_build(w
     assert dotenv_values(prepared / ".azure" / ENVIRONMENT / ".env")["AZURE_ENV_NAME"] == ENVIRONMENT
 
 
+def test_custom_mcp_package_is_stage_only_pinned_and_verified(workspace: Path) -> None:
+    original = (workspace / ".azure" / ENVIRONMENT / ".env").read_bytes()
+    url = "https://fixture.synthetic.azurecontainerapps.io/mcp"
+    scope = "api://11111111-1111-4111-8111-111111111111/.default"
+    prepared = package.prepare(
+        workspace,
+        ENVIRONMENT,
+        workspace / "artifacts/story-6/packages",
+        mcp_url=url,
+        mcp_scope=scope,
+    )
+    record = package.verify(workspace, prepared)
+    assert (record.mcp_url, record.mcp_scope) == (url, scope)
+    staged = dotenv_values(prepared / ".azure" / ENVIRONMENT / ".env")
+    assert staged["STORY6_MCP_URL"] == url and staged["STORY6_MCP_SCOPE"] == scope
+    assert staged["STORY6_TOOLBOX_VERSION"] == ""
+    assert (workspace / ".azure" / ENVIRONMENT / ".env").read_bytes() == original
+    with pytest.raises(ValueError, match="Both MCP"):
+        package.prepare(workspace, ENVIRONMENT, workspace / "artifacts/story-6/packages", mcp_url=url)
+    with pytest.raises(ValueError, match="cannot be selected"):
+        package.prepare(
+            workspace,
+            ENVIRONMENT,
+            workspace / "artifacts/story-6/packages",
+            mcp_url=url,
+            mcp_scope=scope,
+            toolbox_version="1",
+        )
+
+
 @pytest.mark.parametrize("change", ["staged-source", "source", "root-manifest", "context", "extra-file"])
 def test_integrity_gate_rejects_drift(workspace: Path, change: str) -> None:
     prepared = package.prepare(workspace, ENVIRONMENT, workspace / "artifacts/story-6/packages")

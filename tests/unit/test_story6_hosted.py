@@ -82,6 +82,53 @@ async def test_real_sdk_keeps_explicit_session_conversation_and_custom_json(tmp_
     assert "fixed_query_matches" in public
 
 
+def test_custom_case_is_approved_only_with_exact_operation_arguments() -> None:
+    operation = uuid4()
+    custom = reply(operation).model_copy(
+        update={
+            "mcp_route": "entra-mcp",
+            "pending": PendingApproval(
+                reference="1" * 64,
+                tool_name="story6_record_action",
+                arguments={"case_id": str(operation)},
+            ),
+        }
+    )
+    assert live.expected_arguments(custom)
+    observed = live.public_observation(custom)
+    assert observed["pending"]["case_id_matches_operation"]
+    assert str(operation) not in json.dumps(observed)
+    changed = custom.model_copy(
+        update={
+            "pending": custom.pending.model_copy(update={"arguments": {"case_id": str(uuid4())}}),
+        }
+    )
+    assert not live.expected_arguments(changed)
+
+
+async def test_custom_task_refuses_old_saved_route_before_any_credentials(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(live, "ROOT", tmp_path)
+    monkeypatch.setattr(live, "deployment_context", lambda *args: {})
+    state = tmp_path / "artifacts" / "story-6" / "case-state.json"
+    state.parent.mkdir(parents=True)
+    operation = uuid4()
+    live.save(
+        state,
+        live.Case(
+            environment="poc",
+            version="2",
+            operation_id=operation,
+            phase="pending",
+            last_reply=reply(operation),
+        ),
+    )
+    monkeypatch.setattr(
+        live, "AzureCliCredential", MagicMock(side_effect=AssertionError("No credential lookup expected"))
+    )
+    with pytest.raises(ValueError, match="expected MCP route"):
+        await live.execute("poc", "approve", state, timeout=30, expected_route="entra-mcp")
+
+
 @pytest.mark.parametrize("decision", ["approve", "reject"])
 @pytest.mark.parametrize("audit", [False, True])
 async def test_start_never_auto_decides_and_terminal_decision_is_not_replayed(

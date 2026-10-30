@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Literal
 from uuid import uuid4
 
-from app.services.story6_approval import SEARCH_QUERY, Command, Reply
+from app.services.story6_approval import SEARCH_QUERY, Command, Reply, RouteName
 from azure.ai.projects.aio import AIProjectClient
 from azure.ai.projects.models import VersionRefIndicator
 from azure.identity.aio import AzureCliCredential
@@ -59,9 +59,17 @@ def public_observation(reply: Reply) -> dict[str, object]:
         observed["pending"] = {
             "server_label": reply.pending.server_label,
             "tool_name": reply.pending.tool_name,
-            "fixed_query_matches": reply.pending.arguments == {"query": SEARCH_QUERY},
+            ("case_id_matches_operation" if reply.mcp_route == "entra-mcp" else "fixed_query_matches"): (
+                expected_arguments(reply)
+            ),
         }
     return observed
+
+
+def expected_arguments(reply: Reply) -> bool:
+    """Validate the selected route's fixed action without exporting its case ID."""
+    expected = {"case_id": str(reply.operation_id)} if reply.mcp_route == "entra-mcp" else {"query": SEARCH_QUERY}
+    return reply.pending is not None and reply.pending.arguments == expected
 
 
 async def send(client: AsyncOpenAI, case: Case, command: Command) -> Reply:
@@ -91,6 +99,7 @@ async def execute(
     *,
     timeout: float,
     capture_history: bool = False,
+    expected_route: RouteName | None = None,
     evidence: Callable[[str, dict[str, object]], None] | None = None,
 ) -> Reply:
     """Start once, inspect, or submit the operator's explicit bound decision."""
@@ -98,6 +107,13 @@ async def execute(
         raise ValueError("Keep the private case locator under ignored artifacts/story-6.")
     context = deployment_context(ROOT / ".azure" / environment / ".env", environment)
     case = None if action == "start" else load(state_file, environment)
+    if (
+        expected_route is not None
+        and case is not None
+        and case.last_reply is not None
+        and case.last_reply.mcp_route != expected_route
+    ):
+        raise ValueError("Saved case does not use the expected MCP route; do not submit a decision.")
     async with (
         AzureCliCredential(process_timeout=60) as credential,
         AIProjectClient(
@@ -140,8 +156,8 @@ async def execute(
             else:
                 if case.phase != "pending" or case.last_reply is None or case.last_reply.pending is None:
                     raise ValueError("Only a saved pending case can accept a decision; inspect instead of replaying.")
-                if case.last_reply.pending.arguments != {"query": SEARCH_QUERY}:
-                    raise ValueError("The saved approval differs from the fixed public Learn query.")
+                if not expected_arguments(case.last_reply):
+                    raise ValueError("The saved approval differs from the fixed route arguments.")
                 command = Command(
                     operation="decide",
                     operation_id=case.operation_id,
@@ -186,6 +202,10 @@ async def execute(
         case.phase = reply.phase
         case.last_reply = reply
         save(state_file, case)
+        if expected_route is not None and reply.mcp_route != expected_route:
+            raise ValueError(
+                "Deployed coordinator uses a different MCP route; original case retained, no decision sent."
+            )
         if auditing and evidence is not None:
             from scripts.run_scenario.story6_history import snapshot
 
