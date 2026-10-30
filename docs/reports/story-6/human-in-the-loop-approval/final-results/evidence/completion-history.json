@@ -1,0 +1,263 @@
+{
+  "key": "completion-history",
+  "label": "Stored decision and completed operation",
+  "kind": "hosted",
+  "counts": {
+    "PASS": 5
+  },
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Authenticated caller correlation",
+      "status": "PASS",
+      "expected": "Actual stored items and original caller/operation binding",
+      "observed": {
+        "caller_alias": "{reference-1}",
+        "session_alias": "{reference-2}",
+        "operation_alias": "{reference-3}",
+        "same_authenticated_requester": true,
+        "correlation_is_authorization": "[REDACTED]"
+      },
+      "anchor": "check-story6-completion-history-1"
+    },
+    {
+      "ordinal": 2,
+      "name": "Conversation history before command",
+      "status": "PASS",
+      "expected": "Actual stored items and original caller/operation binding",
+      "observed": {
+        "items": 4,
+        "counts": {
+          "user_items": 2,
+          "start_commands": 1,
+          "assistant_items": 2,
+          "inspect_commands": 1
+        },
+        "observed_phases": [
+          "pending",
+          "pending"
+        ],
+        "observed_decisions": [],
+        "reported_mcp_call_counts": [
+          0,
+          0
+        ],
+        "operation_mismatches": 0,
+        "pending_approval_count": 1,
+        "decision_reference_matches_pending": null,
+        "raw_history_exported": false,
+        "joined_distributed_trace_verified": false,
+        "downstream_original_user_verified": false,
+        "history_pages": 1
+      },
+      "anchor": "check-story6-completion-history-2"
+    },
+    {
+      "ordinal": 3,
+      "name": "Conversation history after command",
+      "status": "PASS",
+      "expected": "Actual stored items and original caller/operation binding",
+      "observed": {
+        "items": 6,
+        "counts": {
+          "user_items": 3,
+          "start_commands": 1,
+          "assistant_items": 3,
+          "inspect_commands": 1,
+          "decide_commands": 1
+        },
+        "observed_phases": [
+          "pending",
+          "pending",
+          "completed"
+        ],
+        "observed_decisions": [
+          true
+        ],
+        "reported_mcp_call_counts": [
+          0,
+          0,
+          1
+        ],
+        "operation_mismatches": 0,
+        "pending_approval_count": 1,
+        "decision_reference_matches_pending": true,
+        "raw_history_exported": false,
+        "joined_distributed_trace_verified": false,
+        "downstream_original_user_verified": false,
+        "history_pages": 1
+      },
+      "anchor": "check-story6-completion-history-3"
+    },
+    {
+      "ordinal": 4,
+      "name": "Operation and reported invocation binding",
+      "status": "PASS",
+      "expected": "Actual stored items and original caller/operation binding",
+      "observed": {
+        "mcp_route": "foundry-toolbox",
+        "phase": "completed",
+        "decision": true,
+        "provider_responses_observed": 2,
+        "mcp_calls_reported": 1,
+        "file_retained": true,
+        "file_sha256": "{reference-5}",
+        "research_user_context_present": false,
+        "independent_tool_invocation_trace_verified": false
+      },
+      "anchor": "check-story6-completion-history-4"
+    },
+    {
+      "ordinal": 5,
+      "name": "Coordinator command",
+      "status": "PASS",
+      "expected": "Demonstrate actual human approval/rejection on the new coordinator after unchanged Research context.",
+      "observed": {
+        "protocol": "poc-story6-approval-v1",
+        "phase": "completed",
+        "mcp_route": "foundry-toolbox",
+        "decision": true,
+        "research_response_observed": true,
+        "research_user_context_present": false,
+        "provider_responses_observed": 2,
+        "mcp_calls_reported": 1,
+        "remote_execution_independently_verified": false,
+        "delegated_user_authority_verified": false,
+        "replay_allowed": false,
+        "file_sha256": "{reference-5}",
+        "file_retained": true,
+        "same_process": false
+      },
+      "anchor": "check-story6-completion-history-5"
+    }
+  ],
+  "scope": "Actual history grows from four to six items. Stored decision reference matches pending item, same requester, zero operation mismatches, completed reply reports one MCP call.",
+  "provenance": {
+    "scenario": "story-6-step-2",
+    "mode": "hosted",
+    "started_at": "2026-10-29T22:10:53.460198+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "step": "step-02-approval-and-rejection"
+  },
+  "agent_version": "2",
+  "completion": "Recorded checks, no finish-event recorded.",
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "d55e55f8efc096e32bb4012d17dcbd9a171347731b5b4a308303df786e264efe"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "39f2bba9ecbfc603b475ce8497d978eb1b94cfdc5db5a1d1afa6ce2134e1156c"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "39f2bba9ecbfc603b475ce8497d978eb1b94cfdc5db5a1d1afa6ce2134e1156c"
+    }
+  ],
+  "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+  "download": "evidence/completion-history.json",
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-6-history-audit",
+    "title": "Story6: Caller, actual conversation items and reported invocation",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story6_history.snapshot",
+      "scripts.run_scenario.story6_hosted.execute",
+      "app.services.story6_approval.Coordinator"
+    ],
+    "notes": [
+      "Each selected command has its own before/after observations; pending is not approval success.",
+      "No raw transcript, independent downstream invocation span or end-user delegation is inferred."
+    ],
+    "nodes": [
+      {
+        "key": "caller",
+        "title": "Verify the original authenticated requester and pinned aliases",
+        "actor": "CLI account + authenticated Graph; aliases are not authority",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Authenticated caller correlation",
+            "status": "PASS",
+            "anchor": "check-story6-completion-history-1"
+          }
+        ]
+      },
+      {
+        "key": "before",
+        "title": "Read actual stored conversation items before this command",
+        "actor": "Bounded, owner-authorized conversation listing",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Conversation history before command",
+            "status": "PASS",
+            "anchor": "check-story6-completion-history-2"
+          }
+        ]
+      },
+      {
+        "key": "command",
+        "title": "Submit exactly the selected start, inspect or explicit decision",
+        "actor": "Client -> dedicated Hosted coordinator; inspect does not execute a model/tool",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Coordinator command",
+            "status": "PASS",
+            "anchor": "check-story6-completion-history-5"
+          }
+        ]
+      },
+      {
+        "key": "after",
+        "title": "Read stored items and compare operation/pending/decision bindings",
+        "actor": "Bounded, owner-authorized conversation listing",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Conversation history after command",
+            "status": "PASS",
+            "anchor": "check-story6-completion-history-3"
+          }
+        ]
+      },
+      {
+        "key": "binding",
+        "title": "Record logical phase, original file and provider-reported calls",
+        "actor": "Coordinator reply + application correlation; not independent server effects",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Operation and reported invocation binding",
+            "status": "PASS",
+            "anchor": "check-story6-completion-history-4"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 788\" role=\"img\" aria-labelledby=\"flow-story6-completion-history-title flow-story6-completion-history-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-story6-completion-history-title\">Story6: Caller, actual conversation items and reported invocation</title><desc id=\"flow-story6-completion-history-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-story6-completion-history-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-completion-history-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-completion-history-arrow)\" /><path d=\"M460 462 V501\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-completion-history-arrow)\" /><path d=\"M460 602 V641\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-completion-history-arrow)\" /><g id=\"flow-story6-completion-history-caller\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify the original authenticated requester and pinned aliases</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: CLI account + authenticated Graph; aliases are not authority</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-completion-history-before\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Read actual stored conversation items before this command</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Bounded, owner-authorized conversation listing</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-completion-history-command\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Submit exactly the selected start, inspect or explicit decision</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Client -&gt; dedicated Hosted coordinator; inspect does not execute a model/tool</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-completion-history-after\"><rect x=\"70\" y=\"508\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"537\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Read stored items and compare operation/pending/decision bindings</text><text x=\"88\" y=\"560\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Bounded, owner-authorized conversation listing</text><text x=\"88\" y=\"584\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-completion-history-binding\"><rect x=\"70\" y=\"648\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"677\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Record logical phase, original file and provider-reported calls</text><text x=\"88\" y=\"700\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Coordinator reply + application correlation; not independent server effects</text><text x=\"88\" y=\"724\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "primary_criterion": "1"
+}

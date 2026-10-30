@@ -1,0 +1,112 @@
+{
+  "key": "rejection",
+  "label": "Human rejection prevents the selected action",
+  "kind": "hosted",
+  "counts": {
+    "PASS": 1
+  },
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Coordinator command",
+      "status": "PASS",
+      "expected": "Demonstrate actual human approval/rejection on the new coordinator after unchanged Research context.",
+      "observed": {
+        "protocol": "poc-story6-approval-v1",
+        "phase": "rejected",
+        "decision": false,
+        "research_response_observed": true,
+        "research_user_context_present": false,
+        "provider_responses_observed": 2,
+        "mcp_calls_reported": 0,
+        "remote_execution_independently_verified": false,
+        "delegated_user_authority_verified": false,
+        "replay_allowed": false,
+        "file_sha256": "{reference-1}",
+        "file_retained": true,
+        "same_process": false
+      },
+      "anchor": "check-story6-rejection-1"
+    }
+  ],
+  "scope": "Explicit human rejection; zero provider-reported MCP calls. No claim about a protected MCP server.",
+  "provenance": {
+    "scenario": "story-6-step-2",
+    "mode": "hosted",
+    "started_at": "2026-10-29T20:01:33.393678+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "step": "step-02-approval-and-rejection"
+  },
+  "agent_version": "1",
+  "completion": "Recorded checks, no finish-event recorded.",
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "0eedc66933e4d0b6160089161d2df4b36205f403bbfaf2c33e90a62d8cd27890"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "f2074bf2c3b723b57745087458b9a4e8b14d6b878f9c8bee6cf02cc16aa97d09"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "f2074bf2c3b723b57745087458b9a4e8b14d6b878f9c8bee6cf02cc16aa97d09"
+    }
+  ],
+  "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+  "download": "evidence/rejection.json",
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-6-step-2",
+    "title": "Story6 Step2: Native MCP pending, approval or rejection command",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story6_hosted.execute",
+      "app.services.story6_approval.Coordinator"
+    ],
+    "notes": [
+      "One saved command does not prove the entire approve/reject lifecycle by itself.",
+      "The separate Research context call happens on start only; decision continuation does not repeat it."
+    ],
+    "nodes": [
+      {
+        "key": "binding",
+        "title": "Reuse the pinned case or explicitly create one new operation",
+        "actor": "Authenticated client -> isolated Hosted coordinator",
+        "evidence_status": "NOT RECORDED",
+        "counts": {},
+        "references": []
+      },
+      {
+        "key": "native",
+        "title": "Request native approval or continue the exact explicit decision",
+        "actor": "Coordinator -> Research context on start -> native Responses MCP",
+        "evidence_status": "NOT RECORDED",
+        "counts": {},
+        "references": []
+      },
+      {
+        "key": "result",
+        "title": "Record the returned phase, decision, original file and call count",
+        "actor": "Actual coordinator response; not independent downstream execution",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Coordinator command",
+            "status": "PASS",
+            "anchor": "check-story6-rejection-1"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 508\" role=\"img\" aria-labelledby=\"flow-story6-rejection-title flow-story6-rejection-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-story6-rejection-title\">Story6 Step2: Native MCP pending, approval or rejection command</title><desc id=\"flow-story6-rejection-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-story6-rejection-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-rejection-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-rejection-arrow)\" /><g id=\"flow-story6-rejection-binding\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Reuse the pinned case or explicitly create one new operation</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Authenticated client -&gt; isolated Hosted coordinator</text><text x=\"88\" y=\"164\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: NOT RECORDED</text></g><g id=\"flow-story6-rejection-native\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Request native approval or continue the exact explicit decision</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Coordinator -&gt; Research context on start -&gt; native Responses MCP</text><text x=\"88\" y=\"304\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: NOT RECORDED</text></g><g id=\"flow-story6-rejection-result\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Record the returned phase, decision, original file and call count</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Actual coordinator response; not independent downstream execution</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "primary_criterion": "1"
+}

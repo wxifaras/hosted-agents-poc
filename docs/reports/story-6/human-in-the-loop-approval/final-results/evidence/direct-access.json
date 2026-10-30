@@ -1,0 +1,197 @@
+{
+  "key": "direct-access",
+  "label": "Direct token access and ordinary permission control",
+  "kind": "direct",
+  "counts": {
+    "PASS": 4,
+    "FAIL": 1
+  },
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Approval-required proxy definition",
+      "status": "PASS",
+      "expected": "Exact isolated immutable search-only toolbox",
+      "observed": {
+        "version": "1"
+      },
+      "anchor": "check-story6-direct-access-1"
+    },
+    {
+      "ordinal": 2,
+      "name": "Runtime MCP approval metadata",
+      "status": "PASS",
+      "expected": "tools/list advertises require_approval=always",
+      "observed": {
+        "metadata_matches": true
+      },
+      "anchor": "check-story6-direct-access-2"
+    },
+    {
+      "ordinal": 3,
+      "name": "Authorized direct tool control",
+      "status": "PASS",
+      "expected": "Valid-token caller has ordinary permission to run the fixed read-only tool",
+      "observed": {
+        "result_returned": true,
+        "approval_message_submitted": false
+      },
+      "anchor": "check-story6-direct-access-3"
+    },
+    {
+      "ordinal": 4,
+      "name": "Direct valid-token call without approval",
+      "status": "FAIL",
+      "expected": "Approval gate blocks direct execution if enforced at this proxy boundary",
+      "observed": {
+        "unapproved_result_returned": true,
+        "approval_message_submitted": false,
+        "explicit_approval_denial": false,
+        "enforced_by": "not enforced by toolbox proxy",
+        "authentication_is_not_approval": true
+      },
+      "anchor": "check-story6-direct-access-4"
+    },
+    {
+      "ordinal": 5,
+      "name": "Invoke-only user direct toolbox permission",
+      "status": "PASS",
+      "expected": "Separate ordinary resource-authorization control, not approval denial",
+      "observed": {
+        "http_status": 403,
+        "permission_denied": true,
+        "approval_enforcement_tested": false,
+        "actor": "existing Consumer user"
+      },
+      "anchor": "check-story6-direct-access-5"
+    }
+  ],
+  "scope": "Explicit issue6 direct-call test, not a local mock or hosted request: require_approval always metadata, authorized positive control, successful unapproved search, separate HTTP403 Consumer resource denial.",
+  "provenance": {
+    "scenario": "story-6-step-5",
+    "mode": "authenticated-direct-mcp",
+    "started_at": "2026-10-29T21:36:39.570536+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "step": "step-05-direct-mcp-boundary"
+  },
+  "agent_version": "No agent invoked by direct probe; toolbox v1",
+  "completion": "Recorded checks, no finish-event recorded.",
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "196dcf3ba1ab5a6743978ab1374b855d06c13672db9d8a8bf71323fdf971f855"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "4e18abf763841b5716e49599169ef2ef37bbdb66fe2fa40a45d53597f8bb4fb6"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "4e18abf763841b5716e49599169ef2ef37bbdb66fe2fa40a45d53597f8bb4fb6"
+    }
+  ],
+  "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+  "download": "evidence/direct-access.json",
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-6-step-5",
+    "title": "Story6 Step5: Authenticated direct MCP approval boundary",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story6_boundary.execute",
+      "scripts.run_scenario.story6_boundary.RPC"
+    ],
+    "notes": [
+      "Unapproved returned data remains an enforcement FAIL even when the evaluation task ran correctly.",
+      "The authenticated boundary is the Foundry proxy; downstream Learn is public."
+    ],
+    "nodes": [
+      {
+        "key": "definition",
+        "title": "Verify the exact isolated immutable search-only toolbox",
+        "actor": "Read-only operator metadata",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Approval-required proxy definition",
+            "status": "PASS",
+            "anchor": "check-story6-direct-access-1"
+          }
+        ]
+      },
+      {
+        "key": "metadata",
+        "title": "Initialize and verify MCP require_approval=always metadata",
+        "actor": "Valid Entra-token client -> first-party Foundry toolbox",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Runtime MCP approval metadata",
+            "status": "PASS",
+            "anchor": "check-story6-direct-access-2"
+          }
+        ]
+      },
+      {
+        "key": "control",
+        "title": "Prove ordinary authorized direct tool access",
+        "actor": "Fixed read-only search; no approval message",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Authorized direct tool control",
+            "status": "PASS",
+            "anchor": "check-story6-direct-access-3"
+          }
+        ]
+      },
+      {
+        "key": "direct",
+        "title": "Call directly without approval and preserve the enforcement verdict",
+        "actor": "Same authorized direct route, not a Hosted Agent request",
+        "evidence_status": "FAIL",
+        "counts": {
+          "FAIL": 1
+        },
+        "references": [
+          {
+            "name": "Direct valid-token call without approval",
+            "status": "FAIL",
+            "anchor": "check-story6-direct-access-4"
+          }
+        ]
+      },
+      {
+        "key": "permission",
+        "title": "Test the existing Consumer user's ordinary proxy access",
+        "actor": "Separate CLI profile; not an approval-denial test",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Invoke-only user direct toolbox permission",
+            "status": "PASS",
+            "anchor": "check-story6-direct-access-5"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 811\" role=\"img\" aria-labelledby=\"flow-story6-direct-access-title flow-story6-direct-access-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-story6-direct-access-title\">Story6 Step5: Authenticated direct MCP approval boundary</title><desc id=\"flow-story6-direct-access-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-story6-direct-access-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-direct-access-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-direct-access-arrow)\" /><path d=\"M460 462 V501\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-direct-access-arrow)\" /><path d=\"M460 625 V664\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-direct-access-arrow)\" /><g id=\"flow-story6-direct-access-definition\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify the exact isolated immutable search-only toolbox</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Read-only operator metadata</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-direct-access-metadata\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Initialize and verify MCP require_approval=always metadata</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Valid Entra-token client -&gt; first-party Foundry toolbox</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-direct-access-control\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Prove ordinary authorized direct tool access</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Fixed read-only search; no approval message</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-direct-access-direct\"><rect x=\"70\" y=\"508\" width=\"780\" height=\"117\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"537\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Call directly without approval and preserve the enforcement</text><text x=\"88\" y=\"560\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">verdict</text><text x=\"88\" y=\"583\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Same authorized direct route, not a Hosted Agent request</text><text x=\"88\" y=\"607\" fill=\"#a51b26\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: FAIL (FAIL: 1)</text></g><g id=\"flow-story6-direct-access-permission\"><rect x=\"70\" y=\"671\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"700\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Test the existing Consumer user's ordinary proxy access</text><text x=\"88\" y=\"723\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Separate CLI profile; not an approval-denial test</text><text x=\"88\" y=\"747\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "primary_criterion": "4"
+}

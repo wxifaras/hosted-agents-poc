@@ -1,0 +1,920 @@
+{
+  "schema": "story6-final-evidence-v1",
+  "story": 6,
+  "runs": [
+    {
+      "key": "rejection",
+      "label": "Human rejection prevents the selected action",
+      "scope": "Explicit human rejection; zero provider-reported MCP calls. No claim about a protected MCP server.",
+      "agent_version": "1",
+      "provenance": {
+        "scenario": "story-6-step-2",
+        "mode": "hosted",
+        "started_at": "2026-10-29T20:01:33.393678+00:00",
+        "python": "3.14.8",
+        "project_version": "0.1.0",
+        "maf_version": "1.19.0",
+        "agentserver_version": "2.2.0b1",
+        "step": "step-02-approval-and-rejection"
+      },
+      "counts": {
+        "PASS": 1
+      },
+      "checks": [
+        {
+          "ordinal": 1,
+          "name": "Coordinator command",
+          "status": "PASS",
+          "expected": "Demonstrate actual human approval/rejection on the new coordinator after unchanged Research context.",
+          "observed": {
+            "protocol": "poc-story6-approval-v1",
+            "phase": "rejected",
+            "decision": false,
+            "research_response_observed": true,
+            "research_user_context_present": false,
+            "provider_responses_observed": 2,
+            "mcp_calls_reported": 0,
+            "remote_execution_independently_verified": false,
+            "delegated_user_authority_verified": false,
+            "replay_allowed": false,
+            "file_sha256": "{reference-1}",
+            "file_retained": true,
+            "same_process": false
+          },
+          "anchor": "check-story6-rejection-1"
+        }
+      ],
+      "completion": "Recorded checks, no finish-event recorded.",
+      "sources": [
+        {
+          "name": "manifest.json",
+          "sha256": "0eedc66933e4d0b6160089161d2df4b36205f403bbfaf2c33e90a62d8cd27890"
+        },
+        {
+          "name": "results.jsonl",
+          "sha256": "f2074bf2c3b723b57745087458b9a4e8b14d6b878f9c8bee6cf02cc16aa97d09"
+        },
+        {
+          "name": "events.jsonl",
+          "sha256": "f2074bf2c3b723b57745087458b9a4e8b14d6b878f9c8bee6cf02cc16aa97d09"
+        }
+      ]
+    },
+    {
+      "key": "pending-history",
+      "label": "Stored history before start and pending",
+      "scope": "Actual conversation item reads: zero before start, two once pending. Authenticated CLI account/Graph requester aliases, same operation, zero reported MCP calls.",
+      "agent_version": "2",
+      "provenance": {
+        "scenario": "story-6-step-2",
+        "mode": "hosted",
+        "started_at": "2026-10-29T22:06:17.911952+00:00",
+        "python": "3.14.8",
+        "project_version": "0.1.0",
+        "maf_version": "1.19.0",
+        "agentserver_version": "2.2.0b1",
+        "step": "step-02-approval-and-rejection"
+      },
+      "counts": {
+        "PASS": 5
+      },
+      "checks": [
+        {
+          "ordinal": 1,
+          "name": "Authenticated caller correlation",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "caller_alias": "{reference-1}",
+            "session_alias": "{reference-2}",
+            "operation_alias": "{reference-3}",
+            "same_authenticated_requester": true,
+            "correlation_is_authorization": "[REDACTED]"
+          },
+          "anchor": "check-story6-pending-history-1"
+        },
+        {
+          "ordinal": 2,
+          "name": "Conversation history before command",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "items": 0,
+            "counts": {},
+            "observed_phases": [],
+            "observed_decisions": [],
+            "reported_mcp_call_counts": [],
+            "operation_mismatches": 0,
+            "pending_approval_count": 0,
+            "decision_reference_matches_pending": null,
+            "raw_history_exported": false,
+            "joined_distributed_trace_verified": false,
+            "downstream_original_user_verified": false,
+            "history_pages": 1
+          },
+          "anchor": "check-story6-pending-history-2"
+        },
+        {
+          "ordinal": 3,
+          "name": "Conversation history after command",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "items": 2,
+            "counts": {
+              "user_items": 1,
+              "start_commands": 1,
+              "assistant_items": 1
+            },
+            "observed_phases": [
+              "pending"
+            ],
+            "observed_decisions": [],
+            "reported_mcp_call_counts": [
+              0
+            ],
+            "operation_mismatches": 0,
+            "pending_approval_count": 1,
+            "decision_reference_matches_pending": null,
+            "raw_history_exported": false,
+            "joined_distributed_trace_verified": false,
+            "downstream_original_user_verified": false,
+            "history_pages": 1
+          },
+          "anchor": "check-story6-pending-history-3"
+        },
+        {
+          "ordinal": 4,
+          "name": "Operation and reported invocation binding",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "mcp_route": "foundry-toolbox",
+            "phase": "pending",
+            "decision": null,
+            "provider_responses_observed": 1,
+            "mcp_calls_reported": 0,
+            "file_retained": true,
+            "file_sha256": "{reference-5}",
+            "research_user_context_present": false,
+            "independent_tool_invocation_trace_verified": false
+          },
+          "anchor": "check-story6-pending-history-4"
+        },
+        {
+          "ordinal": 5,
+          "name": "Coordinator command",
+          "status": "PASS",
+          "expected": "Demonstrate actual human approval/rejection on the new coordinator after unchanged Research context.",
+          "observed": {
+            "protocol": "poc-story6-approval-v1",
+            "phase": "pending",
+            "mcp_route": "foundry-toolbox",
+            "decision": null,
+            "research_response_observed": true,
+            "research_user_context_present": false,
+            "provider_responses_observed": 1,
+            "mcp_calls_reported": 0,
+            "remote_execution_independently_verified": false,
+            "delegated_user_authority_verified": false,
+            "replay_allowed": false,
+            "file_sha256": "{reference-5}",
+            "file_retained": true,
+            "same_process": true,
+            "pending": {
+              "server_label": "story6-learn",
+              "tool_name": "microsoft_learn___microsoft_docs_search",
+              "fixed_query_matches": true
+            }
+          },
+          "anchor": "check-story6-pending-history-5"
+        }
+      ],
+      "completion": "Recorded checks, no finish-event recorded.",
+      "sources": [
+        {
+          "name": "manifest.json",
+          "sha256": "d23412e497d176e322a48e54de70f7108df0d25d562856d493f2ee88abc71882"
+        },
+        {
+          "name": "results.jsonl",
+          "sha256": "9aeb7e08400c5011338a43930160d9ffa784818b01b3be778dd07740bd1a617f"
+        },
+        {
+          "name": "events.jsonl",
+          "sha256": "9aeb7e08400c5011338a43930160d9ffa784818b01b3be778dd07740bd1a617f"
+        }
+      ]
+    },
+    {
+      "key": "pause-history",
+      "label": "Fresh-client discovery during approval pause",
+      "scope": "Actual history grows from two to four stored items after inspect, with no tool execution or decision. Original requester/bindings and file retained.",
+      "agent_version": "2",
+      "provenance": {
+        "scenario": "story-6-step-4",
+        "mode": "hosted",
+        "started_at": "2026-10-29T22:08:11.191144+00:00",
+        "python": "3.14.8",
+        "project_version": "0.1.0",
+        "maf_version": "1.19.0",
+        "agentserver_version": "2.2.0b1",
+        "step": "step-04-pause-and-resume"
+      },
+      "counts": {
+        "PASS": 5
+      },
+      "checks": [
+        {
+          "ordinal": 1,
+          "name": "Authenticated caller correlation",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "caller_alias": "{reference-1}",
+            "session_alias": "{reference-2}",
+            "operation_alias": "{reference-3}",
+            "same_authenticated_requester": true,
+            "correlation_is_authorization": "[REDACTED]"
+          },
+          "anchor": "check-story6-pause-history-1"
+        },
+        {
+          "ordinal": 2,
+          "name": "Conversation history before command",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "items": 2,
+            "counts": {
+              "user_items": 1,
+              "start_commands": 1,
+              "assistant_items": 1
+            },
+            "observed_phases": [
+              "pending"
+            ],
+            "observed_decisions": [],
+            "reported_mcp_call_counts": [
+              0
+            ],
+            "operation_mismatches": 0,
+            "pending_approval_count": 1,
+            "decision_reference_matches_pending": null,
+            "raw_history_exported": false,
+            "joined_distributed_trace_verified": false,
+            "downstream_original_user_verified": false,
+            "history_pages": 1
+          },
+          "anchor": "check-story6-pause-history-2"
+        },
+        {
+          "ordinal": 3,
+          "name": "Conversation history after command",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "items": 4,
+            "counts": {
+              "user_items": 2,
+              "start_commands": 1,
+              "assistant_items": 2,
+              "inspect_commands": 1
+            },
+            "observed_phases": [
+              "pending",
+              "pending"
+            ],
+            "observed_decisions": [],
+            "reported_mcp_call_counts": [
+              0,
+              0
+            ],
+            "operation_mismatches": 0,
+            "pending_approval_count": 1,
+            "decision_reference_matches_pending": null,
+            "raw_history_exported": false,
+            "joined_distributed_trace_verified": false,
+            "downstream_original_user_verified": false,
+            "history_pages": 1
+          },
+          "anchor": "check-story6-pause-history-3"
+        },
+        {
+          "ordinal": 4,
+          "name": "Operation and reported invocation binding",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "mcp_route": "foundry-toolbox",
+            "phase": "pending",
+            "decision": null,
+            "provider_responses_observed": 1,
+            "mcp_calls_reported": 0,
+            "file_retained": true,
+            "file_sha256": "{reference-5}",
+            "research_user_context_present": false,
+            "independent_tool_invocation_trace_verified": false
+          },
+          "anchor": "check-story6-pause-history-4"
+        },
+        {
+          "ordinal": 5,
+          "name": "Coordinator command",
+          "status": "PASS",
+          "expected": "Observe execution/history and one file across a short approval pause and continuation.",
+          "observed": {
+            "protocol": "poc-story6-approval-v1",
+            "phase": "pending",
+            "mcp_route": "foundry-toolbox",
+            "decision": null,
+            "research_response_observed": true,
+            "research_user_context_present": false,
+            "provider_responses_observed": 1,
+            "mcp_calls_reported": 0,
+            "remote_execution_independently_verified": false,
+            "delegated_user_authority_verified": false,
+            "replay_allowed": false,
+            "file_sha256": "{reference-5}",
+            "file_retained": true,
+            "same_process": true,
+            "pending": {
+              "server_label": "story6-learn",
+              "tool_name": "microsoft_learn___microsoft_docs_search",
+              "fixed_query_matches": true
+            }
+          },
+          "anchor": "check-story6-pause-history-5"
+        }
+      ],
+      "completion": "Recorded checks, no finish-event recorded.",
+      "sources": [
+        {
+          "name": "manifest.json",
+          "sha256": "e48f1345564c8e5038f3d97212cb587fd6e42e35d5c776e3acf874bc0d292f20"
+        },
+        {
+          "name": "results.jsonl",
+          "sha256": "d45047f26253ec31842788c5c4ff54a7fc078b3b5fe0efc6818d84a6d90b11f9"
+        },
+        {
+          "name": "events.jsonl",
+          "sha256": "d45047f26253ec31842788c5c4ff54a7fc078b3b5fe0efc6818d84a6d90b11f9"
+        }
+      ]
+    },
+    {
+      "key": "completion-history",
+      "label": "Stored decision and completed operation",
+      "scope": "Actual history grows from four to six items. Stored decision reference matches pending item, same requester, zero operation mismatches, completed reply reports one MCP call.",
+      "agent_version": "2",
+      "provenance": {
+        "scenario": "story-6-step-2",
+        "mode": "hosted",
+        "started_at": "2026-10-29T22:10:53.460198+00:00",
+        "python": "3.14.8",
+        "project_version": "0.1.0",
+        "maf_version": "1.19.0",
+        "agentserver_version": "2.2.0b1",
+        "step": "step-02-approval-and-rejection"
+      },
+      "counts": {
+        "PASS": 5
+      },
+      "checks": [
+        {
+          "ordinal": 1,
+          "name": "Authenticated caller correlation",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "caller_alias": "{reference-1}",
+            "session_alias": "{reference-2}",
+            "operation_alias": "{reference-3}",
+            "same_authenticated_requester": true,
+            "correlation_is_authorization": "[REDACTED]"
+          },
+          "anchor": "check-story6-completion-history-1"
+        },
+        {
+          "ordinal": 2,
+          "name": "Conversation history before command",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "items": 4,
+            "counts": {
+              "user_items": 2,
+              "start_commands": 1,
+              "assistant_items": 2,
+              "inspect_commands": 1
+            },
+            "observed_phases": [
+              "pending",
+              "pending"
+            ],
+            "observed_decisions": [],
+            "reported_mcp_call_counts": [
+              0,
+              0
+            ],
+            "operation_mismatches": 0,
+            "pending_approval_count": 1,
+            "decision_reference_matches_pending": null,
+            "raw_history_exported": false,
+            "joined_distributed_trace_verified": false,
+            "downstream_original_user_verified": false,
+            "history_pages": 1
+          },
+          "anchor": "check-story6-completion-history-2"
+        },
+        {
+          "ordinal": 3,
+          "name": "Conversation history after command",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "items": 6,
+            "counts": {
+              "user_items": 3,
+              "start_commands": 1,
+              "assistant_items": 3,
+              "inspect_commands": 1,
+              "decide_commands": 1
+            },
+            "observed_phases": [
+              "pending",
+              "pending",
+              "completed"
+            ],
+            "observed_decisions": [
+              true
+            ],
+            "reported_mcp_call_counts": [
+              0,
+              0,
+              1
+            ],
+            "operation_mismatches": 0,
+            "pending_approval_count": 1,
+            "decision_reference_matches_pending": true,
+            "raw_history_exported": false,
+            "joined_distributed_trace_verified": false,
+            "downstream_original_user_verified": false,
+            "history_pages": 1
+          },
+          "anchor": "check-story6-completion-history-3"
+        },
+        {
+          "ordinal": 4,
+          "name": "Operation and reported invocation binding",
+          "status": "PASS",
+          "expected": "Actual stored items and original caller/operation binding",
+          "observed": {
+            "mcp_route": "foundry-toolbox",
+            "phase": "completed",
+            "decision": true,
+            "provider_responses_observed": 2,
+            "mcp_calls_reported": 1,
+            "file_retained": true,
+            "file_sha256": "{reference-5}",
+            "research_user_context_present": false,
+            "independent_tool_invocation_trace_verified": false
+          },
+          "anchor": "check-story6-completion-history-4"
+        },
+        {
+          "ordinal": 5,
+          "name": "Coordinator command",
+          "status": "PASS",
+          "expected": "Demonstrate actual human approval/rejection on the new coordinator after unchanged Research context.",
+          "observed": {
+            "protocol": "poc-story6-approval-v1",
+            "phase": "completed",
+            "mcp_route": "foundry-toolbox",
+            "decision": true,
+            "research_response_observed": true,
+            "research_user_context_present": false,
+            "provider_responses_observed": 2,
+            "mcp_calls_reported": 1,
+            "remote_execution_independently_verified": false,
+            "delegated_user_authority_verified": false,
+            "replay_allowed": false,
+            "file_sha256": "{reference-5}",
+            "file_retained": true,
+            "same_process": false
+          },
+          "anchor": "check-story6-completion-history-5"
+        }
+      ],
+      "completion": "Recorded checks, no finish-event recorded.",
+      "sources": [
+        {
+          "name": "manifest.json",
+          "sha256": "d55e55f8efc096e32bb4012d17dcbd9a171347731b5b4a308303df786e264efe"
+        },
+        {
+          "name": "results.jsonl",
+          "sha256": "39f2bba9ecbfc603b475ce8497d978eb1b94cfdc5db5a1d1afa6ce2134e1156c"
+        },
+        {
+          "name": "events.jsonl",
+          "sha256": "39f2bba9ecbfc603b475ce8497d978eb1b94cfdc5db5a1d1afa6ce2134e1156c"
+        }
+      ]
+    },
+    {
+      "key": "foreign-approver",
+      "label": "Unauthorized user cannot decide the owner operation",
+      "scope": "Two existing isolated CLI credentials. B reached its own coordinator route, foreign session and foreign operation attempts denied. A remained pending with zero reported calls.",
+      "agent_version": "1",
+      "provenance": {
+        "scenario": "story-6-step-6",
+        "mode": "hosted-two-users",
+        "started_at": "2026-10-29T20:41:42.323845+00:00",
+        "python": "3.14.8",
+        "project_version": "0.1.0",
+        "maf_version": "1.19.0",
+        "agentserver_version": "2.2.0b1",
+        "step": "step-06-caller-and-approver-access"
+      },
+      "counts": {
+        "PASS": 8
+      },
+      "checks": [
+        {
+          "ordinal": 1,
+          "name": "Two authenticated isolated profiles",
+          "status": "PASS",
+          "expected": "Distinct cached Entra users without login/fallback",
+          "observed": {
+            "actors": [
+              "User A",
+              "User B"
+            ]
+          },
+          "anchor": "check-story6-foreign-approver-1"
+        },
+        {
+          "ordinal": 2,
+          "name": "User A pending positive control",
+          "status": "PASS",
+          "expected": "Real pending request, zero reported MCP calls",
+          "observed": {
+            "protocol": "poc-story6-approval-v1",
+            "phase": "pending",
+            "decision": null,
+            "research_response_observed": true,
+            "research_user_context_present": false,
+            "provider_responses_observed": 1,
+            "mcp_calls_reported": 0,
+            "remote_execution_independently_verified": false,
+            "delegated_user_authority_verified": false,
+            "replay_allowed": false,
+            "file_sha256": "{reference-2}",
+            "file_retained": true,
+            "same_process": true,
+            "pending": {
+              "server_label": "story6-learn",
+              "tool_name": "microsoft_docs_search",
+              "fixed_query_matches": true
+            }
+          },
+          "anchor": "check-story6-foreign-approver-2"
+        },
+        {
+          "ordinal": 3,
+          "name": "User B reaches coordinator ownership boundary",
+          "status": "PASS",
+          "expected": "Authenticated B reaches app handling in B's own session; missing B operation is explicit",
+          "observed": {
+            "outcome": "denied",
+            "boundary": "coordinator user-isolated operation",
+            "code": "operation_not_visible",
+            "http_status": null
+          },
+          "anchor": "check-story6-foreign-approver-3"
+        },
+        {
+          "ordinal": 4,
+          "name": "User B inspects A's session",
+          "status": "PASS",
+          "expected": "Explicit session/operation visibility denial, not authentication/transport failure",
+          "observed": {
+            "outcome": "denied",
+            "boundary": "Foundry session",
+            "code": "{reference-3}",
+            "http_status": 403
+          },
+          "anchor": "check-story6-foreign-approver-4"
+        },
+        {
+          "ordinal": 5,
+          "name": "User B attempts decision in A's session",
+          "status": "PASS",
+          "expected": "Explicit session/operation visibility denial, not authentication/transport failure",
+          "observed": {
+            "outcome": "denied",
+            "boundary": "Foundry session",
+            "code": "{reference-3}",
+            "http_status": 403
+          },
+          "anchor": "check-story6-foreign-approver-5"
+        },
+        {
+          "ordinal": 6,
+          "name": "User B inspects A's operation in B's session",
+          "status": "PASS",
+          "expected": "Explicit session/operation visibility denial, not authentication/transport failure",
+          "observed": {
+            "outcome": "denied",
+            "boundary": "coordinator user-isolated operation",
+            "code": "operation_not_visible",
+            "http_status": null
+          },
+          "anchor": "check-story6-foreign-approver-6"
+        },
+        {
+          "ordinal": 7,
+          "name": "User B attempts A's decision in B's session",
+          "status": "PASS",
+          "expected": "Explicit session/operation visibility denial, not authentication/transport failure",
+          "observed": {
+            "outcome": "denied",
+            "boundary": "coordinator user-isolated operation",
+            "code": "operation_not_visible",
+            "http_status": null
+          },
+          "anchor": "check-story6-foreign-approver-7"
+        },
+        {
+          "ordinal": 8,
+          "name": "User A pending unchanged after foreign attempts",
+          "status": "PASS",
+          "expected": "Same pending binding/file, no decision, zero reported MCP calls",
+          "observed": {
+            "protocol": "poc-story6-approval-v1",
+            "phase": "pending",
+            "decision": null,
+            "research_response_observed": true,
+            "research_user_context_present": false,
+            "provider_responses_observed": 1,
+            "mcp_calls_reported": 0,
+            "remote_execution_independently_verified": false,
+            "delegated_user_authority_verified": false,
+            "replay_allowed": false,
+            "file_sha256": "{reference-2}",
+            "file_retained": true,
+            "same_process": true,
+            "pending": {
+              "server_label": "story6-learn",
+              "tool_name": "microsoft_docs_search",
+              "fixed_query_matches": true
+            }
+          },
+          "anchor": "check-story6-foreign-approver-8"
+        }
+      ],
+      "completion": "Recorded checks, no finish-event recorded.",
+      "sources": [
+        {
+          "name": "manifest.json",
+          "sha256": "bfd55ccb2e80b7506b4b939b6b238cd8b53b64b8298ed349f90d149a549b605d"
+        },
+        {
+          "name": "results.jsonl",
+          "sha256": "91dd9052e1a027569b5611145be3b9214243ff3b2655c8711cb9bfc7f1e702e6"
+        },
+        {
+          "name": "events.jsonl",
+          "sha256": "91dd9052e1a027569b5611145be3b9214243ff3b2655c8711cb9bfc7f1e702e6"
+        }
+      ]
+    },
+    {
+      "key": "owner-continuation",
+      "label": "Original authenticated owner continues",
+      "scope": "Actual human decision submitted using the original User A CLI cache. Same pending operation completed with one reported MCP call and retained file. Not a general server-side effect ledger.",
+      "agent_version": "1",
+      "provenance": {
+        "scenario": "story-6-step-6",
+        "mode": "hosted-two-users",
+        "started_at": "2026-10-29T20:44:34.761494+00:00",
+        "python": "3.14.8",
+        "project_version": "0.1.0",
+        "maf_version": "1.19.0",
+        "agentserver_version": "2.2.0b1",
+        "step": "step-06-caller-and-approver-access"
+      },
+      "counts": {
+        "PASS": 2
+      },
+      "checks": [
+        {
+          "ordinal": 1,
+          "name": "Two authenticated isolated profiles",
+          "status": "PASS",
+          "expected": "Distinct cached Entra users without login/fallback",
+          "observed": {
+            "actors": [
+              "User A",
+              "User B"
+            ]
+          },
+          "anchor": "check-story6-owner-continuation-1"
+        },
+        {
+          "ordinal": 2,
+          "name": "User A owner continuation",
+          "status": "PASS",
+          "expected": "Original owner's operation is completed",
+          "observed": {
+            "protocol": "poc-story6-approval-v1",
+            "phase": "completed",
+            "decision": true,
+            "research_response_observed": true,
+            "research_user_context_present": false,
+            "provider_responses_observed": 2,
+            "mcp_calls_reported": 1,
+            "remote_execution_independently_verified": false,
+            "delegated_user_authority_verified": false,
+            "replay_allowed": false,
+            "file_sha256": "{reference-2}",
+            "file_retained": true,
+            "same_process": false
+          },
+          "anchor": "check-story6-owner-continuation-2"
+        }
+      ],
+      "completion": "Recorded checks, no finish-event recorded.",
+      "sources": [
+        {
+          "name": "manifest.json",
+          "sha256": "fa5930466dfa567fab7cac5ba57899e9f2d42c2ffeda9a0599473001834ef99e"
+        },
+        {
+          "name": "results.jsonl",
+          "sha256": "7fbcb55334cca703fb851e850293b9906940394dc4ce2e2bc85ee2677a758b97"
+        },
+        {
+          "name": "events.jsonl",
+          "sha256": "7fbcb55334cca703fb851e850293b9906940394dc4ce2e2bc85ee2677a758b97"
+        }
+      ]
+    },
+    {
+      "key": "proxy-approval",
+      "label": "Hosted approval through authenticated toolbox",
+      "scope": "Same authenticated proxy operation, human-approved continuation, one reported MCP call and retained original file.",
+      "agent_version": "2",
+      "provenance": {
+        "scenario": "story-6-step-2",
+        "mode": "hosted",
+        "started_at": "2026-10-29T21:32:42.010987+00:00",
+        "python": "3.14.8",
+        "project_version": "0.1.0",
+        "maf_version": "1.19.0",
+        "agentserver_version": "2.2.0b1",
+        "step": "step-02-approval-and-rejection"
+      },
+      "counts": {
+        "PASS": 1
+      },
+      "checks": [
+        {
+          "ordinal": 1,
+          "name": "Coordinator command",
+          "status": "PASS",
+          "expected": "Demonstrate actual human approval/rejection on the new coordinator after unchanged Research context.",
+          "observed": {
+            "protocol": "poc-story6-approval-v1",
+            "phase": "completed",
+            "mcp_route": "foundry-toolbox",
+            "decision": true,
+            "research_response_observed": true,
+            "research_user_context_present": false,
+            "provider_responses_observed": 2,
+            "mcp_calls_reported": 1,
+            "remote_execution_independently_verified": false,
+            "delegated_user_authority_verified": false,
+            "replay_allowed": false,
+            "file_sha256": "{reference-1}",
+            "file_retained": true,
+            "same_process": true
+          },
+          "anchor": "check-story6-proxy-approval-1"
+        }
+      ],
+      "completion": "Recorded checks, no finish-event recorded.",
+      "sources": [
+        {
+          "name": "manifest.json",
+          "sha256": "7f98a653b9c1575ac864724ad383abcb1828659c07215ab7b84948e3d42be7b5"
+        },
+        {
+          "name": "results.jsonl",
+          "sha256": "9d1313f0fa7f3573ffc89137780f80616702a808f2e0cb75d0c4ecf49e20e295"
+        },
+        {
+          "name": "events.jsonl",
+          "sha256": "9d1313f0fa7f3573ffc89137780f80616702a808f2e0cb75d0c4ecf49e20e295"
+        }
+      ]
+    },
+    {
+      "key": "direct-access",
+      "label": "Direct token access and ordinary permission control",
+      "scope": "Explicit issue6 direct-call test, not a local mock or hosted request: require_approval always metadata, authorized positive control, successful unapproved search, separate HTTP403 Consumer resource denial.",
+      "agent_version": "No agent invoked by direct probe; toolbox v1",
+      "provenance": {
+        "scenario": "story-6-step-5",
+        "mode": "authenticated-direct-mcp",
+        "started_at": "2026-10-29T21:36:39.570536+00:00",
+        "python": "3.14.8",
+        "project_version": "0.1.0",
+        "maf_version": "1.19.0",
+        "agentserver_version": "2.2.0b1",
+        "step": "step-05-direct-mcp-boundary"
+      },
+      "counts": {
+        "PASS": 4,
+        "FAIL": 1
+      },
+      "checks": [
+        {
+          "ordinal": 1,
+          "name": "Approval-required proxy definition",
+          "status": "PASS",
+          "expected": "Exact isolated immutable search-only toolbox",
+          "observed": {
+            "version": "1"
+          },
+          "anchor": "check-story6-direct-access-1"
+        },
+        {
+          "ordinal": 2,
+          "name": "Runtime MCP approval metadata",
+          "status": "PASS",
+          "expected": "tools/list advertises require_approval=always",
+          "observed": {
+            "metadata_matches": true
+          },
+          "anchor": "check-story6-direct-access-2"
+        },
+        {
+          "ordinal": 3,
+          "name": "Authorized direct tool control",
+          "status": "PASS",
+          "expected": "Valid-token caller has ordinary permission to run the fixed read-only tool",
+          "observed": {
+            "result_returned": true,
+            "approval_message_submitted": false
+          },
+          "anchor": "check-story6-direct-access-3"
+        },
+        {
+          "ordinal": 4,
+          "name": "Direct valid-token call without approval",
+          "status": "FAIL",
+          "expected": "Approval gate blocks direct execution if enforced at this proxy boundary",
+          "observed": {
+            "unapproved_result_returned": true,
+            "approval_message_submitted": false,
+            "explicit_approval_denial": false,
+            "enforced_by": "not enforced by toolbox proxy",
+            "authentication_is_not_approval": true
+          },
+          "anchor": "check-story6-direct-access-4"
+        },
+        {
+          "ordinal": 5,
+          "name": "Invoke-only user direct toolbox permission",
+          "status": "PASS",
+          "expected": "Separate ordinary resource-authorization control, not approval denial",
+          "observed": {
+            "http_status": 403,
+            "permission_denied": true,
+            "approval_enforcement_tested": false,
+            "actor": "existing Consumer user"
+          },
+          "anchor": "check-story6-direct-access-5"
+        }
+      ],
+      "completion": "Recorded checks, no finish-event recorded.",
+      "sources": [
+        {
+          "name": "manifest.json",
+          "sha256": "196dcf3ba1ab5a6743978ab1374b855d06c13672db9d8a8bf71323fdf971f855"
+        },
+        {
+          "name": "results.jsonl",
+          "sha256": "4e18abf763841b5716e49599169ef2ef37bbdb66fe2fa40a45d53597f8bb4fb6"
+        },
+        {
+          "name": "events.jsonl",
+          "sha256": "4e18abf763841b5716e49599169ef2ef37bbdb66fe2fa40a45d53597f8bb4fb6"
+        }
+      ]
+    }
+  ]
+}

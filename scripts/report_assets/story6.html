@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>{{ title }}</title>
+<style>
+:root{color-scheme:light;--ink:#19314b;--muted:#516477;--line:#d5dfeb;--back:#edf2f8}
+*{box-sizing:border-box}body{margin:0;background:var(--back);color:var(--ink);font:16px/1.6 system-ui,sans-serif}
+header{background:#102d4d;color:white;padding:36px max(5vw,20px)}h1{margin:0;font-size:2rem}
+main{max-width:1280px;margin:24px auto;padding:0 20px 40px}section,nav{background:white;border:1px solid var(--line);border-radius:12px;padding:24px;margin-bottom:22px}
+h2{margin-top:0}h3{margin-bottom:8px}a{color:#14548a;text-underline-offset:3px}a:focus-visible,summary:focus-visible{outline:3px solid #ac5a00;outline-offset:3px}
+.notice{border-left:5px solid #b47500;background:#fff5da;padding:14px}.gap{border-left-color:#a51b26;background:#fff0f1}.muted{color:var(--muted)}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;margin:12px 0}caption{text-align:left;font-weight:bold}
+th,td{text-align:left;vertical-align:top;padding:10px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}th{background:#e9f0f7}
+.badge{font-weight:bold;border:1px solid currentColor;padding:2px 6px;border-radius:4px;display:inline-block}.PASS{color:#176538}.FAIL{color:#a51b26}.BLOCKED,.SKIP{color:#805000}
+details{border:1px solid var(--line);border-radius:8px;padding:14px;margin:12px 0}summary{cursor:pointer;font-weight:bold}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6fa;padding:12px;font:13px/1.5 ui-monospace,monospace}
+.result{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.result>div{border:1px solid var(--line);border-radius:8px;padding:16px}
+.flow{padding-left:26px}.flow li{padding:3px 0}.source{font-size:.85rem;overflow-wrap:anywhere}code{overflow-wrap:anywhere}
+@media(max-width:650px){main{padding:0 10px 24px}section,nav{padding:14px}th,td{min-width:120px}}
+@media print{body{background:white;font-size:10pt}header{background:white;color:black;padding:12px}main{max-width:none;padding:0}section{border:0;padding:10px 0}h2,h3{break-after:avoid}.scroll{overflow:visible}tr{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+<h1>Story6: Hosted tool approval</h1>
+<p>Final results deep dive · synthetic POC · authenticated Foundry toolbox proxy</p>
+<p>{{ conclusion }}</p>
+</header>
+<main>
+<nav aria-label="Report contents">
+<strong>Contents:</strong>
+<a href="#summary">Final outcomes</a> ·
+{% for criterion in criteria %}<a href="#criterion-{{ criterion.number }}">Criterion {{ criterion.number }}</a> ·{% if not loop.last %} {% endif %}{% endfor %}
+<a href="#notifications">Notifications</a> · <a href="#ownership">Ownership</a> ·
+<a href="#limits">Limits</a> · <a href="#evidence">Evidence and downloads</a>
+</nav>
+<section id="summary">
+<h2>What worked and what did not</h2>
+<div class="result">
+<div><h3>Worked through Hosted Agents</h3><p>Human approve/reject, fresh-client pending discovery, original-owner continuation, conversation/file continuity and authenticated toolbox access.</p></div>
+<div><h3>Unauthorized user denied</h3><p>Another real authenticated user could reach its own route but could not inspect or decide the owner's operation. The owner remained able to continue.</p></div>
+<div class="gap"><h3>Direct approval gate did not work</h3><p>An otherwise authorized caller executed the proxy tool without approval despite <code>require_approval=always</code>. This recorded check remains <strong>FAIL</strong>.</p></div>
+</div>
+<p class="notice">Evaluation coverage is not the same as a passing control. These are final selected observations, not a deployment/version timeline, not a combined rerun on one release, and not a production certification.</p>
+<div class="scroll"><table>
+<caption>Five issue criteria: final findings</caption>
+<thead><tr><th scope="col">Requirement</th><th scope="col">Status</th><th scope="col">What worked</th><th scope="col">What did not work / limits</th><th scope="col">Next step</th></tr></thead>
+<tbody>{% for criterion in criteria %}<tr>
+<th scope="row"><a href="#criterion-{{ criterion.number }}">{{ criterion.number }}. {{ criterion.requirement }}</a></th>
+<td>{{ criterion.status }}</td><td>{{ criterion.works }}</td><td>{{ criterion.limitations }}</td><td>{{ criterion.next_step }}</td>
+</tr>{% endfor %}</tbody></table></div>
+</section>
+{% for criterion in criteria %}
+<section id="criterion-{{ criterion.number }}">
+<h2>{{ criterion.number }}. {{ criterion.requirement }}</h2>
+<p><strong>Result:</strong> {{ criterion.status }}</p>
+<div class="result"><div><h3>What worked</h3><p>{{ criterion.works }}</p></div><div><h3>What did not work / why</h3><p>{{ criterion.limitations }}</p></div></div>
+<h3>How this was validated</h3>
+<ol class="flow">{% for step in criterion.flow %}<li>{{ step }}</li>{% endfor %}</ol>
+<p class="muted">Reviewed test-flow explanation, not an independently captured network trace.</p>
+{% for run in runs if run.key in criterion.evidence %}
+{% if run.primary_criterion == criterion.number %}
+<h3>Task flow: {{ run.label }}</h3>
+{% with task_flow=run.task_flow %}{% include "task_flow.html" %}{% endwith %}
+{% else %}
+<p>Related task-flow evidence: <a href="#evidence-{{ run.key }}">{{ run.label }}</a>.</p>
+{% endif %}
+{% endfor %}
+<p><strong>Reproduce:</strong> {{ criterion.task }}</p>
+<p><strong>Next step:</strong> {{ criterion.next_step }}</p>
+<div class="scroll"><table>
+<caption>Recorded checks supporting criterion {{ criterion.number }}</caption>
+<thead><tr><th scope="col">Evidence</th><th scope="col">Check</th><th scope="col">Recorded status</th><th scope="col">Observed result</th></tr></thead>
+<tbody>
+{% for run in runs if run.key in criterion.evidence %}
+{% for check in run.checks %}<tr{% if run.primary_criterion == criterion.number %} id="{{ check.anchor }}"{% endif %}><th scope="row"><a href="#evidence-{{ run.key }}">{{ run.label }}</a></th><td>{{ check.name }}</td><td><span class="badge {{ check.status }}">{{ check.status }}</span></td><td><pre>{{ check.observed|json_pretty }}</pre></td></tr>{% endfor %}
+{% endfor %}
+</tbody></table></div>
+</section>
+{% endfor %}
+<section id="notifications">
+<h2>Notification assessment</h2>
+<p>The hosted custom <code>inspect</code> path was tested. Other mechanisms below are assessed capabilities, not claimed live integrations. Command completion does not mean the logical operation is approved.</p>
+<div class="scroll"><table><caption>Polling, webhook and Event Grid availability</caption>
+<thead><tr>{% for heading in notification_headers %}<th scope="col">{{ heading }}</th>{% endfor %}</tr></thead>
+<tbody>{% for row in notifications %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+</table></div>
+<p><a href="https://learn.microsoft.com/azure/foundry/openai/how-to/webhooks#webhook-events-reference">Official webhook reference</a> ·
+<a href="https://learn.microsoft.com/azure/event-grid/event-schema-resource-groups">ARM Event Grid source scope</a></p>
+</section>
+<section id="ownership">
+<h2>Which component owns the behavior?</h2>
+<div class="scroll"><table><caption>Capability ownership and support boundaries</caption><thead><tr><th scope="col">Capability</th><th scope="col">Owner / assessment</th></tr></thead>
+<tbody>{% for row in ownership %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+<p class="notice gap">Authentication is not approval. The <a href="https://learn.microsoft.com/azure/foundry/agents/how-to/tools/use-toolbox-hosted-agent#enforce-tool-approval">official toolbox guide</a> assigns approval enforcement to the consuming runtime, not the proxy's direct tools/call endpoint. The direct test observed that exact boundary.</p>
+</section>
+<section id="limits">
+<h2>What the results do not prove</h2>
+<ul>{% for limitation in limitations %}<li>{{ limitation }}</li>{% endfor %}</ul>
+<p>Process-loss recovery, interpreter RAM, arbitrary long-lived artifacts and enterprise approver roles are separate scope. No historical failed attempts or local mock qualifications are presented as final hosted results.</p>
+</section>
+<section id="evidence">
+<h2>Evidence and reproducibility</h2>
+<p>Generated offline from the retained eight-observation evidence fixture and the outcome-focused Issue6 Markdown summary. No older reports or credential/private artifact inputs are required after cloning the published branch.</p>
+<p>Regenerate: <code>uv run --frozen --no-sync --group validation python -m scripts.story6_report --overwrite</code>.
+Overwrite is allowed only for unchanged inputs; choose a fresh output when findings or sources change.</p>
+<p><a href="sanitized-evidence.json" download>Download the complete sanitized final-results JSON</a></p>
+<p class="muted">Selected evidence only: {% for status,count in counts.items() %}{{ status }} {{ count }}{% if not loop.last %} · {% endif %}{% endfor %}. These are check records, not independent scenarios; a check referenced by multiple criteria is stored/counted once.</p>
+{% for run in runs %}
+<details id="evidence-{{ run.key }}">
+<summary>{{ run.label }} · {% for status,count in run.counts.items() %}{{ status }} {{ count }} {% endfor %}</summary>
+<p>{{ run.scope }}</p>
+<p><strong>Evidence class:</strong> {% if run.kind == 'direct' %}Authorized direct MCP probe required by issue6; intentionally outside the Hosted Agent{% else %}Actual deployed Hosted Agent observation{% endif %}</p>
+<p><a href="{{ run.download }}" download>Download selected evidence JSON</a></p>
+<h3>Source binding (not a version history)</h3>
+<pre>{{ run.provenance|json_pretty }}</pre>
+<p>Agent binding: {{ run.agent_version }} · {{ run.completion }}</p>
+<p class="source">Retained source-evidence SHA-256: {{ run.snapshot_sha256 }}</p>
+<pre>{{ run.sources|json_pretty }}</pre>
+</details>
+{% endfor %}
+<details><summary>Generator source integrity</summary>
+<p class="source">Markdown SHA-256: {{ report_sha256 }}<br>Template SHA-256: {{ template_sha256 }}<br>Report source fingerprint: {{ source_fingerprint }}</p>
+<pre>{{ source_evidence|json_pretty }}</pre>
+</details>
+<p class="muted">POC evidence is provided as-is, not official Microsoft guidance, an SLA or a guarantee. Source completion/identity/trace limitations remain visible. Saving a report does not publish the branch or close the issue.</p>
+</section>
+</main>
+</body>
+</html>

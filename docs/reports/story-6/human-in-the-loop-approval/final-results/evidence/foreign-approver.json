@@ -1,0 +1,296 @@
+{
+  "key": "foreign-approver",
+  "label": "Unauthorized user cannot decide the owner operation",
+  "kind": "hosted",
+  "counts": {
+    "PASS": 8
+  },
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Two authenticated isolated profiles",
+      "status": "PASS",
+      "expected": "Distinct cached Entra users without login/fallback",
+      "observed": {
+        "actors": [
+          "User A",
+          "User B"
+        ]
+      },
+      "anchor": "check-story6-foreign-approver-1"
+    },
+    {
+      "ordinal": 2,
+      "name": "User A pending positive control",
+      "status": "PASS",
+      "expected": "Real pending request, zero reported MCP calls",
+      "observed": {
+        "protocol": "poc-story6-approval-v1",
+        "phase": "pending",
+        "decision": null,
+        "research_response_observed": true,
+        "research_user_context_present": false,
+        "provider_responses_observed": 1,
+        "mcp_calls_reported": 0,
+        "remote_execution_independently_verified": false,
+        "delegated_user_authority_verified": false,
+        "replay_allowed": false,
+        "file_sha256": "{reference-2}",
+        "file_retained": true,
+        "same_process": true,
+        "pending": {
+          "server_label": "story6-learn",
+          "tool_name": "microsoft_docs_search",
+          "fixed_query_matches": true
+        }
+      },
+      "anchor": "check-story6-foreign-approver-2"
+    },
+    {
+      "ordinal": 3,
+      "name": "User B reaches coordinator ownership boundary",
+      "status": "PASS",
+      "expected": "Authenticated B reaches app handling in B's own session; missing B operation is explicit",
+      "observed": {
+        "outcome": "denied",
+        "boundary": "coordinator user-isolated operation",
+        "code": "operation_not_visible",
+        "http_status": null
+      },
+      "anchor": "check-story6-foreign-approver-3"
+    },
+    {
+      "ordinal": 4,
+      "name": "User B inspects A's session",
+      "status": "PASS",
+      "expected": "Explicit session/operation visibility denial, not authentication/transport failure",
+      "observed": {
+        "outcome": "denied",
+        "boundary": "Foundry session",
+        "code": "{reference-3}",
+        "http_status": 403
+      },
+      "anchor": "check-story6-foreign-approver-4"
+    },
+    {
+      "ordinal": 5,
+      "name": "User B attempts decision in A's session",
+      "status": "PASS",
+      "expected": "Explicit session/operation visibility denial, not authentication/transport failure",
+      "observed": {
+        "outcome": "denied",
+        "boundary": "Foundry session",
+        "code": "{reference-3}",
+        "http_status": 403
+      },
+      "anchor": "check-story6-foreign-approver-5"
+    },
+    {
+      "ordinal": 6,
+      "name": "User B inspects A's operation in B's session",
+      "status": "PASS",
+      "expected": "Explicit session/operation visibility denial, not authentication/transport failure",
+      "observed": {
+        "outcome": "denied",
+        "boundary": "coordinator user-isolated operation",
+        "code": "operation_not_visible",
+        "http_status": null
+      },
+      "anchor": "check-story6-foreign-approver-6"
+    },
+    {
+      "ordinal": 7,
+      "name": "User B attempts A's decision in B's session",
+      "status": "PASS",
+      "expected": "Explicit session/operation visibility denial, not authentication/transport failure",
+      "observed": {
+        "outcome": "denied",
+        "boundary": "coordinator user-isolated operation",
+        "code": "operation_not_visible",
+        "http_status": null
+      },
+      "anchor": "check-story6-foreign-approver-7"
+    },
+    {
+      "ordinal": 8,
+      "name": "User A pending unchanged after foreign attempts",
+      "status": "PASS",
+      "expected": "Same pending binding/file, no decision, zero reported MCP calls",
+      "observed": {
+        "protocol": "poc-story6-approval-v1",
+        "phase": "pending",
+        "decision": null,
+        "research_response_observed": true,
+        "research_user_context_present": false,
+        "provider_responses_observed": 1,
+        "mcp_calls_reported": 0,
+        "remote_execution_independently_verified": false,
+        "delegated_user_authority_verified": false,
+        "replay_allowed": false,
+        "file_sha256": "{reference-2}",
+        "file_retained": true,
+        "same_process": true,
+        "pending": {
+          "server_label": "story6-learn",
+          "tool_name": "microsoft_docs_search",
+          "fixed_query_matches": true
+        }
+      },
+      "anchor": "check-story6-foreign-approver-8"
+    }
+  ],
+  "scope": "Two existing isolated CLI credentials. B reached its own coordinator route, foreign session and foreign operation attempts denied. A remained pending with zero reported calls.",
+  "provenance": {
+    "scenario": "story-6-step-6",
+    "mode": "hosted-two-users",
+    "started_at": "2026-10-29T20:41:42.323845+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "step": "step-06-caller-and-approver-access"
+  },
+  "agent_version": "1",
+  "completion": "Recorded checks, no finish-event recorded.",
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "bfd55ccb2e80b7506b4b939b6b238cd8b53b64b8298ed349f90d149a549b605d"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "91dd9052e1a027569b5611145be3b9214243ff3b2655c8711cb9bfc7f1e702e6"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "91dd9052e1a027569b5611145be3b9214243ff3b2655c8711cb9bfc7f1e702e6"
+    }
+  ],
+  "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+  "download": "evidence/foreign-approver.json",
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-6-step-6",
+    "title": "Story6 Step6: Two real users and unauthorized approval attempts",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story6_users.execute",
+      "scripts.run_scenario.story6_users.probe"
+    ],
+    "notes": [
+      "Authentication failure, generic forbidden responses and transport errors are not approval-denial passes.",
+      "The owner terminal decision is a separate explicitly chosen continuation."
+    ],
+    "nodes": [
+      {
+        "key": "profiles",
+        "title": "Verify distinct authenticated profiles without login or role changes",
+        "actor": "Existing User A and User B CLI caches",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Two authenticated isolated profiles",
+            "status": "PASS",
+            "anchor": "check-story6-foreign-approver-1"
+          }
+        ]
+      },
+      {
+        "key": "owner",
+        "title": "User A starts a real pending approval",
+        "actor": "Owner Hosted session/conversation",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "User A pending positive control",
+            "status": "PASS",
+            "anchor": "check-story6-foreign-approver-2"
+          }
+        ]
+      },
+      {
+        "key": "route",
+        "title": "Prove User B reaches coordinator ownership handling in B's own context",
+        "actor": "B's authorized route; missing B operation is the expected control",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "User B reaches coordinator ownership boundary",
+            "status": "PASS",
+            "anchor": "check-story6-foreign-approver-3"
+          }
+        ]
+      },
+      {
+        "key": "session",
+        "title": "Attempt foreign inspect and approval using A's session",
+        "actor": "User B -> Foundry session authorization",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 2
+        },
+        "references": [
+          {
+            "name": "User B inspects A's session",
+            "status": "PASS",
+            "anchor": "check-story6-foreign-approver-4"
+          },
+          {
+            "name": "User B attempts decision in A's session",
+            "status": "PASS",
+            "anchor": "check-story6-foreign-approver-5"
+          }
+        ]
+      },
+      {
+        "key": "operation",
+        "title": "Attempt A's operation and valid approval reference in B's own context",
+        "actor": "User B -> coordinator/user-isolated state ownership",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 2
+        },
+        "references": [
+          {
+            "name": "User B inspects A's operation in B's session",
+            "status": "PASS",
+            "anchor": "check-story6-foreign-approver-6"
+          },
+          {
+            "name": "User B attempts A's decision in B's session",
+            "status": "PASS",
+            "anchor": "check-story6-foreign-approver-7"
+          }
+        ]
+      },
+      {
+        "key": "unchanged",
+        "title": "User A confirms original pending request/file and zero reported calls",
+        "actor": "Original owner credential; no automatic terminal decision",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "User A pending unchanged after foreign attempts",
+            "status": "PASS",
+            "anchor": "check-story6-foreign-approver-8"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 1020\" role=\"img\" aria-labelledby=\"flow-story6-foreign-approver-title flow-story6-foreign-approver-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-story6-foreign-approver-title\">Story6 Step6: Two real users and unauthorized approval attempts</title><desc id=\"flow-story6-foreign-approver-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-story6-foreign-approver-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 205 V244\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-foreign-approver-arrow)\" /><path d=\"M460 345 V384\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-foreign-approver-arrow)\" /><path d=\"M460 508 V547\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-foreign-approver-arrow)\" /><path d=\"M460 648 V687\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-foreign-approver-arrow)\" /><path d=\"M460 811 V850\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-foreign-approver-arrow)\" /><g id=\"flow-story6-foreign-approver-profiles\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"117\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify distinct authenticated profiles without login or role</text><text x=\"88\" y=\"140\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">changes</text><text x=\"88\" y=\"163\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Existing User A and User B CLI caches</text><text x=\"88\" y=\"187\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-foreign-approver-owner\"><rect x=\"70\" y=\"251\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"280\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. User A starts a real pending approval</text><text x=\"88\" y=\"303\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Owner Hosted session/conversation</text><text x=\"88\" y=\"327\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-foreign-approver-route\"><rect x=\"70\" y=\"391\" width=\"780\" height=\"117\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"420\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Prove User B reaches coordinator ownership handling in B's own</text><text x=\"88\" y=\"443\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">context</text><text x=\"88\" y=\"466\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: B's authorized route; missing B operation is the expected control</text><text x=\"88\" y=\"490\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-foreign-approver-session\"><rect x=\"70\" y=\"554\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"583\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Attempt foreign inspect and approval using A's session</text><text x=\"88\" y=\"606\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: User B -&gt; Foundry session authorization</text><text x=\"88\" y=\"630\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 2)</text></g><g id=\"flow-story6-foreign-approver-operation\"><rect x=\"70\" y=\"694\" width=\"780\" height=\"117\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"723\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Attempt A's operation and valid approval reference in B's own</text><text x=\"88\" y=\"746\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">context</text><text x=\"88\" y=\"769\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: User B -&gt; coordinator/user-isolated state ownership</text><text x=\"88\" y=\"793\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 2)</text></g><g id=\"flow-story6-foreign-approver-unchanged\"><rect x=\"70\" y=\"857\" width=\"780\" height=\"117\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"886\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">6. User A confirms original pending request/file and zero reported</text><text x=\"88\" y=\"909\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">calls</text><text x=\"88\" y=\"932\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Original owner credential; no automatic terminal decision</text><text x=\"88\" y=\"956\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "primary_criterion": "5"
+}

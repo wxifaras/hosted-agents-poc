@@ -1,0 +1,123 @@
+{
+  "key": "owner-continuation",
+  "label": "Original authenticated owner continues",
+  "kind": "hosted",
+  "counts": {
+    "PASS": 2
+  },
+  "checks": [
+    {
+      "ordinal": 1,
+      "name": "Two authenticated isolated profiles",
+      "status": "PASS",
+      "expected": "Distinct cached Entra users without login/fallback",
+      "observed": {
+        "actors": [
+          "User A",
+          "User B"
+        ]
+      },
+      "anchor": "check-story6-owner-continuation-1"
+    },
+    {
+      "ordinal": 2,
+      "name": "User A owner continuation",
+      "status": "PASS",
+      "expected": "Original owner's operation is completed",
+      "observed": {
+        "protocol": "poc-story6-approval-v1",
+        "phase": "completed",
+        "decision": true,
+        "research_response_observed": true,
+        "research_user_context_present": false,
+        "provider_responses_observed": 2,
+        "mcp_calls_reported": 1,
+        "remote_execution_independently_verified": false,
+        "delegated_user_authority_verified": false,
+        "replay_allowed": false,
+        "file_sha256": "{reference-2}",
+        "file_retained": true,
+        "same_process": false
+      },
+      "anchor": "check-story6-owner-continuation-2"
+    }
+  ],
+  "scope": "Actual human decision submitted using the original User A CLI cache. Same pending operation completed with one reported MCP call and retained file. Not a general server-side effect ledger.",
+  "provenance": {
+    "scenario": "story-6-step-6",
+    "mode": "hosted-two-users",
+    "started_at": "2026-10-29T20:44:34.761494+00:00",
+    "python": "3.14.8",
+    "project_version": "0.1.0",
+    "maf_version": "1.19.0",
+    "agentserver_version": "2.2.0b1",
+    "step": "step-06-caller-and-approver-access"
+  },
+  "agent_version": "1",
+  "completion": "Recorded checks, no finish-event recorded.",
+  "sources": [
+    {
+      "name": "manifest.json",
+      "sha256": "fa5930466dfa567fab7cac5ba57899e9f2d42c2ffeda9a0599473001834ef99e"
+    },
+    {
+      "name": "results.jsonl",
+      "sha256": "7fbcb55334cca703fb851e850293b9906940394dc4ce2e2bc85ee2677a758b97"
+    },
+    {
+      "name": "events.jsonl",
+      "sha256": "7fbcb55334cca703fb851e850293b9906940394dc4ce2e2bc85ee2677a758b97"
+    }
+  ],
+  "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+  "download": "evidence/owner-continuation.json",
+  "task_flow": {
+    "available": true,
+    "version": "task-flow-definitions-v1",
+    "definition": "story-6-owner-continuation",
+    "title": "Story6 Step6: Original owner explicitly continues the same operation",
+    "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+    "sources": [
+      "scripts.run_scenario.story6_users.execute"
+    ],
+    "notes": [
+      "The user's explicit choice precedes this task; no automatic owner approval is inferred."
+    ],
+    "nodes": [
+      {
+        "key": "profiles",
+        "title": "Verify the two existing authenticated CLI profiles",
+        "actor": "Separate credential caches; no sign-in or operator fallback",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "Two authenticated isolated profiles",
+            "status": "PASS",
+            "anchor": "check-story6-owner-continuation-1"
+          }
+        ]
+      },
+      {
+        "key": "decision",
+        "title": "Submit the owner's chosen decision on the saved pending case",
+        "actor": "Original User A credential -> same Hosted session/conversation/operation",
+        "evidence_status": "PASS",
+        "counts": {
+          "PASS": 1
+        },
+        "references": [
+          {
+            "name": "User A owner continuation",
+            "status": "PASS",
+            "anchor": "check-story6-owner-continuation-2"
+          }
+        ]
+      }
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 368\" role=\"img\" aria-labelledby=\"flow-story6-owner-continuation-title flow-story6-owner-continuation-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-story6-owner-continuation-title\">Story6 Step6: Original owner explicitly continues the same operation</title><desc id=\"flow-story6-owner-continuation-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-story6-owner-continuation-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-owner-continuation-arrow)\" /><g id=\"flow-story6-owner-continuation-profiles\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify the two existing authenticated CLI profiles</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Separate credential caches; no sign-in or operator fallback</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-owner-continuation-decision\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Submit the owner's chosen decision on the saved pending case</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Original User A credential -&gt; same Hosted session/conversation/operation</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+  },
+  "primary_criterion": "5"
+}

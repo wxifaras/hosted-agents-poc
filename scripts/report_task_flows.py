@@ -709,6 +709,239 @@ REVIEW = TaskFlow(
 )
 
 
+STORY6_AUDIT = TaskFlow(
+    "story-6-history-audit",
+    "Story6: Caller, actual conversation items and reported invocation",
+    (
+        _step(
+            "caller",
+            "Verify the original authenticated requester and pinned aliases",
+            "CLI account + authenticated Graph; aliases are not authority",
+            "Authenticated caller correlation",
+        ),
+        _step(
+            "before",
+            "Read actual stored conversation items before this command",
+            "Bounded, owner-authorized conversation listing",
+            "Conversation history before command",
+        ),
+        _step(
+            "command",
+            "Submit exactly the selected start, inspect or explicit decision",
+            "Client -> dedicated Hosted coordinator; inspect does not execute a model/tool",
+            "Coordinator command",
+        ),
+        _step(
+            "after",
+            "Read stored items and compare operation/pending/decision bindings",
+            "Bounded, owner-authorized conversation listing",
+            "Conversation history after command",
+        ),
+        _step(
+            "binding",
+            "Record logical phase, original file and provider-reported calls",
+            "Coordinator reply + application correlation; not independent server effects",
+            "Operation and reported invocation binding",
+        ),
+    ),
+    (
+        "scripts.run_scenario.story6_history.snapshot",
+        "scripts.run_scenario.story6_hosted.execute",
+        "app.services.story6_approval.Coordinator",
+    ),
+    (
+        "Each selected command has its own before/after observations; pending is not approval success.",
+        "No raw transcript, independent downstream invocation span or end-user delegation is inferred.",
+    ),
+)
+STORY6_OWNER = TaskFlow(
+    "story-6-owner-continuation",
+    "Story6 Step6: Original owner explicitly continues the same operation",
+    (
+        _step(
+            "profiles",
+            "Verify the two existing authenticated CLI profiles",
+            "Separate credential caches; no sign-in or operator fallback",
+            "Two authenticated isolated profiles",
+        ),
+        _step(
+            "decision",
+            "Submit the owner's chosen decision on the saved pending case",
+            "Original User A credential -> same Hosted session/conversation/operation",
+            "User A owner continuation",
+        ),
+    ),
+    ("scripts.run_scenario.story6_users.execute",),
+    ("The user's explicit choice precedes this task; no automatic owner approval is inferred.",),
+)
+STORY6: dict[int, TaskFlow] = {
+    1: TaskFlow(
+        "story-6-step-1",
+        "Story6 Step1: Deployment and runtime permission metadata",
+        (
+            _step(
+                "readiness",
+                "Verify active isolated coordinator and runtime-role presence",
+                "Read-only operator metadata; no model inference",
+                "Deployment/access metadata",
+            ),
+        ),
+        ("scripts.run_scenario.story6_approval.hosted_readiness",),
+        ("A metadata PASS is not effective invocation or approval enforcement proof.",),
+    ),
+    2: TaskFlow(
+        "story-6-step-2",
+        "Story6 Step2: Native MCP pending, approval or rejection command",
+        (
+            FlowStep(
+                "binding",
+                "Reuse the pinned case or explicitly create one new operation",
+                "Authenticated client -> isolated Hosted coordinator",
+            ),
+            FlowStep(
+                "native",
+                "Request native approval or continue the exact explicit decision",
+                "Coordinator -> Research context on start -> native Responses MCP",
+            ),
+            _step(
+                "result",
+                "Record the returned phase, decision, original file and call count",
+                "Actual coordinator response; not independent downstream execution",
+                "Coordinator command",
+            ),
+        ),
+        ("scripts.run_scenario.story6_hosted.execute", "app.services.story6_approval.Coordinator"),
+        (
+            "One saved command does not prove the entire approve/reject lifecycle by itself.",
+            "The separate Research context call happens on start only; decision continuation does not repeat it.",
+        ),
+    ),
+    3: TaskFlow(
+        "story-6-step-3",
+        "Story6 Step3: Fresh-client discovery of the same pending approval",
+        (
+            FlowStep("open", "Open the saved pinned case with the original authenticated credential", "Fresh client"),
+            FlowStep(
+                "inspect", "Read the existing owner-bound operation without a model/tool call", "Hosted coordinator"
+            ),
+            _step(
+                "result",
+                "Record the actual pending phase, tool/query binding and file",
+                "Coordinator inspect response",
+                "Coordinator command",
+            ),
+        ),
+        ("scripts.run_scenario.story6_hosted.execute", "app.services.story6_approval.Coordinator.inspect"),
+        ("Custom discovery/polling is not a native Event Grid or webhook approval feed.",),
+    ),
+    4: TaskFlow(
+        "story-6-step-4",
+        "Story6 Step4: Inspect original operation and pause-file continuity",
+        (
+            FlowStep("reuse", "Open the original operation, never create a replacement", "Authenticated owner client"),
+            _step(
+                "observe",
+                "Inspect logical phase, original file hash and reported calls",
+                "Hosted coordinator; no model/tool execution from inspect",
+                "Coordinator command",
+            ),
+        ),
+        ("scripts.run_scenario.story6_hosted.execute", "app.services.story6_approval.Coordinator.reply"),
+        ("A retained HOME sentinel or changed boot marker does not prove injected process-loss recovery.",),
+    ),
+    5: TaskFlow(
+        "story-6-step-5",
+        "Story6 Step5: Authenticated direct MCP approval boundary",
+        (
+            _step(
+                "definition",
+                "Verify the exact isolated immutable search-only toolbox",
+                "Read-only operator metadata",
+                "Approval-required proxy definition",
+            ),
+            _step(
+                "metadata",
+                "Initialize and verify MCP require_approval=always metadata",
+                "Valid Entra-token client -> first-party Foundry toolbox",
+                "Runtime MCP approval metadata",
+            ),
+            _step(
+                "control",
+                "Prove ordinary authorized direct tool access",
+                "Fixed read-only search; no approval message",
+                "Authorized direct tool control",
+            ),
+            _step(
+                "direct",
+                "Call directly without approval and preserve the enforcement verdict",
+                "Same authorized direct route, not a Hosted Agent request",
+                "Direct valid-token call without approval",
+            ),
+            _step(
+                "permission",
+                "Test the existing Consumer user's ordinary proxy access",
+                "Separate CLI profile; not an approval-denial test",
+                "Invoke-only user direct toolbox permission",
+            ),
+        ),
+        ("scripts.run_scenario.story6_boundary.execute", "scripts.run_scenario.story6_boundary.RPC"),
+        (
+            "Unapproved returned data remains an enforcement FAIL even when the evaluation task ran correctly.",
+            "The authenticated boundary is the Foundry proxy; downstream Learn is public.",
+        ),
+    ),
+    6: TaskFlow(
+        "story-6-step-6",
+        "Story6 Step6: Two real users and unauthorized approval attempts",
+        (
+            _step(
+                "profiles",
+                "Verify distinct authenticated profiles without login or role changes",
+                "Existing User A and User B CLI caches",
+                "Two authenticated isolated profiles",
+            ),
+            _step(
+                "owner",
+                "User A starts a real pending approval",
+                "Owner Hosted session/conversation",
+                "User A pending positive control",
+            ),
+            _step(
+                "route",
+                "Prove User B reaches coordinator ownership handling in B's own context",
+                "B's authorized route; missing B operation is the expected control",
+                "User B reaches coordinator ownership boundary",
+            ),
+            _step(
+                "session",
+                "Attempt foreign inspect and approval using A's session",
+                "User B -> Foundry session authorization",
+                "User B inspects A's session",
+                "User B attempts decision in A's session",
+            ),
+            _step(
+                "operation",
+                "Attempt A's operation and valid approval reference in B's own context",
+                "User B -> coordinator/user-isolated state ownership",
+                "User B inspects A's operation in B's session",
+                "User B attempts A's decision in B's session",
+            ),
+            _step(
+                "unchanged",
+                "User A confirms original pending request/file and zero reported calls",
+                "Original owner credential; no automatic terminal decision",
+                "User A pending unchanged after foreign attempts",
+            ),
+        ),
+        ("scripts.run_scenario.story6_users.execute", "scripts.run_scenario.story6_users.probe"),
+        (
+            "Authentication failure, generic forbidden responses and transport errors are not approval-denial passes.",
+            "The owner terminal decision is a separate explicitly chosen continuation.",
+        ),
+    ),
+}
+
+
 def select_task_flow(provenance: Mapping[str, object], checks: Sequence[Mapping[str, object]]) -> TaskFlow | None:
     """Select only a reviewed scenario/variant, never infer a plan from free text."""
     scenario = provenance.get("scenario")
@@ -719,6 +952,20 @@ def select_task_flow(provenance: Mapping[str, object], checks: Sequence[Mapping[
     variant = provenance.get("variant")
     native = variant in ("native", "native-hosted-only", "native-hosted-observation")
     names = {check.get("name") for check in checks if isinstance(check.get("name"), str)}
+    if story == 6:
+        if variant not in (None, "") or provenance.get("mode") not in {
+            "hosted",
+            "hosted-history-audit",
+            "hosted-two-users",
+            "hosted-metadata",
+            "authenticated-direct-mcp",
+        }:
+            return None
+        if number in (2, 3, 4) and "Conversation history before command" in names:
+            return STORY6_AUDIT
+        if number == 6 and "User A owner continuation" in names:
+            return STORY6_OWNER
+        return STORY6.get(number)
     if story == 3:
         return STORY3.get(number) if variant in (None, "") else None
     if story == 4:
