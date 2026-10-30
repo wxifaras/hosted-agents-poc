@@ -312,3 +312,70 @@ def test_toolbox_configuration_remains_unset_by_default_and_rejects_nonversions(
     for version in ("0", "../1", "latest", "1" * 11):
         with pytest.raises(ValidationError):
             host.Story6Settings(story6_toolbox_version=version)
+
+
+@pytest.mark.parametrize("operation", ["start", "decide"])
+async def test_entra_route_acquires_fresh_custom_token_and_uses_original_binding(monkeypatch, operation) -> None:
+    observed = reply()
+    caller = Caller("call", "user", "session")
+    monkeypatch.setattr(Caller, "current", lambda: caller)
+    credential = MagicMock()
+    credential.__aenter__.return_value = credential
+    credential.get_token = AsyncMock(return_value=SimpleNamespace(token="fresh-synthetic-api-token"))
+    monkeypatch.setattr(host, "DefaultAzureCredential", MagicMock(return_value=credential))
+    store = MagicMock()
+    store.read = AsyncMock(return_value=None)
+
+    @asynccontextmanager
+    async def opened(*args, **kwargs):
+        yield store
+
+    monkeypatch.setattr(host, "open_approval_store", opened)
+    url = "https://fixture.synthetic.azurecontainerapps.io/mcp"
+    scope = "api://11111111-1111-4111-8111-111111111111/.default"
+    coordinator = MagicMock()
+    coordinator.open = AsyncMock(
+        return_value=SimpleNamespace(record=SimpleNamespace(mcp_route="entra-mcp", mcp_url=url, mcp_scope=scope))
+    )
+    coordinator.start = AsyncMock(return_value=observed)
+    coordinator.decide = AsyncMock(return_value=observed)
+    constructor = MagicMock(return_value=coordinator)
+    monkeypatch.setattr(host, "Coordinator", constructor)
+    project = MagicMock()
+    project.__aenter__.return_value = project
+    monkeypatch.setattr(host, "AIProjectClient", MagicMock(return_value=project))
+    configured_url = url if operation == "start" else url.replace("fixture.", "other.")
+    settings = host.Story6Settings(
+        foundry_project_endpoint="https://synthetic.services.ai.azure.com/api/projects/poc",
+        azure_ai_model_deployment_name="synthetic",
+        story6_enabled=True,
+        story6_mcp_url=configured_url,
+        story6_mcp_scope=scope,
+    )
+    fields = {"operation": operation, "operation_id": observed.operation_id}
+    if operation == "decide":
+        fields.update(approval_ref="1" * 64, approve=True)
+    await host.execute(Command.model_validate(fields), SimpleNamespace(conversation_id="conversation"), settings)
+    credential.get_token.assert_awaited_once_with(scope)
+    proxy = constructor.call_args.kwargs["proxy"]
+    assert proxy.url == url
+    assert proxy.headers == {"Authorization": "Bearer fresh-synthetic-api-token"}
+    assert "fresh-synthetic-api-token" not in repr(proxy)
+
+
+def test_custom_route_configuration_is_explicit_and_never_ambiguous() -> None:
+    from pydantic import ValidationError
+
+    url = "https://fixture.synthetic.azurecontainerapps.io/mcp"
+    scope = "api://11111111-1111-4111-8111-111111111111/.default"
+    assert host.Story6Settings(story6_mcp_url="", story6_mcp_scope="").story6_mcp_url is None
+    for fields in (
+        {"story6_mcp_url": url},
+        {"story6_mcp_scope": scope},
+        {"story6_mcp_url": url, "story6_mcp_scope": scope, "story6_toolbox_version": "1"},
+        {"story6_mcp_url": "https://learn.microsoft.com/api/mcp", "story6_mcp_scope": scope},
+        {"story6_mcp_url": url, "story6_mcp_scope": "https://ai.azure.com/.default"},
+        {"story6_mcp_url": url + "?redirect=1", "story6_mcp_scope": scope},
+    ):
+        with pytest.raises(ValidationError):
+            host.Story6Settings(**fields)

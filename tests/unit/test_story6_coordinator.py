@@ -58,13 +58,25 @@ def command(operation: str, pending: story6.Reply | None = None, *, approve: boo
 class Peer:
     """Synthetic Research and native provider endpoints; no real MCP server."""
 
-    def __init__(self, proxy: story6.ToolboxRoute | None = None) -> None:
+    def __init__(self, proxy: story6.ToolboxRoute | story6.EntraRoute | None = None) -> None:
         self.proxy = proxy
         self.posts: list[tuple[str, dict]] = []
         self.pending_problem = ""
         self.fail_path = ""
         self.rejected_call = False
         self.changed_arguments = False
+
+    @property
+    def tool_name(self):
+        if isinstance(self.proxy, story6.EntraRoute):
+            return story6.ENTRA_TOOL
+        return story6.TOOLBOX_TOOL if self.proxy else story6.TOOL_NAME
+
+    @property
+    def arguments(self):
+        return (
+            {"case_id": str(OPERATION)} if isinstance(self.proxy, story6.EntraRoute) else {"query": story6.SEARCH_QUERY}
+        )
 
     def handle(self, request: httpx2.Request) -> httpx2.Response:
         assert request.url.host == "synthetic.invalid"
@@ -106,7 +118,7 @@ class Peer:
             if decision[0]["approve"] or self.rejected_call:
                 output.insert(0, self.call())
             return self.response(output, "resp_completed_private")
-        tool_name = story6.TOOLBOX_TOOL if self.proxy else story6.TOOL_NAME
+        tool_name = self.tool_name
         assert body["tool_choice"] == {"type": "mcp", "server_label": story6.SERVER_LABEL, "name": tool_name}
         assert "Synthetic research context." in body["input"]
         approval = {
@@ -114,7 +126,7 @@ class Peer:
             "id": "approval-private",
             "name": tool_name,
             "server_label": story6.SERVER_LABEL,
-            "arguments": json.dumps({"query": story6.SEARCH_QUERY}),
+            "arguments": json.dumps(self.arguments),
         }
         output = [approval]
         if self.pending_problem == "wrong-tool":
@@ -145,9 +157,9 @@ class Peer:
         return {
             "type": "mcp_call",
             "id": "mcp-private",
-            "name": story6.TOOLBOX_TOOL if self.proxy else story6.TOOL_NAME,
+            "name": self.tool_name,
             "server_label": story6.SERVER_LABEL,
-            "arguments": json.dumps({"query": "changed" if self.changed_arguments else story6.SEARCH_QUERY}),
+            "arguments": json.dumps({"query": "changed"} if self.changed_arguments else self.arguments),
             "approval_request_id": "approval-private",
             "output": "Synthetic public documentation.",
             "status": "completed",
@@ -220,6 +232,43 @@ async def test_native_pending_inspect_decide_and_duplicate_are_one_shot(tmp_path
         for secret in ("private-owner", "private-session", "private-call", "private-conversation", "approval-private"):
             assert secret not in text
         assert "resp_pending_private" not in text and "resp_completed_private" not in text
+
+
+@pytest.mark.parametrize("approve", [True, False])
+async def test_entra_route_pending_and_decision_preserve_case_and_refresh_headers(
+    tmp_path: Path, approve: bool
+) -> None:
+    route = story6.EntraRoute(
+        "https://fixture.synthetic.azurecontainerapps.io/mcp",
+        "api://11111111-1111-4111-8111-111111111111/.default",
+        {"Authorization": "Bearer synthetic-start-token"},
+    )
+    peer, store = Peer(route), MemoryStore()
+    coordinator = story6.Coordinator(store, CALLER, "private-conversation", tmp_path, proxy=route)
+    async with clients(peer) as (research, provider):
+        pending = await coordinator.start(command("start"), research, provider, "synthetic")
+        assert pending.mcp_route == "entra-mcp"
+        assert pending.pending.tool_name == story6.ENTRA_TOOL
+        assert pending.pending.arguments == {"case_id": str(OPERATION)}
+        assert pending.mcp_calls_reported == 0
+        assert (await coordinator.inspect(OPERATION)).pending == pending.pending
+        binding = await coordinator.open(OPERATION)
+        assert "synthetic-start-token" not in binding.record.model_dump_json()
+        assert binding.record.mcp_url == route.url and binding.record.mcp_scope == route.scope
+        refreshed = story6.EntraRoute(route.url, route.scope, {"Authorization": "Bearer synthetic-fresh-token"})
+        peer.proxy = refreshed
+        resumed = story6.Coordinator(store, CALLER, "private-conversation", tmp_path, proxy=refreshed)
+        result = await resumed.decide(command("decide", pending, approve=approve), provider, "synthetic")
+        assert result.phase == ("completed" if approve else "rejected")
+        assert result.mcp_calls_reported == int(approve)
+        assert len(peer.posts) == 3
+        await resumed.decide(command("decide", pending, approve=approve), provider, "synthetic")
+        assert len(peer.posts) == 3
+        changed = story6.EntraRoute(route.url.replace("fixture.", "other."), route.scope, route.headers)
+        with pytest.raises(WorkflowError, match="cannot switch routes"):
+            story6.Coordinator(store, CALLER, "private-conversation", tmp_path, proxy=changed).tool_configuration(
+                binding.record
+            )
 
 
 @pytest.mark.parametrize("binding", ["user", "session", "conversation"])

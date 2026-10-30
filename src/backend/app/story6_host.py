@@ -19,7 +19,7 @@ from azure.core.credentials_async import AsyncTokenCredential
 from azure.core.exceptions import AzureError
 from azure.identity.aio import DefaultAzureCredential
 from openai import OpenAIError
-from pydantic import Field, ValidationError, field_validator
+from pydantic import Field, ValidationError, field_validator, model_validator
 from pydantic_settings import SettingsConfigDict
 
 from app.core.app_config_source import env_file
@@ -27,7 +27,7 @@ from app.core.logger import Logger, configure_logging
 from app.core.settings import Settings
 from app.hosting import failed_response
 from app.services.foundry_state import Caller, FoundryStore
-from app.services.story6_approval import PREFIX, STORE_NAME, Command, Coordinator, Reply, ToolboxRoute
+from app.services.story6_approval import PREFIX, STORE_NAME, Command, Coordinator, EntraRoute, Reply, ToolboxRoute
 from app.services.workflows import WorkflowError
 
 
@@ -38,12 +38,25 @@ class Story6Settings(Settings):
     story6_port: int = Field(default=8091, ge=1, le=65535)
     story6_request_timeout_seconds: float = Field(default=60, ge=1, le=180)
     story6_toolbox_version: str | None = Field(default=None, pattern=r"^[1-9][0-9]{0,9}$")
+    story6_mcp_url: str | None = None
+    story6_mcp_scope: str | None = None
 
-    @field_validator("story6_toolbox_version", mode="before")
+    @field_validator("story6_toolbox_version", "story6_mcp_url", "story6_mcp_scope", mode="before")
     @classmethod
     def blank_public_route(cls, value: object) -> object:
         """A blank optional deployment placeholder selects the original public route."""
         return None if value == "" else value
+
+    @model_validator(mode="after")
+    def explicit_route(self) -> Story6Settings:
+        """Reject half-configured or competing routes instead of a silent fallback."""
+        if (self.story6_mcp_url is None) != (self.story6_mcp_scope is None):
+            raise ValueError("STORY6_MCP_URL and STORY6_MCP_SCOPE must be configured together.")
+        if self.story6_mcp_url is not None and self.story6_mcp_scope is not None:
+            if self.story6_toolbox_version is not None:
+                raise ValueError("Select either Entra MCP or toolbox, never both.")
+            EntraRoute(self.story6_mcp_url, self.story6_mcp_scope, {}).endpoint()
+        return self
 
 
 @lru_cache(maxsize=1)
@@ -98,9 +111,26 @@ async def execute(command: Command, context: ResponseContext, settings: Story6Se
         if command.operation == "start" and await store.read(coordinator.key(command.operation_id)) is not None:
             return await coordinator.inspect(command.operation_id)
         route_version = settings.story6_toolbox_version if command.operation == "start" else None
+        mcp_url = settings.story6_mcp_url if command.operation == "start" else None
+        mcp_scope = settings.story6_mcp_scope if command.operation == "start" else None
         if command.operation == "decide":
             binding = await coordinator.open(command.operation_id)
             route_version = binding.record.toolbox_version if binding.record.mcp_route == "foundry-toolbox" else None
+            if binding.record.mcp_route == "entra-mcp":
+                mcp_url, mcp_scope = binding.record.mcp_url, binding.record.mcp_scope
+                if mcp_url is None or mcp_scope is None:
+                    raise WorkflowError("Original Entra MCP binding is incomplete; do not reroute.")
+        if mcp_url is not None and mcp_scope is not None:
+            target_mcp = EntraRoute(mcp_url, mcp_scope, {})
+            target_mcp.endpoint()
+            mcp_token = await credential.get_token(target_mcp.scope)
+            coordinator = Coordinator(
+                store,
+                caller,
+                context.conversation_id,
+                Path.home(),
+                proxy=EntraRoute(mcp_url, mcp_scope, {"Authorization": "Bearer " + mcp_token.token}),
+            )
         if route_version is not None:
             target = ToolboxRoute(
                 project_endpoint=str(settings.foundry_project_endpoint),
