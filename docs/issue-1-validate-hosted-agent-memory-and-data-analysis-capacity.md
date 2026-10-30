@@ -10,7 +10,7 @@ Status report: what works, what doesn't and why, and what to do next, for
 each requirement of issue #1 (Story 1 tasks in this repository).
 
 **Detailed HTML report with task flows (generated 2026-10-28; evidence 2026-10-27):**
-[View with HTML Preview](https://htmlpreview.github.io/?https://github.com/wxifaras/hosted-agents-poc/blob/feature/hosted-agents-enhancements/docs/reports/story-1/story1-improvements/2026-10-28-task-flows/index.html).
+[View with HTML Preview](https://htmlpreview.github.io/?https://raw.githubusercontent.com/wxifaras/hosted-agents-poc/refs/heads/main/docs/reports/story-1/story1-improvements/2026-10-28-task-flows/index.html).
 Regenerated from the same retained results; no validation was rerun. Expand each
 run's task-flow section for the reviewed plan and its linked recorded checks,
 not an inferred execution trace. The new GitHub preview requires this snapshot
