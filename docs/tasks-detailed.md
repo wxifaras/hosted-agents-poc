@@ -27,6 +27,105 @@ passes.
 
 ## Safety and evidence boundaries
 
+### Story6: simple custom Entra MCP test (no toolbox)
+
+This optional route uses one synthetic `story6_record_action(case_id)` tool.
+Native Responses uses `require_approval: always`; Entra protects the tool
+endpoint, not human-approval decisions. Existing Story6 Learn/toolbox routes and
+the original three agents remain unchanged.
+
+The fixture code and local checks are not a hosted validation result.
+Do not regenerate the final findings as a PASS until both actual hosted cases
+and independent tool receipts have been observed.
+
+**One-time setup, explicit operator actions:**
+
+Prerequisite for a fresh environment: complete the
+[main-first baseline and coordinator bootstrap](../README.md#reproduce-story6-main-first-then-this-branch).
+The Foundry project/model/registry and unchanged Research agent must already
+exist. The dedicated Story6 coordinator must also be active before step 2 can
+resolve its actual identity; a foundation-only deployment is not sufficient.
+If these deployments already exist, reuse them rather than redeploying.
+
+1. Run **Agents: Story6 MCP - Test local fixture and approval route**.
+   Uses existing uv dependencies and local signed JWTs; no Azure requests.
+2. Run **Access: Story6 MCP - Preview API permission**. It resolves the active
+   dedicated coordinator's actual identity and prints its principal object ID.
+   Do not substitute the project identity, client ID or tool-host pull identity
+   in later deployment inputs.
+   The deployed Foundry workload may be a Graph `ServiceIdentity`, not an
+   ordinary `ManagedIdentity`; the setup resolves and checks the actual
+   coordinator principal rather than assuming either type.
+3. After reviewing and
+   approving identity changes, run **Access: Story6 MCP - Apply API permission**.
+   This creates/reuses only the exact single-tenant `story6-approval-mcp` API,
+   requests v2 tokens, exposes `api://<API-client-ID>` and assigns application
+   role `Story6.Invoke` only to that coordinator identity.
+   Requires Graph application-management and app-role-assignment permissions.
+   No user grants, delegated scopes, client secret or automatic login.
+   A permission failure stops setup; do not broaden operator/user roles as an
+   automatic workaround. Do not repeat an ambiguous create without inspection.
+4. Prepare an ordinary isolated Story6 package using the existing package task.
+   It also includes the tool's allowlisted
+   [Dockerfile](../experiments/story6-mcp/Dockerfile) as
+   `story6-mcp.Dockerfile`. Run **Agents: Story6 MCP - Build tool image** with
+   this package and a fresh image tag. This is a remote ACR build.
+5. Run **Agents: Story6 MCP - Preview tool infrastructure**, review, then
+   **Agents: Story6 MCP - Deploy tool** after approval. The isolated
+   [template](../experiments/story6-mcp/main.bicep) creates one app, one small
+   environment, a pull-only identity and registry-scoped AcrPull.
+   Select the existing POC group/registry in the existing suitable region;
+   the template defaults to that group's location. No agent resources appear
+   in this template. The tool requires the explicit coordinator principal,
+   custom API audience, a valid signed access token and `Story6.Invoke`.
+6. Copy the deployment's MCP URL and API client ID into **Agents: Story6 MCP -
+   Prepare coordinator package**. This creates a stage-only override, clearing
+   toolbox selection in that package, not the root environment.
+   Run the existing **Agents: Verify Story6 deployment package**, then
+   **Agents: Deploy Story6 coordinator** after approval. Only the dedicated
+   Story6 coordinator is deployed.
+7. Verify `/health` is responsive and an unauthenticated MCP request returns
+   401. Native tool discovery in the next step is the positive custom-audience
+   workload authentication control; metadata/grant presence alone is not proof.
+   If it fails, stop and inspect auth/consent/role propagation rather than adding
+   another credential flow or silently switching routes.
+
+**The two hosted test flows:**
+
+Use **Agents: Story6 MCP - Hosted approval test** repeatedly, selecting an action.
+`start` creates a new private locator; `inspect`/`approve`/`reject` require that
+exact locator. This task requires route `entra-mcp`, so an older deployment
+cannot silently pass the test. The pending tool is `story6_record_action` and
+its `case_id` must match the saved operation ID.
+
+| Case | Actions | Tool evidence |
+|---|---|---|
+| Approve | New `start` -> `inspect` -> explicit `approve` | Same epoch and total during pause; exactly one receipt/increment after approval; completed agent result |
+| Reject | Another new `start` -> explicit `reject` | Same epoch and total before/after; no receipt for the rejected case; rejected agent result |
+
+Use `Invoke-RestMethod https://<tool-host>/health` immediately before, while
+pending and after each case. Its public response contains only readiness,
+process epoch and the global synthetic execution total, never identities or
+case data. Keep requests sequential and ensure no other operator/control call
+runs between these samples. Use **Agents: Story6 MCP - Observe execution
+receipts** to correlate each execution log's case ID/epoch/count with the case.
+Record the health samples and matching receipts in the validation evidence.
+Missing logs alone are not proof of no execution. An epoch change invalidates
+the case; an ambiguous command is inspected, not automatically resubmitted.
+
+The fixture intentionally does not deduplicate calls: duplicate execution must
+remain visible. It has one replica/worker and a 1,000-effect in-memory limit;
+no database, crash recovery, approval gateway or broader user test matrix.
+Authenticated direct calls are not approval-protected by the tool server.
+Keep that limitation distinct from whether the Hosted runtime paused correctly.
+No token or authorization header is persisted in coordinator state or receipts.
+
+After both cases, add the final observed outcomes and these flows to the
+existing Issue6 Markdown/HTML using the existing report generator. Keep only the
+retained final report; do not replace old toolbox evidence with new server
+claims. Export sanitized evidence before stopping the tool, then disable or
+remove only the specifically created tool resources/permissions when finished.
+
 | Activity | What it can establish | What it cannot establish by itself |
 |---|---|---|
 | Import, lint, type, and unit checks | Local code/configuration behavior | Hosted identity, isolation, or recovery |

@@ -8,6 +8,11 @@ Built with Python 3.14, uv, and Microsoft Agent Framework (MAF).
 
 See the [decision, feature, and status record](docs/adr/0001-hosted-agents-poc.md).
 
+**Using this unmerged Story6 branch?** Start with the
+[main-first reproduction steps](#reproduce-story6-main-first-then-this-branch).
+The Story6 tasks add an experiment to an existing POC foundation; they do not
+bootstrap the Foundry project, model, registry or original agents.
+
 ## 1. Infrastructure diagram
 
 Three separate hosted-agent deployments share one Foundry project and model
@@ -238,40 +243,93 @@ flowchart LR
 
 ### Story 6: human-in-the-loop tool approval
 
-The seven **Agents: Story 6** tasks currently provide safe previews, explicit
-hosted blockers and offline reporting. Step 1's `qualify` mode exercises real
-SDKs with synthetic peers only; it requests no credentials or cloud access.
-The ordinary MCP wrapper's reconnect resend is recorded as a failing local
-single-send check, not hidden by a passing test-runner exit.
+This branch adds a dedicated Hosted coordinator and an optional single-tool
+Entra-authenticated MCP service, without changing the original three agents.
+The custom-MCP hosted tests demonstrated both approval (one independent
+execution receipt) and rejection (no new execution). Native
+`require_approval=always` is enforced by the runtime, not by Entra or a shared
+server-side approval gate.
 
-The dedicated coordinator is deployed as v2; the original three are unchanged.
+Use **Agents: Story6 MCP - Hosted approval test** for `start -> inspect ->
+approve`, then a separate `start -> reject` case. Compare the independent tool
+counts/receipts using **Agents: Story6 MCP - Observe execution receipts**.
+The [simple MCP operator guide](docs/tasks-detailed.md#story6-simple-custom-entra-mcp-test-no-toolbox)
+lists the deployment tasks, inputs and evidence checks.
+
 **Agents: Build Story6 final-results HTML** generates the single final-results
 deep dive offline, with a **View with HTML Preview** link in the
 [Issue6 report](docs/issue-6-explore-human-in-the-loop-tool-approval.md).
-An audit-enabled case also records actual conversation items before/during/
-after approval (`0 -> 2 -> 4 -> 6`) and application-level requester/decision
-correlation. See the [history audit task flow](docs/tasks-detailed.md#story6-caller-correlation-and-actual-history).
 Run **Quality: Check Story6 coordinator** for the focused offline tests.
 F5 **Story6 coordinator + Foundry Agent Inspector** starts its separate host
 on port 8091; commands retain the verified Hosted caller/session guard.
 Its `POC_STORY6` start/inspect/decide protocol preserves pending approval as
 structured JSON around native Responses MCP.
 
-Steps 1-4 now support deployment metadata, start, fresh-client inspect and
-explicit approve/reject actions on a saved pinned case. The real public-first
-demo completed approval with one reported MCP call and rejection with zero;
-the original pause file remained intact. Step 6 additionally tested two real
-cached users: B was denied access/decision over A's pending operation, then A
-approved successfully. Step 5 tested the isolated authenticated toolbox:
-valid-token direct calls ran without approval, while a Consumer user's
-direct access was denied. This documented enforcement boundary remains FAIL,
-not a blanket approval-gate claim. No old
-Story 1/3/4 runtime, toolbox or configuration changed.
-The separate **Preview / Prepare /
-Verify Story6 deployment package** tasks stage one service under ignored
-artifacts without changing the root manifest or deploying. See the
-[Story6 issue report](docs/issue-6-explore-human-in-the-loop-tool-approval.md)
-and [operator guide](docs/tasks-detailed.md#story6-human-decision-flow).
+The existing seven **Agents: Story 6** tasks also cover Learn/toolbox routes,
+pending discovery, pause-file continuity, two-user access and
+[actual history/caller observations](docs/tasks-detailed.md#story6-caller-correlation-and-actual-history).
+Their separate direct toolbox probe returned an unapproved result; its recorded
+server-side enforcement FAIL is not a failure of the Hosted approval test.
+Offline `qualify` checks are supporting SDK evidence, not hosted validation.
+
+### Reproduce Story6: main first, then this branch
+
+This branch can remain unmerged. For a **new deployment**, the recommended
+sequence is **A/B/C on `main`, then the Story6-only setup on
+`feature/story6-tool-approval`**. The prerequisite is the deployed baseline, not
+the Git branch itself: if that baseline already exists, verify and reuse it
+instead of provisioning or redeploying it.
+
+Use a clean checkout before switching branches; do not discard uncommitted
+work. On `main`, follow its README Quick start for these activities:
+
+| Phase on `main` | Activities | Required result before switching branches |
+|---|---|---|
+| **A. Set up the environment** | **Setup: Prepare local environment**; sign in to Azure CLI and azd with the intended tenant; create/select the azd environment and confirm subscription/region | Working local tools and the intended azd environment selected |
+| **B. Deploy the foundation and configure access** | **Infrastructure: Preview changes (azd)**, then **Infrastructure: Apply changes (azd)** after review; **Setup: Create .env from deployment** (or **Update .env**); **Access: Preview developer permissions**, then **Apply developer permissions** when needed | Foundry project/model, ACR and supporting resources provisioned; local deployment bindings/settings and developer access ready |
+| **C. Deploy and verify the baseline agents** | **Agents: Deploy and smoke test all hosted agents**; this runs agent deployment, scoped hosted-agent permission setup and remote smoke checks | Original Supervisor, Research and Data Analysis are deployed and callable; Story6 specifically needs the unchanged `research-agent` for its context call |
+
+You do **not** need to run the Story1/3/4 scenario suites, create the Story4
+toolbox or configure two test-user profiles just to run the two simple custom
+MCP approval tests.
+
+Then switch to this branch in the **same checkout** and refresh its dependencies:
+
+```powershell
+git switch feature/story6-tool-approval
+uv sync --frozen --group validation --inexact
+```
+
+Keep the same subscription, tenant, region and azd environment. Git-ignored
+`.azure` and `.env` files remain in the same checkout across the branch switch;
+they are not supplied by cloning this branch. A separate clone/worktree needs
+its own local environment bindings/settings. Never commit credentials or local
+deployment state.
+
+**On this branch only:**
+
+1. **Bootstrap the dedicated coordinator once if it does not exist.** Run
+   **Agents: Preview Story6 deployment package**, then **Agents: Prepare isolated
+   Story6 deployment package**, leaving the toolbox version blank and custom
+   MCP settings unset. Verify the printed package with **Agents: Verify Story6
+   deployment package**, then run **Agents: Deploy Story6 coordinator**.
+   Run **Access: Preview Story6 coordinator runtime permissions**, then
+   **Access: Apply Story6 coordinator runtime permissions** when needed.
+   This initial deployment establishes the coordinator's actual identity;
+   it does not require running the public-Learn test.
+2. **Deploy the test MCP and connect it.** Follow the
+   [custom Entra MCP setup](docs/tasks-detailed.md#story6-simple-custom-entra-mcp-test-no-toolbox):
+   preview/apply its API permission, build the tool image from a verified
+   package, preview/deploy the tool service, then prepare and deploy a new
+   **Story6-only** coordinator package with the returned MCP URL/API audience.
+3. **Run the two hosted cases.** Use **Agents: Story6 MCP - Hosted approval
+   test** and **Observe execution receipts**. Approve one pending case; reject a
+   different pending case. Approval must add exactly one execution, rejection
+   must add none, and the server epoch must remain unchanged.
+
+Do not run root `azd deploy --all` again merely to set up Story6: reuse the
+baseline agents. No Story6 coordinator, custom MCP service or custom API
+registration is created by the `main` foundation deployment.
 
 ## Quick start - run in this order
 
