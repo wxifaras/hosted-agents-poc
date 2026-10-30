@@ -252,6 +252,9 @@ def test_env_example_has_an_explicit_output_or_local_value_source(compiled: dict
         "STORY1_NATIVE_PRESSURE_ENABLED",
         "STORY1_NATIVE_MAX_OUTPUT_BYTES",
         "STORY1_NATIVE_TIMEOUT_SECONDS",
+        "STORY6_ENABLED",
+        "STORY6_PORT",
+        "STORY6_REQUEST_TIMEOUT_SECONDS",
     }
     assert keys == direct_outputs | local_values | {"APPLICATIONINSIGHTS_CONNECTION_STRING"}
     for name in direct_outputs | {"AZURE_APPLICATION_INSIGHTS_ID"}:
