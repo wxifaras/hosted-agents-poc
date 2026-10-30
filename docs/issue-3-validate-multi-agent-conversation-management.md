@@ -10,7 +10,7 @@ Status report: what was done, what worked, what didn't and why, and what to
 do next, for each requirement of issue #3 (Story 3 tasks in this repository).
 
 **Detailed HTML evidence report (2026-10-28):**
-[View with HTML Preview](https://htmlpreview.github.io/?https://github.com/wxifaras/hosted-agents-poc/blob/integration/hosted-agents-story3/docs/reports/story-3/conversation-management/2026-10-28/index.html).
+[View with HTML Preview](https://htmlpreview.github.io/?https://raw.githubusercontent.com/wxifaras/hosted-agents-poc/refs/heads/main/docs/reports/story-3/conversation-management/2026-10-28/index.html).
 The preview will only become available if this local integration branch and snapshot
 are committed and pushed; neither is implied by report generation.
 
