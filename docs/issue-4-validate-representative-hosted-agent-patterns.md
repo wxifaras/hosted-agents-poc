@@ -10,7 +10,7 @@ Status report: what works, what doesn't and why, and what to do next, for
 each requirement of issue #4 (Story 4 tasks in this repository).
 
 **Detailed HTML evidence report (2026-10-28):**
-[View with HTML Preview](https://htmlpreview.github.io/?https://github.com/wxifaras/hosted-agents-poc/blob/feature/hosted-agents-enhancements/docs/reports/story-4/hosted-agent-patterns/2026-10-28/index.html).
+[View with HTML Preview](https://htmlpreview.github.io/?https://raw.githubusercontent.com/wxifaras/hosted-agents-poc/refs/heads/main/docs/reports/story-4/hosted-agent-patterns/2026-10-28/index.html).
 The preview becomes available after this snapshot is committed and pushed to
 `feature/hosted-agents-enhancements`. It covers six current-version runs and
 50 recorded checks, with per-task flow diagrams. Code-defined flows are not
