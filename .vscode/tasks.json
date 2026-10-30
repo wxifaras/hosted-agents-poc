@@ -50,6 +50,42 @@
       "problemMatcher": []
     },
     {
+      "label": "Quality: Check Story6 coordinator",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "pytest", "-q", "tests\\unit\\test_story6_coordinator.py", "tests\\unit\\test_story6_host.py"],
+      "detail": "Local native-Responses mocks, owner-bound approval/decision/no-replay checks, and actual local host readiness. No Azure credentials, real model/MCP calls, deployment or old-story reruns.",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Check Story6 deployment package",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "pytest", "-q", "tests\\unit\\test_story6_package.py", "tests\\unit\\test_story6_access.py", "tests\\unit\\test_story6_toolbox.py"],
+      "detail": "Offline package, credential-exclusion, stale-source and runtime-role scope tests. No Docker build, Azure access, grants or deployment.",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Check Story6 direct boundary",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "pytest", "-q", "tests\\unit\\test_story6_boundary.py", "tests\\unit\\test_story6_runner.py"],
+      "detail": "Local synthetic transport and evidence-oracle checks; no Azure access or real searches. Confirms successful unapproved execution remains an enforcement FAIL in real evidence rather than a passing security assertion.",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Check Story6 final report",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "pytest", "-q", "tests\\unit\\test_story6_report.py", "tests\\unit\\test_story6_task_flows.py"],
+      "detail": "Offline final-results rendering, privacy, source integrity, task-flow diagram/check anchors and preserved direct-call FAIL. No cloud requests or private case inputs.",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
       "label": "Quality: Check lint",
       "type": "process",
       "command": "uv",
@@ -357,6 +393,147 @@
       "problemMatcher": []
     },
     {
+      "label": "Agents: Preview Story6 deployment package",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.story6_package", "--environment", "${input:infraEnvironment}"],
+      "detail": "Credential-free local preview. Does not read env values, build, deploy or change the root three-agent manifest/environment.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Prepare isolated Story6 deployment package",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.story6_package", "--environment", "${input:infraEnvironment}", "--prepare", "--toolbox-version", "${input:story6ToolboxVersion}"],
+      "detail": "Local files only: stage one service, reviewed source/lock and allowlisted non-secret bindings under ignored artifacts. No tokens/old AGENT_* values, Docker build, Azure writes or automatic deployment.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Verify Story6 deployment package",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.story6_package", "--environment", "${input:infraEnvironment}", "--verify", "${input:story6PackageDir}"],
+      "detail": "Read-only local drift check against staged payload, selected env and root manifest. No build/deploy/grants; stale packages require a fresh prepare/review.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Access: Preview Story6 coordinator runtime permissions",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.story6_access", "--environment", "${input:infraEnvironment}"],
+      "detail": "Read-only: resolve only the new active coordinator identity and its Foundry User assignment at the selected Foundry account. No old-agent/user/storage/telemetry/impersonation grants.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Access: Apply Story6 coordinator runtime permissions",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.story6_access", "--environment", "${input:infraEnvironment}", "--apply"],
+      "dependsOrder": "sequence",
+      "dependsOn": ["Access: Preview Story6 coordinator runtime permissions"],
+      "detail": "Explicit role write if missing: built-in Foundry User at the selected Foundry account for only the new coordinator's verified managed identity. Reuses covering assignments; no old-agent/user/Owner/Contributor/impersonation/storage/telemetry changes.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Preview Story6 approval toolbox",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.story6_toolbox", "--environment", "${input:infraEnvironment}"],
+      "detail": "Read-only exact-name/configuration check for isolated story6-approval-mcp; no old toolbox, connection or role changes.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Prepare Story6 approval toolbox",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.deploy.story6_toolbox", "--environment", "${input:infraEnvironment}", "--apply"],
+      "detail": "Create only the isolated search-only toolbox with approval=always, or reuse its exact immutable version. Does not alter Story4 toolbox, grants or agent versions. A mismatched existing definition blocks rather than overwrites.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Deploy Story6 coordinator",
+      "type": "process",
+      "command": "azd",
+      "args": ["--cwd", "${input:story6PackageDir}", "deploy", "story6-coordinator-agent", "--environment", "${input:infraEnvironment}", "--no-prompt"],
+      "dependsOrder": "sequence",
+      "dependsOn": ["Agents: Verify Story6 deployment package"],
+      "detail": "Build and deploy only the new coordinator from the verified isolated package. Never root --all/provision, role grants or old-agent deployment. Stop on failure rather than automatically rebuilding.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 6 - 1 Verify approval readiness",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story6_approval", "--step", "1", "--execution", "${input:story6ReadinessExecution}", "--environment", "${input:infraEnvironment}"],
+      "detail": "preview = zero requests; qualify = offline real-SDK/synthetic peers; run = read-only deployment/runtime-role metadata. No deployment, grants or model inference.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 6 - 2 Demonstrate approval and rejection",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story6_approval", "--step", "2", "--execution", "${input:story6Execution}", "--environment", "${input:infraEnvironment}", "--action", "${input:story6CaseAction}", "--case-state", "${input:story6CaseState}"],
+      "detail": "Preview by default. Run starts a pinned case or explicitly inspects/approves/rejects the saved pending case. Start never auto-approves. Keep the printed case locator private; existing agents are not deployed or modified.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 6 - 3 Discover and decide pending approvals",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story6_approval", "--step", "3", "--execution", "${input:story6Execution}", "--environment", "${input:infraEnvironment}", "--action", "inspect", "--case-state", "${input:story6CaseState}"],
+      "detail": "Fresh-client inspect of the original saved case; does not create a replacement session or model request. Use Step 2's explicit approve/reject action to decide. No Event Grid/webhook support is inferred.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 6 - 4 Observe pause state and resume",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story6_approval", "--step", "4", "--execution", "${input:story6Execution}", "--environment", "${input:infraEnvironment}", "--action", "inspect", "--case-state", "${input:story6CaseState}", "--capture-history"],
+      "detail": "Operator-owned case: actual stored conversation items, authenticated caller/operation correlation and file hash before/after inspection. No restart/replacement/model request. For true pre-start history use CLI Step2 --capture-history; continuation retains auditing automatically.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 6 - 5 Test direct MCP approval boundary",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story6_approval", "--step", "5", "--execution", "${input:story6Execution}", "--environment", "${input:infraEnvironment}", "--caller-user", "${input:story6DeniedToolUser}", "--max-seconds", "600"],
+      "detail": "Authorized direct proxy test: immutable approval=always metadata, valid-token permission control and no-approval call, then existing Consumer-user permission denial. Unapproved execution stays FAIL as an enforcement gap. Upstream Learn is public; no credential is sent to it directly.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 6 - 6 Verify caller and approver access",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story6_approval", "--step", "6", "--execution", "${input:story6Execution}", "--environment", "${input:infraEnvironment}", "--users", "${input:authProfileUsers}", "--action", "${input:story6CaseAction}", "--case-state", "${input:story6CaseState}", "--max-seconds", "600"],
+      "detail": "Two existing isolated CLI users against coordinator v1: A pending control, B own-route control, B foreign inspect/decision attempts, then A unchanged. Start leaves A pending; explicitly choose A inspect/approve/reject with its private locator. No login, role writes or redeployment. Protected-MCP authorization remains separate.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Build Story6 final-results HTML",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.story6_report", "--overwrite"],
+      "detail": "Offline final-results deep dive for all five Issue6 criteria, including expandable task-flow diagrams with exact check links. No private artifacts, deployment timeline or cloud calls. Keeps direct-call FAIL. Regenerates only unchanged inputs; changed findings require a fresh output.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 6 - 7 Build evidence report",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "--group", "validation", "python", "-m", "scripts.run_scenario.story6_approval", "--step", "7", "--execution", "run", "--bundle-config", "${input:story6BundleConfig}", "--output-dir", "${input:story6ReportRoot}"],
+      "detail": "Offline HTML from one explicitly selected Story6 bundle-config.json; no new tests/cloud calls. Preserves FAIL/BLOCKED and identifies the separately maintained Markdown issue report. Does not generate a passing hosted verdict.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
       "label": "Infrastructure: Compile Bicep",
       "type": "process",
       "command": "az",
@@ -435,6 +612,50 @@
       "problemMatcher": []
     },
     {
+      "label": "Debug: Check Story6 ports",
+      "type": "aitk",
+      "command": "debug-check-prerequisites",
+      "args": { "portOccupancy": [5680, 8091] }
+    },
+    {
+      "label": "Debug: Start Story6 coordinator for Inspector",
+      "type": "process",
+      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "debugpy", "--listen", "127.0.0.1:5680", "-m", "app.agents.story6.main"],
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": { "PORT": "8091", "ENVIRONMENT": "development", "STORY6_ENABLED": "true" }
+      },
+      "dependsOn": ["Debug: Check Story6 ports"],
+      "detail": "Starts only the isolated Story6 host. Readiness requests no model inference; commands reject missing verified Hosted caller/session context. Optional configured integrations retain their existing behavior. No deployment or grants.",
+      "problemMatcher": {
+        "owner": "poc",
+        "pattern": {
+          "regexp": "^(.+):(\\d+):(\\d+): (error|warning): (.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Running on http://127\\.0\\.0\\.1:8091(?:\\s|$)"
+        }
+      }
+    },
+    {
+      "label": "Debug: Open Story6 Inspector",
+      "type": "process",
+      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "args": ["-c", "print('Story6 Agent Inspector requested.')", "${input:openStory6Inspector}"],
+      "presentation": { "reveal": "never" },
+      "dependsOn": ["Debug: Start Story6 coordinator for Inspector"],
+      "problemMatcher": []
+    },
+    {
       "label": "Debug: Check Supervisor ports",
       "type": "aitk",
       "command": "debug-check-prerequisites",
@@ -479,6 +700,61 @@
     }
   ],
   "inputs": [
+    {
+      "id": "story6DeniedToolUser",
+      "type": "promptString",
+      "description": "One existing Consumer CLI-profile user for the direct toolbox access-denial control. No role change or sign-in; leave blank to record that control as BLOCKED.",
+      "default": ""
+    },
+    {
+      "id": "story6ToolboxVersion",
+      "type": "promptString",
+      "description": "Blank = original public Learn; positive immutable version printed by Prepare Story6 approval toolbox = authenticated proxy. Only the staged package is configured; root env/old agents unchanged.",
+      "default": ""
+    },
+    {
+      "id": "story6CaseAction",
+      "type": "pickString",
+      "description": "start = new pending case only; inspect/approve/reject = use the exact saved locator. Review the real pending tool/query before deciding.",
+      "options": ["start", "inspect", "approve", "reject"],
+      "default": "start"
+    },
+    {
+      "id": "story6CaseState",
+      "type": "promptString",
+      "description": "Blank for a NEW start; otherwise exact private case-state.json printed by that start. Never publish this locator or substitute another case.",
+      "default": ""
+    },
+    {
+      "id": "story6PackageDir",
+      "type": "promptString",
+      "description": "Exact isolated package directory printed by Prepare Story6 deployment package. Do not select the root project or paste credentials."
+    },
+    {
+      "id": "story6ReadinessExecution",
+      "type": "pickString",
+      "description": "preview = zero requests; qualify = offline SDK experiments; run = read-only active-version/runtime-role check",
+      "options": ["preview", "qualify", "run"],
+      "default": "preview"
+    },
+    {
+      "id": "story6Execution",
+      "type": "pickString",
+      "description": "preview = operation summary; run = selected hosted action. Step5 tests the isolated authenticated toolbox proxy; Step6 uses two existing CLI profiles.",
+      "options": ["preview", "run"],
+      "default": "preview"
+    },
+    {
+      "id": "story6BundleConfig",
+      "type": "promptString",
+      "description": "Exact path to a saved Story6 run's bundle-config.json printed by Step 1 qualification or a blocked run. Never enter credentials."
+    },
+    {
+      "id": "story6ReportRoot",
+      "type": "promptString",
+      "description": "Report root under artifacts; output is <root>\\story-6\\html. Choose a fresh root for a different bundle, e.g. artifacts\\story-6\\hosted-report. No originals are overwritten.",
+      "default": "artifacts"
+    },
     {
       "id": "story1Execution",
       "type": "pickString",
@@ -535,6 +811,12 @@
       "id": "authProfileUsers",
       "type": "promptString",
       "description": "Comma-separated full user sign-in names, e.g. user1@tenant.onmicrosoft.com,user2@tenant.onmicrosoft.com. Never enter passwords."
+    },
+    {
+      "id": "openStory6Inspector",
+      "type": "command",
+      "command": "ai-mlstudio.openTestTool",
+      "args": { "triggeredFrom": "tasks", "port": 8091 }
     },
     {
       "id": "openSupervisorInspector",

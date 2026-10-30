@@ -53,6 +53,338 @@ tested configuration. If the root cause is unknown, say so explicitly; an HTTP
 error alone does not establish a platform-wide prohibition. Identify a verified
 alternative when one exists, and keep untested behavior separate.
 
+## Story 6: approval qualification (current implementation)
+
+These are additive tasks; they do not invoke Story 1/3/4 preparation tasks or
+deploy any hosted version. The
+[issue report](issue-6-explore-human-in-the-loop-tool-approval.md) separates
+tested local behavior from unverified hosted approval.
+
+| Exact task label | Current behavior |
+|---|---|
+| Agents: Story 6 - 1 Verify approval readiness | Defaults to `preview`; `qualify` runs offline SDK experiments; `run` checks active version/expected role without model inference. Metadata is not an approval-flow verdict. |
+| Agents: Story 6 - 2 Demonstrate approval and rejection | `run` offers start/inspect/approve/reject. Start creates one pinned session/conversation and stops at pending. Inspect/decide require its exact private case locator. No automatic decision or replay. |
+| Agents: Story 6 - 3 Discover and decide pending approvals | `run` uses a fresh client to inspect the saved operation. Use Step 2's explicit action to decide. Discovery is custom polling, not Event Grid/webhook support. |
+| Agents: Story 6 - 4 Observe pause state and resume | `run` inspects the same operation/file before/after human review. No replacement case, model execution, forced restart or repeated Story 1 recovery work. |
+| Agents: Story 6 - 5 Test direct MCP approval boundary | Exact Story6 toolbox v1 metadata, authorized direct control, fresh valid-token/no-approval call, then existing Consumer profile access control. Unapproved execution remains FAIL. Proxy is authenticated; upstream Learn is public. |
+| Agents: Story 6 - 6 Verify caller and approver access | Two existing CLI profiles: A creates pending approval; B same-route control and foreign inspect/decision probes; A verifies unchanged state. Then explicitly choose A inspect/approve/reject with its saved locator. No login, role change or redeploy. |
+| Agents: Story 6 - 7 Build evidence report | Offline HTML from the exact selected saved Story6 `bundle-config.json`; never auto-discovers unrelated runs. Prints the separately maintained Markdown issue-report location. |
+
+Steps 1-6 offer `preview`/`run`, with `qualify` additionally available only for
+Step 1. Previews make no requests or evidence writes. Step 5 uses the
+isolated authenticated proxy and Step 6 two real existing user profiles. A scoped public-first hosted
+approve/reject flow has been demonstrated; this does not complete all #6 criteria.
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story6_approval --step 1 --execution qualify --no-color
+```
+
+Qualification uses real SDKs and synthetic MockTransport peers, not Azure.
+It currently records seven local PASS checks, one FAIL (two ordinary MCP call
+attempts after connection loss), and one BLOCKED hosted prerequisite, exiting 1.
+The scripted decision is not evidence of human approval. A direct synthetic
+SDK call is not a valid-token bypass test. No fallback or automatic replay is
+added by the runner.
+
+Outputs are under `artifacts\story-6\step-01-approval-readiness\<run>\`:
+`manifest.json`, `events.jsonl`, `results.jsonl`, `report.md` and the printed
+`bundle-config.json`. The Story6 index is append-only. Preserve earlier failures.
+
+Step 7 prompts for that exact config and uses the existing offline renderer.
+HTML goes to `<selected report root>\story-6\html\`; the default root is
+`artifacts`. Select a fresh root for a different bundle. Existing output is not silently replaced.
+CLI users may explicitly request `--overwrite`, subject to unchanged-source
+checks. Rendering returns 0 when generation succeeds even if saved tests
+failed or were blocked; it does not rerun or change those verdicts.
+
+The revised design uses one new Story6 coordinator Hosted Agent calling
+Research unchanged, with the MCP approval action on the coordinator. Keep its
+future deployment separate from old deploy-all tasks. Public Learn MCP is a
+validated and approved starter; public reachability is not
+hosted approval evidence or authenticated-tool authorization.
+
+The dedicated coordinator is now implemented and locally tested. Use
+**Quality: Check Story6 coordinator** to run its focused mock-transport and
+actual local-readiness tests without Azure calls. F5 **Story6 coordinator +
+Foundry Agent Inspector** starts only its entrypoint, HTTP port 8091/debugger
+5680. Existing debug/deployment task behavior is preserved. Its real commands
+still require verified Hosted caller/session context; local F5 is not an
+authentication fallback. See the [client protocol](issue-6-explore-human-in-the-loop-tool-approval.md#client-contract).
+
+### Story6 human decision flow
+
+1. Run Step 1 with `run` for deployment/access metadata.
+2. Run Step 2 with `run`, action `start`, and leave the case-state field blank.
+   It creates one new explicitly requested case and prints a private locator.
+3. Keep that locator. Select Step 3 with `run` to inspect the same case from a
+   fresh client; review the reported server/tool and fixed Learn query.
+4. Run Step 2 with action `approve` or `reject` and that locator. This explicit
+   operator choice is the decision; start does not decide on the user's behalf.
+5. Use Step 4 with the same locator after the pause/decision to record state and
+   original file retention. Its inspection creates no new model/tool request.
+6. To demonstrate both outcomes, explicitly start one separate case for the
+   other decision. Do not retry an uncertain start/decision or create a
+   replacement merely because a response was lost.
+
+The client follows the existing Story 1 SDK pattern: explicit version-pinned
+Hosted session, explicit conversation and `agent_session_id` on each command.
+It refuses version drift and writes intent before external submissions.
+This keeps per-case state independent without changing old agents.
+
+### Story6 caller correlation and actual history
+
+For a true before/during/after observation, add `--capture-history` to a new
+Step2 start. The runner reads the actual new conversation before submitting
+start, then again after the pending reply. It verifies the current CLI account
+against authenticated Graph identity and records per-operation caller/session/
+conversation aliases, not raw identities or transcript text.
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story6_approval --step 2 --execution run --environment hosted-agents-poc-dev --action start --capture-history
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story6_approval --step 4 --execution run --environment hosted-agents-poc-dev --action inspect --capture-history --case-state "<exact private case-state.json>"
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story6_approval --step 2 --execution run --environment hosted-agents-poc-dev --action approve --capture-history --case-state "<same private case-state.json>"
+```
+
+Audit-enabled cases retain auditing for later commands, so forgetting the
+flag on continuation does not remove identity/history checks. The current
+authenticated requester must match the original audit binding. Read at most
+two history pages; overflow or incompatible items fails rather than silently
+truncating. Missing/stale evidence never triggers replacement or submission
+replay.
+
+The existing **Step4** editor task enables history capture for an
+operator-owned case. Audit on an already completed case can inspect current
+history, but it cannot reconstruct a genuine pre-start snapshot. Use a fresh
+explicitly selected start only when that observation is missing. Step6's
+distinct-profile test remains its own identity flow; do not replace its actors
+with the operator audit.
+
+The [sanitized history/correlation report](reports/story-6/human-in-the-loop-approval/final-results/index.html#criterion-3)
+shows actual item counts `0 -> 2 -> 4 -> 6`, the stored decision matching the
+pending approval, and same requester/operation bindings. This is application
+lineage and provider-reported tool execution, not authenticated downstream
+user delegation or an independent distributed invocation trace.
+
+Example CLI sequence:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story6_approval --step 2 --execution run --environment hosted-agents-poc-dev --action start
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story6_approval --step 3 --execution run --environment hosted-agents-poc-dev --action inspect --case-state "<exact private case-state.json>"
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story6_approval --step 2 --execution run --environment hosted-agents-poc-dev --action approve --case-state "<same private case-state.json>"
+```
+
+Private locators remain under ignored `artifacts\story-6`; do not commit or
+publish them. Public reports omit session/conversation/operation/approval
+references. Each real command prints an explicit HTML bundle config; select
+saved runs deliberately for combined reporting. The
+[reviewed final report](reports/story-6/human-in-the-loop-approval/final-results/index.html)
+contains the observed approval/rejection pair and state/file checks.
+
+### Story6 two-user unauthorized-approver flow
+
+Reuse **Access: Preview isolated user Consumer grants** to check invocation
+permissions at the selected project. The existing **Access: Create isolated
+user auth profiles** task can set up missing profiles/grants when explicitly
+needed. Do not rerun sign-in or broaden roles when the profiles/grants already
+exist. An invoke-only Consumer user may correctly receive 403 for agent metadata:
+the test reads deployment metadata through the operator, not by elevating users.
+
+1. Select Step 6, `run`, two comma-separated existing profile users, action
+   `start`, blank case locator. The first is A/requester; the second B/foreign actor.
+2. The task verifies both actual cached identities and distinct principals,
+   pins the active coordinator version and creates A's pending operation.
+3. B opens its own session/conversation. A known missing-operation response is
+   the positive control that B actually reached the coordinator's ownership
+   handling—not a generic HTTP/authentication failure.
+4. B attempts inspect/approve in A's session and against A's operation in B's
+   own context. The script classifies explicit session and operation visibility
+   denials separately. Authentication, malformed requests and transport/service
+   failures cannot pass as unauthorized-approver denial.
+5. A re-inspects the original operation: same pending reference, no decision,
+   zero provider-reported calls and same original file. Start leaves A pending;
+   it does not automatically approve or reject.
+6. Review A's actual pending search. Select Step 6 with `approve` or `reject`
+   and that exact private locator; the decision is sent using A's CLI cache.
+   No operator identity is substituted for A.
+
+CLI uses the existing profile mechanism without modifying global
+`AZURE_CONFIG_DIR`:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story6_approval --step 6 --execution run --environment hosted-agents-poc-dev --users "<user-A>,<user-B>" --action start --max-seconds 600
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story6_approval --step 6 --execution run --environment hosted-agents-poc-dev --users "<same-user-A>,<same-user-B>" --action approve --case-state "<exact private case-state.json>" --max-seconds 600
+```
+
+Step 6's ten-minute overall limit covers identity verification and sequential
+requests; each service request is capped at 120 seconds. No automatic replay,
+new profile login, role write or deployment occurs. A failed/inconclusive probe
+stops on the original operation. Protected MCP authorization is still separate.
+
+### Story6 final-results HTML deep dive
+
+Use **Agents: Build Story6 final-results HTML** for the single Issue6
+outcome-focused report. This dedicated `scripts.story6_report` entrypoint
+reuses the shared evidence redaction/observed-value helpers; it does not
+change the generic Step7 generator or older story reports.
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.story6_report --overwrite
+```
+
+It reads the issue Markdown Summary and eight explicitly selected final
+observations from `docs\validation\story6-final-evidence.json`, not older
+report folders. It presents all five
+requirements, validation flows, what worked/did not work, notification
+assessment, capability ownership and expandable source/check evidence.
+Expandable **What this task validates** diagrams reuse the shared task-flow
+SVG renderer and exact assertion mappings. Each diagram names actors and
+links its PASS/FAIL/BLOCKED/SKIP badges to original checks; missing mappings
+remain NOT RECORDED. They are code-defined test plans, not captured traces.
+It does not show a version/deployment timeline, automatically discover latest
+attempts or import private case locators. The actual enforcement FAIL remains
+a FAIL. Inputs are available to another contributor after the branch is
+published; no Azure connection or new model request is needed.
+
+Output: `docs\reports\story-6\human-in-the-loop-approval\final-results\index.html`.
+See [View with HTML Preview](issue-6-explore-human-in-the-loop-tool-approval.md)
+in the issue report; remote preview requires commit/push. Existing output may
+be regenerated only with unchanged inputs. For changed findings, generate
+to a fresh `artifacts\story-6\<folder>`, review and explicitly replace the
+published snapshot. No report operation deploys or changes resources.
+
+### Story6 deployment package tasks
+
+These are separate from the seven evidence tasks:
+
+1. **Agents: Preview Story6 deployment package**: zero requests/writes; no env
+   values read.
+2. **Agents: Prepare isolated Story6 deployment package**: copies only reviewed
+   source and allowlisted non-secret bindings into a new ignored context;
+   root `azure.yaml` and the root `.azure` environment are untouched.
+3. **Agents: Verify Story6 deployment package**: use the exact directory printed
+   by Prepare. Rejects source, payload, target-binding or root-manifest drift.
+4. **Quality: Check Story6 deployment package**: focused local isolation and
+   credential-exclusion tests; no Docker/Azure calls.
+5. **Agents: Deploy Story6 coordinator**: depends on package verification and
+   targets only `story6-coordinator-agent` in that isolated context. It does not
+   provision infrastructure, grant roles, deploy the old agents or run tests.
+
+CLI equivalents:
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.deploy.story6_package --environment hosted-agents-poc-dev
+uv run --frozen --no-sync --group validation python -m scripts.deploy.story6_package --environment hosted-agents-poc-dev --prepare
+uv run --frozen --no-sync --group validation python -m scripts.deploy.story6_package --environment hosted-agents-poc-dev --verify "<exact prepared directory>"
+```
+
+The source [manifest](../experiments/story6/azure.yaml) is a template, not a
+directly deployable folder containing the root source/lock. Use only the staged
+context for a separately approved azd deployment. Its private `.azure` bindings
+are not Docker build inputs; do not publish or commit that folder.
+
+Before live cases, verify the hosted continuation contract and runtime
+permissions. Authenticated-tool
+cases still need a separately approved fixture. The three old agent
+deployments, tools/state and dependency pins stay unchanged.
+
+### Running Story6 after cloning the branch
+
+The implementation must be committed/pushed before another person can obtain
+it by cloning. A local branch alone does not publish changes.
+
+1. Clone the published `feature/story6-tool-approval` branch and run
+   **Setup: Prepare local environment** with the root lock.
+2. Run **Quality: Check Story6 coordinator** and **Quality: Check Story6
+   deployment package**. These local checks need no Azure credentials.
+3. For hosted use, sign in through the existing repository setup and configure
+   a local azd environment for your own existing POC project, model, registry
+   and Research agent. Credentials and `.azure` state are not supplied by Git.
+   Do not copy someone else's prepared artifact/environment.
+4. Run Preview, Prepare and Verify Story6 deployment package, selecting that
+   environment. Copy the exact newly prepared directory when prompted.
+5. If the matching coordinator is already deployed, reuse it rather than
+   redeploying merely to test. For a new/changed coordinator, run
+   **Agents: Deploy Story6 coordinator** with the same environment/package.
+   The root three-agent deployment task is not part of this sequence.
+6. Run **Access: Preview Story6 coordinator runtime permissions**. If the
+   expected role is missing and you are authorized to grant it, run
+   **Access: Apply Story6 coordinator runtime permissions**. It targets only
+   the active new coordinator identity, reuses an existing assignment and
+   never grants roles to old agents or users. It follows this POC's Foundry
+   User account-scope pattern; role readback is not a runtime access test.
+7. The seven evidence tasks expose their current readiness explicitly; do not
+   treat a preview or a BLOCKED result as a completed hosted test.
+
+F5 uses the same root virtual environment and the isolated port 8091. Local
+tests are the full offline path; real `POC_STORY6` commands keep the verified
+Hosted caller/session guard. No deployment happens from Setup, unit tests,
+Preview, Prepare or F5.
+
+### Story6 notification assessment
+
+The [issue-report matrix](issue-6-explore-human-in-the-loop-tool-approval.md#notification-availability)
+assesses polling, webhooks and Event Grid without creating those integrations.
+The tested choice is the model-free Step 3 `inspect` command. Azure OpenAI
+documents response lifecycle webhooks, but the reviewed event list does not
+name an MCP approval-specific webhook. ARM/Event Grid resource changes are
+not data-plane approval events. Neither documentation gaps nor SDK method
+absence should be called universal platform non-support.
+
+An outer command may complete while `poc-story6-approval-v1.phase` is still
+`pending`; use the logical operation phase, not a generic response.completed
+notification, to decide whether human review is outstanding.
+
+The optional authenticated-toolbox route is deployed on coordinator v2.
+`STORY6_TOOLBOX_VERSION` selects only the fixed isolated Story6 toolbox/version;
+unset means public Learn. Do not set it to Story4's version and assume it
+selects Story4—the name is deliberately fixed to protect that resource.
+Existing v1 public/two-user evidence remains version-bound; new v2 operations
+use the configured proxy, and existing operations retain their original route.
+Step5 demonstrated the documented proxy enforcement gap.
+
+### Story6 authenticated proxy setup and direct-call test
+
+1. Run **Agents: Preview Story6 approval toolbox**, then **Agents: Prepare
+   Story6 approval toolbox** if needed. The helper creates only the fixed
+   isolated name or reuses its exact definition; it refuses conflicting data.
+   No Story4 toolbox, connection or role is modified.
+2. In **Agents: Prepare isolated Story6 deployment package**, select the
+   immutable toolbox version printed above (`1` in the recorded POC).
+   Blank means the original public mode. Only the staged environment changes.
+3. Verify and deploy only the new coordinator through its existing isolated
+   task, or reuse a matching already deployed v2. No old-agent deployment
+   is part of this sequence; do not redeploy merely to test.
+4. Use Step2 start, inspect and explicit approval to validate the actual hosted
+   proxy path. The v2 pending request names the prefixed search tool. Public-mode
+   approval evidence does not substitute for checking the new authenticated route.
+5. Run Step5 with `run`, selected environment and one existing Consumer profile
+   for its resource-denial control. The operator's valid Entra token makes
+   exactly two fixed read-only calls: ordinary permission control, then
+   a call without any approval message. Credentials target only the trusted
+   first-party proxy; never public Learn directly.
+
+```powershell
+uv run --frozen --no-sync --group validation python -m scripts.deploy.story6_toolbox --environment hosted-agents-poc-dev
+uv run --frozen --no-sync --group validation python -m scripts.deploy.story6_toolbox --environment hosted-agents-poc-dev --apply
+uv run --frozen --no-sync --group validation python -m scripts.deploy.story6_package --environment hosted-agents-poc-dev --prepare --toolbox-version 1
+uv run --frozen --no-sync --group validation python -m scripts.run_scenario.story6_approval --step 5 --execution run --environment hosted-agents-poc-dev --caller-user "<existing Consumer user>" --max-seconds 600
+```
+
+In the recorded test Step5 returns **1**: four PASS checks and one actual
+approval-enforcement FAIL, because an unapproved result was returned. This
+is expected from the documented runtime-enforcement responsibility, not an
+instruction to hide the failure, add user privileges, retry or change policy.
+The Consumer profile's HTTP403 is ordinary authorization evidence, not an
+approval denial. Missing/inconclusive controls stay explicit.
+
+The [proxy boundary evidence](reports/story-6/human-in-the-loop-approval/final-results/index.html#criterion-4)
+retains the hosted pending/approved operation and direct-call failure.
+
+The access tasks are separate from deployment; deploying does not automatically
+change roles. The runtime-access helper has no arbitrary principal/role input,
+rechecks the identity/version before applying, and stops on conditional grants
+or missing assignment authority rather than broadening permissions.
+
 ## Setup
 
 ### Setup: Sync dependencies

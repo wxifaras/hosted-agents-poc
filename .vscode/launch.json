@@ -20,6 +20,14 @@
       "internalConsoleOptions": "neverOpen"
     },
     {
+      "name": "Story6 coordinator + Foundry Agent Inspector",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": { "host": "127.0.0.1", "port": 5680 },
+      "preLaunchTask": "Debug: Open Story6 Inspector",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
       "name": "Research host",
       "type": "debugpy",
       "request": "launch",

@@ -8,7 +8,176 @@
 | Scope | Synthetic-data experiments, not a production service |
 | Validation | Partial; an accepted design is not proof of deployed behavior |
 
+## Story6 local qualification update (2026-10-29)
+
+Implementation started on `feature/story6-tool-approval` from `4c40ed6`.
+No runtime, deployment manifest, dependency lock, toolbox, identity grant or
+hosted agent was changed for this increment.
+
+The locked SDK's local MCP approval/rejection and JSON session continuation
+passed synthetic-peer tests. Native provider MCP approval configuration and
+Responses wire translation also passed locally. These are not hosted
+approval or human/approver authorization results.
+
+The ordinary MCP wrapper resends after the tested ambiguous connection loss:
+two underlying attempts were observed using a synthetic session double.
+The local single-send requirement therefore fails; no hidden retry fix or custom
+approval fallback is introduced. Hosted work pauses at the authenticated
+fixture/continuation gate. Native provider MCP is a candidate to qualify,
+not a selected proven service solution.
+
+See the [Story6 issue report](../issue-6-explore-human-in-the-loop-tool-approval.md)
+for reproduction, evidence and pending decisions. Existing Story 1/3/4 results
+remain version-bound and are reused, not replaced by this local qualification.
+
+The requester subsequently approved a **dedicated new Story6 coordinator Hosted
+Agent** calling existing Research unchanged. This is a scoped exception to the
+original three-agent topology, not permission to change their deployments.
+The coordinator owns its MCP approval action; its deployment must remain
+separate from the original deploy-all task. No fourth agent is deployed yet.
+
+Direct runner probes also verified public Learn search and OpenWeather's
+keyless product catalogue. Learn is recommended for the first hosted approval
+interaction without new MCP hosting; the requester approved that proposal and
+paused before further implementation/deployment. Actual
+OpenWeather weather data needs a data key, and neither public server proves
+authenticated-tool/approver enforcement.
+
+The requester later resumed local coordinator implementation. A separate
+entrypoint, native Responses MCP path, custom JSON start/inspect/decide adapter,
+user-isolated state namespace and sentinel-file observations are now locally
+tested. Required approval is configured at the provider; requester ownership
+and continuation binding are custom coordinator controls, not a universal MCP
+server gate. The ordinary MCP wrapper's retry finding remains unchanged.
+
+The local gate passed 168 focused tests, including unchanged Story 1/3/4
+contracts and actual new-host readiness. Root F5 wiring is additive. No old
+agent dispatch/configuration or root deployment service list was changed,
+and no fourth agent was deployed. Hosted continuation, actual actor permissions,
+files and enforcement still require the separate deployment/live validation gate.
+
+Deployment preparation now uses a separate one-service template and an ignored
+staged azd context, not a fourth service added to the root manifest. Its helper
+copies allowlisted source/non-secret bindings and rejects drift; it does not
+build, provision, deploy or grant permissions. Package/editor/root-manifest
+checks passed (29 tests). No Docker image was built.
+
+Read-only review observed existing versions 16/10/10 active, the new coordinator
+name absent, and a matching ContainerRegistry connection. Routing ratios and
+effective new-agent/operator permissions were not established. One remote
+build/new version and a two-case initial flight are proposed, not authorized.
+The old three deployments and role assignments remain untouched.
+
+The requester then authorized the isolated deployment. One refreshed package
+was deployed once; `story6-coordinator-agent` v1 is active. Post-deployment
+metadata confirms original versions 16/10/10 unchanged, and only the isolated
+azd env has new-agent tracking. No model/approval case was invoked.
+
+Dedicated Preview/Apply runtime-access tasks now exist for cloning users.
+Read-only preview found no expected Foundry User assignment for the exact new
+identity at account scope. Apply has not run; existing roles are unchanged.
+Task wording is action-focused, while target, timeout and no-replay safeguards
+remain. Operator tooling changes do not require rebuilding the deployed agent.
+
+The runtime role was then explicitly authorized for only that new identity and
+read back. A real pinned-session public-first flow completed: original caller
+reviewed native pending Learn search and approved it (one reported MCP call),
+then rejected a distinct case (zero reported calls). A fresh client discovered
+the pending operation; the original HOME file/hash persisted through a changed
+boot marker and continuation. No forced restart or process-loss recovery claim.
+
+The [sanitized final report](../reports/story-6/human-in-the-loop-approval/final-results/index.html)
+preserves six selected command observations with explicit remaining gaps.
+Native provider approval is tested for this configuration; custom coordinator
+ownership/discovery is not a universal MCP-server gate. Protected direct-token
+access and a real unauthorized approver remain unverified. Final original
+agent versions stayed 16/10/10; the coordinator remains v1.
+
+The two existing isolated CLI users were subsequently reused for Story6 Step6
+against deployed coordinator v1. Both already had project Consumer grants;
+no role change, sign-in or redeployment was needed. Their management-plane
+metadata 403s were not counted as approval enforcement.
+
+B's own session reached the custom missing-operation handling (positive route
+control); B's foreign inspect/decision requests were blocked by Foundry session
+authorization or coordinator/user-isolated operation ownership. A remained
+pending with zero reported calls and the original file, then explicitly
+approved the same operation using A's real credential and completed.
+The [two-user evidence](../reports/story-6/human-in-the-loop-approval/final-results/index.html#criterion-5)
+retains 8 boundary checks and 2 identity/continuation checks. This closes the
+foreign-approver question for the scoped coordinator path, not the separate
+protected-MCP authorization question. Private profiles/identifiers are not
+exported. No universal server gate or enterprise approver-role claim.
+
 ## Context and goals
+
+### Story6 caller/history evidence
+
+An audit-enabled hosted case read actual conversation items before start,
+while pending, after fresh-client inspect and after explicit human approval.
+Counts were 0, 2, 4 and 6; the stored decision matched the stored pending
+reference, all operation references matched, and CLI/Graph requester plus
+session/conversation aliases were stable. The original file was retained and
+the terminal reply reported one tool call. No redeployment or role write was
+needed for these client-side observations.
+
+The [history/correlation evidence](../reports/story-6/human-in-the-loop-approval/final-results/index.html#criterion-3)
+exports summaries only. Application correlation is distinguished from a joined
+distributed trace, original-user delegation and independent downstream effects.
+Research's absent nested user context remains explicit. The outcome-focused
+Issue6 report now includes this evidence without a deployment history.
+
+### Story6 notification/protected-route assessment (2026-10-29)
+
+Official documentation was checked for polling, webhooks and Event Grid.
+The tested custom coordinator inspect path remains the POC mechanism.
+Azure OpenAI documents response lifecycle webhooks, but no MCP
+approval-specific webhook type was established. ARM resource events are not
+data-plane approval events. Native approval Event Grid support stays unverified,
+not universally unsupported. No receiver/subscription was created.
+
+The official hosted toolbox guide explicitly says `tools/call` does not block
+when toolbox `require_approval=always`; the consuming runtime must enforce it.
+This is a documented boundary, not a new live bypass observation. Existing
+Story4 toolbox v1 was read-only inspected: its setting is `never`, with one
+public Learn search. It is unchanged and cannot satisfy an
+approval-required-tool direct-call test as-is.
+
+A separate Story6 toolbox is proposed for review, reusing public Learn behind
+the Entra-authenticated proxy and updating only the isolated coordinator if
+qualified. This avoids new compute and protects old-agent configuration.
+It is not proof of an authenticated downstream enterprise tool. No toolbox or
+coordinator version was created during this assessment; see the
+[issue report](../issue-6-explore-human-in-the-loop-tool-approval.md#4-direct-valid-token-mcp-access-without-approval).
+
+The requester selected proxy scope with local qualification first. Optional
+version-pinned fixed-name Story6 toolbox routing is now tested locally
+(117 tests plus type/lint checks), retaining the native Responses MCP path.
+Existing public operations do not change routes; request-scoped auth is
+confined to the trusted project endpoint and never persisted. Read-only
+tools/list confirmed the existing prefixed tool name. No new toolbox, agent
+version or grant was created; deployed v1 remains public-first and live proxy
+compatibility/direct-token behavior remains to test.
+
+The requester subsequently authorized that live increment. Only isolated
+`story6-approval-mcp` v1 was created and only coordinator v2 was deployed.
+The existing runtime role was reused, with no user-role changes. Story4's
+toolbox v1 remains unchanged at approval `never`, while the new toolbox is
+search-only with `always`.
+
+The native hosted proxy request paused at approval; the user's explicit
+decision completed it with one reported MCP call. The authorized direct probe
+then verified `always` metadata and ordinary permission, yet received a result
+without submitting approval. This is the documented toolbox runtime boundary,
+not universal server approval enforcement. The check remains FAIL. A real
+Consumer user received HTTP403 for ordinary direct-proxy access; do not confuse
+that denial with approval enforcement.
+
+See the [proxy evidence](../reports/story-6/human-in-the-loop-approval/final-results/index.html#criterion-4).
+No custom gateway/server policy was added to hide the gap, and existing agent
+deployments remain active. Selected proxy evaluation is complete with explicit
+limitations; authenticated enterprise downstream tools and universal approval
+enforcement are not certified.
 
 Prove what three independently hosted agents can do beyond answering prompts:
 coordinate analysis, preserve the right state, produce artifacts, and recover

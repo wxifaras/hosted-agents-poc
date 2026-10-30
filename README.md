@@ -236,6 +236,43 @@ flowchart LR
     Analysis --> Answer
 ```
 
+### Story 6: human-in-the-loop tool approval
+
+The seven **Agents: Story 6** tasks currently provide safe previews, explicit
+hosted blockers and offline reporting. Step 1's `qualify` mode exercises real
+SDKs with synthetic peers only; it requests no credentials or cloud access.
+The ordinary MCP wrapper's reconnect resend is recorded as a failing local
+single-send check, not hidden by a passing test-runner exit.
+
+The dedicated coordinator is deployed as v2; the original three are unchanged.
+**Agents: Build Story6 final-results HTML** generates the single final-results
+deep dive offline, with a **View with HTML Preview** link in the
+[Issue6 report](docs/issue-6-explore-human-in-the-loop-tool-approval.md).
+An audit-enabled case also records actual conversation items before/during/
+after approval (`0 -> 2 -> 4 -> 6`) and application-level requester/decision
+correlation. See the [history audit task flow](docs/tasks-detailed.md#story6-caller-correlation-and-actual-history).
+Run **Quality: Check Story6 coordinator** for the focused offline tests.
+F5 **Story6 coordinator + Foundry Agent Inspector** starts its separate host
+on port 8091; commands retain the verified Hosted caller/session guard.
+Its `POC_STORY6` start/inspect/decide protocol preserves pending approval as
+structured JSON around native Responses MCP.
+
+Steps 1-4 now support deployment metadata, start, fresh-client inspect and
+explicit approve/reject actions on a saved pinned case. The real public-first
+demo completed approval with one reported MCP call and rejection with zero;
+the original pause file remained intact. Step 6 additionally tested two real
+cached users: B was denied access/decision over A's pending operation, then A
+approved successfully. Step 5 tested the isolated authenticated toolbox:
+valid-token direct calls ran without approval, while a Consumer user's
+direct access was denied. This documented enforcement boundary remains FAIL,
+not a blanket approval-gate claim. No old
+Story 1/3/4 runtime, toolbox or configuration changed.
+The separate **Preview / Prepare /
+Verify Story6 deployment package** tasks stage one service under ignored
+artifacts without changing the root manifest or deploying. See the
+[Story6 issue report](docs/issue-6-explore-human-in-the-loop-tool-approval.md)
+and [operator guide](docs/tasks-detailed.md#story6-human-decision-flow).
+
 ## Quick start - run in this order
 
 Use PowerShell at the repository root. Setup uses Python 3.14 and the committed
