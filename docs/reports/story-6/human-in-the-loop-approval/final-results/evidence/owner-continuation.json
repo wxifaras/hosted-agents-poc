@@ -69,7 +69,7 @@
       "sha256": "7fbcb55334cca703fb851e850293b9906940394dc4ce2e2bc85ee2677a758b97"
     }
   ],
-  "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+  "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
   "download": "evidence/owner-continuation.json",
   "task_flow": {
     "available": true,

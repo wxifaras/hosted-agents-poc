@@ -158,7 +158,7 @@
       "sha256": "39f2bba9ecbfc603b475ce8497d978eb1b94cfdc5db5a1d1afa6ce2134e1156c"
     }
   ],
-  "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+  "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
   "download": "evidence/completion-history.json",
   "task_flow": {
     "available": true,

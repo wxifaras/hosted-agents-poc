@@ -26,8 +26,8 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6fa;padding:12px;
 <body>
 <header>
 <h1>Story6: Hosted tool approval</h1>
-<p>Final results deep dive · synthetic POC · authenticated Foundry toolbox proxy</p>
-<p>Hosted approval, rejection, discovery and owner controls worked. Direct authorized toolbox calls bypassed human approval. Evaluation complete within the tested proxy scope; universal approval enforcement is not achieved.</p>
+<p>Final results deep dive · synthetic POC · direct Entra MCP and Foundry toolbox</p>
+<p>Hosted approval, rejection, discovery and owner controls worked. Direct Entra MCP also paused, executed once after approval and did not execute after rejection. Direct authorized toolbox calls bypassed human approval. Universal approval enforcement is not achieved.</p>
 </header>
 <main>
 <nav aria-label="Report contents">
@@ -40,9 +40,9 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6fa;padding:12px;
 <section id="summary">
 <h2>What worked and what did not</h2>
 <div class="result">
-<div><h3>Worked through Hosted Agents</h3><p>Human approve/reject, fresh-client pending discovery, original-owner continuation, conversation/file continuity and authenticated toolbox access.</p></div>
+<div><h3>Worked through Hosted Agents</h3><p>Direct Entra MCP approval executed once; rejection produced no new effect, independently confirmed by server counts and receipts. Pending discovery, owner controls, conversation/file continuity and authenticated toolbox access also worked.</p></div>
 <div><h3>Unauthorized user denied</h3><p>Another real authenticated user could reach its own route but could not inspect or decide the owner's operation. The owner remained able to continue.</p></div>
-<div class="gap"><h3>Direct approval gate did not work</h3><p>An otherwise authorized caller executed the proxy tool without approval despite <code>require_approval=always</code>. This recorded check remains <strong>FAIL</strong>.</p></div>
+<div><h3>Boundary: approval is runtime-scoped</h3><p>The Hosted <code>require_approval=always</code> tests passed. A separate authorized direct toolbox call executed outside that runtime gate. This is not a failure of Hosted approval. The original server-side enforcement check remains <strong>FAIL</strong> in the detailed evidence; neither Entra authentication nor the MCP endpoint supplies a universal human-approval gate.</p></div>
 </div>
 <p class="notice">Evaluation coverage is not the same as a passing control. These are final selected observations, not a deployment/version timeline, not a combined rerun on one release, and not a production certification.</p>
 <div class="scroll"><table>
@@ -50,7 +50,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6fa;padding:12px;
 <thead><tr><th scope="col">Requirement</th><th scope="col">Status</th><th scope="col">What worked</th><th scope="col">What did not work / limits</th><th scope="col">Next step</th></tr></thead>
 <tbody><tr>
 <th scope="row"><a href="#criterion-1">1. Approve/reject a multi-agent MCP action; identify enforcement ownership</a></th>
-<td>Works, scoped</td><td>Coordinator delegates context to Research, exposes the actual pending MCP request, and continues after approval or rejects without executing the tool</td><td>The provider approval path is not a shared server-side gate covering every MCP caller</td><td>Use this interaction pattern where callers cannot bypass the required runtime</td>
+<td>Works, scoped</td><td>Coordinator delegates context to Research and exposes the actual pending request. Direct Entra MCP without toolbox independently recorded one approved execution and no rejected execution; Learn/toolbox approval also worked</td><td>The provider approval path is not a shared server-side gate covering every MCP caller</td><td>Use this interaction pattern where callers cannot bypass the required runtime</td>
 </tr><tr>
 <th scope="row"><a href="#criterion-2">2. Discover pending approvals, submit decisions, and assess notification options</a></th>
 <td>Works, with notification limitations</td><td>A fresh client discovers the pending operation through custom `inspect`; explicit decisions resume it. Polling, webhook and Event Grid options were assessed</td><td>No native approval-specific webhook/Event Grid contract was established; generic completion is not approval</td><td>Keep the tested inspect/decide path; add notifications only if needed</td>
@@ -69,9 +69,9 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6fa;padding:12px;
 <section id="criterion-1">
 <h2>1. Approve/reject a multi-agent MCP action; identify enforcement ownership</h2>
 <p><strong>Result:</strong> Works, scoped</p>
-<div class="result"><div><h3>What worked</h3><p>Coordinator delegates context to Research, exposes the actual pending MCP request, and continues after approval or rejects without executing the tool</p></div><div><h3>What did not work / why</h3><p>The provider approval path is not a shared server-side gate covering every MCP caller</p></div></div>
+<div class="result"><div><h3>What worked</h3><p>Coordinator delegates context to Research and exposes the actual pending request. Direct Entra MCP without toolbox independently recorded one approved execution and no rejected execution; Learn/toolbox approval also worked</p></div><div><h3>What did not work / why</h3><p>The provider approval path is not a shared server-side gate covering every MCP caller</p></div></div>
 <h3>How this was validated</h3>
-<ol class="flow"><li>Requester invokes the dedicated Hosted coordinator.</li><li>Coordinator calls unchanged Research for context.</li><li>Native provider returns the proposed MCP tool and arguments without dispatching the pending call.</li><li>Client reviews the actual request and explicitly approves or rejects.</li><li>The original bound operation completes or rejects; provider-reported calls remain separately counted.</li></ol>
+<ol class="flow"><li>Requester invokes the dedicated Hosted coordinator.</li><li>Coordinator calls unchanged Research for context.</li><li>Native provider returns the proposed MCP tool and arguments without dispatching the pending call.</li><li>Client reviews the actual request and explicitly approves or rejects.</li><li>The original bound operation completes or rejects; provider-reported calls remain separately counted.</li><li>Without toolbox, the custom Entra MCP independently records one approved effect and no rejected effect.</li></ol>
 <p class="muted">Reviewed test-flow explanation, not an independently captured network trace.</p>
 
 
@@ -187,7 +187,77 @@ Definition version: <code>task-flow-definitions-v1</code>. Current definitions m
 </details>
 
 
-<p><strong>Reproduce:</strong> Story6 Step2: start, then approve/reject using the original private case locator.</p>
+
+<h3>Task flow: Hosted Entra MCP: approval executes once, without toolbox</h3>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story6: Direct Entra MCP approval or rejection, without toolbox</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 508" role="img" aria-labelledby="flow-story6-entra-approval-title flow-story6-entra-approval-description" style="width:100%;height:auto;display:block"><title id="flow-story6-entra-approval-title">Story6: Direct Entra MCP approval or rejection, without toolbox</title><desc id="flow-story6-entra-approval-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-story6-entra-approval-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-story6-entra-approval-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-story6-entra-approval-arrow)" /><g id="flow-story6-entra-approval-pending"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Start through Hosted coordinator and inspect the approval pause</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Requester -&gt; coordinator -&gt; Research context -&gt; native Responses</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-story6-entra-approval-decision"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Submit the human's explicit bound decision to the same operation</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Authenticated requester -&gt; Hosted coordinator</text><text x="88" y="304" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-story6-entra-approval-receipts"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Compare independent server counts and matching execution receipts</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: One Entra-protected MCP tool; same-epoch sequential observations</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Start through Hosted coordinator and inspect the approval pause<br><small>Requester -&gt; coordinator -&gt; Research context -&gt; native Responses</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-story6-entra-approval-1">Entra MCP approval pause — PASS</a></td></tr>
+
+<tr><th scope="row">Submit the human&#39;s explicit bound decision to the same operation<br><small>Authenticated requester -&gt; Hosted coordinator</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-story6-entra-approval-2">Coordinator command — PASS</a></td></tr>
+
+<tr><th scope="row">Compare independent server counts and matching execution receipts<br><small>One Entra-protected MCP tool; same-epoch sequential observations</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-story6-entra-approval-3">Entra MCP execution evidence — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> Approval produced one matching receipt; rejection produced no new effect in a separate case.</p><p><strong>Scope:</strong> Entra authenticates the workload; native Responses enforces approval, not the MCP server.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story6_hosted.execute</code>; <code>app.story6_mcp</code>; <code>app.services.story6_approval.Coordinator</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
+
+
+
+<h3>Task flow: Hosted Entra MCP: rejection prevents execution, without toolbox</h3>
+<details class="task-flow">
+<summary>What this task validates — flow diagram and evidence mapping</summary>
+
+<h4>Story6: Direct Entra MCP approval or rejection, without toolbox</h4>
+<p>Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 508" role="img" aria-labelledby="flow-story6-entra-rejection-title flow-story6-entra-rejection-description" style="width:100%;height:auto;display:block"><title id="flow-story6-entra-rejection-title">Story6: Direct Entra MCP approval or rejection, without toolbox</title><desc id="flow-story6-entra-rejection-description">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id="flow-story6-entra-rejection-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#516477" /></marker></defs><text x="70" y="35" fill="#19314b" font-size="19" font-family="system-ui">CODE-DEFINED PLAN — NOT AN EXECUTION TRACE</text><text x="70" y="60" fill="#516477" font-size="16" font-family="system-ui">Badges describe linked check records, not inferred actions or identity propagation.</text><path d="M460 182 V221" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-story6-entra-rejection-arrow)" /><path d="M460 322 V361" fill="none" stroke="#516477" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#flow-story6-entra-rejection-arrow)" /><g id="flow-story6-entra-rejection-pending"><rect x="70" y="88" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="117" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">1. Start through Hosted coordinator and inspect the approval pause</text><text x="88" y="140" fill="#516477" font-size="15" font-family="system-ui">Actor: Requester -&gt; coordinator -&gt; Research context -&gt; native Responses</text><text x="88" y="164" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-story6-entra-rejection-decision"><rect x="70" y="228" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="257" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">2. Submit the human's explicit bound decision to the same operation</text><text x="88" y="280" fill="#516477" font-size="15" font-family="system-ui">Actor: Authenticated requester -&gt; Hosted coordinator</text><text x="88" y="304" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g><g id="flow-story6-entra-rejection-receipts"><rect x="70" y="368" width="780" height="94" rx="10" fill="#f3f6fa" stroke="#a4b3c3" stroke-width="2" /><text x="88" y="397" fill="#19314b" font-size="18" font-family="system-ui" font-weight="600">3. Compare independent server counts and matching execution receipts</text><text x="88" y="420" fill="#516477" font-size="15" font-family="system-ui">Actor: One Entra-protected MCP tool; same-epoch sequential observations</text><text x="88" y="444" fill="#176538" font-size="15" font-family="system-ui" font-weight="600">Mapped check evidence: PASS (PASS: 1)</text></g></svg>
+<p><strong>Evidence legend:</strong> PASS / FAIL / BLOCKED / SKIP are original linked check statuses.
+MIXED preserves differing outcomes. NOT RECORDED means no matching assertion was saved,
+not that the action necessarily ran or failed. The diagram does not produce a task-level acceptance verdict.</p>
+<div style="overflow-x:auto"><table>
+<caption>Reviewed plan steps and their exact recorded assertion links</caption>
+<thead><tr><th scope="col">Plan action / actor</th><th scope="col">Recorded check evidence</th><th scope="col">Source assertions</th></tr></thead>
+<tbody>
+<tr><th scope="row">Start through Hosted coordinator and inspect the approval pause<br><small>Requester -&gt; coordinator -&gt; Research context -&gt; native Responses</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-story6-entra-rejection-1">Entra MCP approval pause — PASS</a></td></tr>
+
+<tr><th scope="row">Submit the human&#39;s explicit bound decision to the same operation<br><small>Authenticated requester -&gt; Hosted coordinator</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-story6-entra-rejection-2">Coordinator command — PASS</a></td></tr>
+
+<tr><th scope="row">Compare independent server counts and matching execution receipts<br><small>One Entra-protected MCP tool; same-epoch sequential observations</small></th>
+<td>PASS<br>PASS: 1</td>
+<td><a href="#check-story6-entra-rejection-3">Entra MCP execution evidence — PASS</a></td></tr>
+</tbody></table></div>
+<p><strong>Scope:</strong> Approval produced one matching receipt; rejection produced no new effect in a separate case.</p><p><strong>Scope:</strong> Entra authenticates the workload; native Responses enforces approval, not the MCP server.</p>
+<p><strong>Reviewed implementation references:</strong>
+<code>scripts.run_scenario.story6_hosted.execute</code>; <code>app.story6_mcp</code>; <code>app.services.story6_approval.Coordinator</code>.
+Definition version: <code>task-flow-definitions-v1</code>. Current definitions may differ from historical runner versions.</p>
+
+</details>
+
+
+<p><strong>Reproduce:</strong> Story6 MCP - Hosted approval test: start/inspect/approve; new start/reject. Match tool-server counts and receipts. Existing Step2 also reproduces public/toolbox cases.</p>
 <p><strong>Next step:</strong> Use this interaction pattern where callers cannot bypass the required runtime</p>
 <div class="scroll"><table>
 <caption>Recorded checks supporting criterion 1</caption>
@@ -311,6 +381,72 @@ Definition version: <code>task-flow-definitions-v1</code>. Current definitions m
   &#34;file_sha256&#34;: &#34;{reference-1}&#34;,
   &#34;file_retained&#34;: true,
   &#34;same_process&#34;: true
+}</pre></td></tr>
+
+<tr id="check-story6-entra-approval-1"><th scope="row"><a href="#evidence-entra-approval">Hosted Entra MCP: approval executes once, without toolbox</a></th><td>Entra MCP approval pause</td><td><span class="badge PASS">PASS</span></td><td><pre>{
+  &#34;phase&#34;: &#34;pending&#34;,
+  &#34;mcp_route&#34;: &#34;entra-mcp&#34;,
+  &#34;file_retained&#34;: true,
+  &#34;mcp_calls_reported&#34;: 0,
+  &#34;server_total_before&#34;: 0,
+  &#34;server_total_pending&#34;: 0,
+  &#34;same_server_epoch&#34;: true,
+  &#34;case_id_matches_operation&#34;: true
+}</pre></td></tr><tr id="check-story6-entra-approval-2"><th scope="row"><a href="#evidence-entra-approval">Hosted Entra MCP: approval executes once, without toolbox</a></th><td>Coordinator command</td><td><span class="badge PASS">PASS</span></td><td><pre>{
+  &#34;protocol&#34;: &#34;poc-story6-approval-v1&#34;,
+  &#34;phase&#34;: &#34;completed&#34;,
+  &#34;mcp_route&#34;: &#34;entra-mcp&#34;,
+  &#34;decision&#34;: true,
+  &#34;research_response_observed&#34;: true,
+  &#34;research_user_context_present&#34;: false,
+  &#34;provider_responses_observed&#34;: 2,
+  &#34;mcp_calls_reported&#34;: 1,
+  &#34;remote_execution_independently_verified&#34;: false,
+  &#34;delegated_user_authority_verified&#34;: false,
+  &#34;replay_allowed&#34;: false,
+  &#34;file_sha256&#34;: &#34;{reference-1}&#34;,
+  &#34;file_retained&#34;: true,
+  &#34;same_process&#34;: true
+}</pre></td></tr><tr id="check-story6-entra-approval-3"><th scope="row"><a href="#evidence-entra-approval">Hosted Entra MCP: approval executes once, without toolbox</a></th><td>Entra MCP execution evidence</td><td><span class="badge PASS">PASS</span></td><td><pre>{
+  &#34;server_total_before&#34;: 0,
+  &#34;server_total_after&#34;: 1,
+  &#34;execution_delta&#34;: 1,
+  &#34;matching_receipts&#34;: 1,
+  &#34;same_server_epoch&#34;: true,
+  &#34;remote_execution_independently_verified&#34;: true
+}</pre></td></tr>
+
+<tr id="check-story6-entra-rejection-1"><th scope="row"><a href="#evidence-entra-rejection">Hosted Entra MCP: rejection prevents execution, without toolbox</a></th><td>Entra MCP approval pause</td><td><span class="badge PASS">PASS</span></td><td><pre>{
+  &#34;phase&#34;: &#34;pending&#34;,
+  &#34;mcp_route&#34;: &#34;entra-mcp&#34;,
+  &#34;file_retained&#34;: true,
+  &#34;mcp_calls_reported&#34;: 0,
+  &#34;server_total_before&#34;: 1,
+  &#34;server_total_pending&#34;: 1,
+  &#34;same_server_epoch&#34;: true,
+  &#34;case_id_matches_operation&#34;: true
+}</pre></td></tr><tr id="check-story6-entra-rejection-2"><th scope="row"><a href="#evidence-entra-rejection">Hosted Entra MCP: rejection prevents execution, without toolbox</a></th><td>Coordinator command</td><td><span class="badge PASS">PASS</span></td><td><pre>{
+  &#34;protocol&#34;: &#34;poc-story6-approval-v1&#34;,
+  &#34;phase&#34;: &#34;rejected&#34;,
+  &#34;mcp_route&#34;: &#34;entra-mcp&#34;,
+  &#34;decision&#34;: false,
+  &#34;research_response_observed&#34;: true,
+  &#34;research_user_context_present&#34;: false,
+  &#34;provider_responses_observed&#34;: 2,
+  &#34;mcp_calls_reported&#34;: 0,
+  &#34;remote_execution_independently_verified&#34;: false,
+  &#34;delegated_user_authority_verified&#34;: false,
+  &#34;replay_allowed&#34;: false,
+  &#34;file_sha256&#34;: &#34;{reference-1}&#34;,
+  &#34;file_retained&#34;: true,
+  &#34;same_process&#34;: true
+}</pre></td></tr><tr id="check-story6-entra-rejection-3"><th scope="row"><a href="#evidence-entra-rejection">Hosted Entra MCP: rejection prevents execution, without toolbox</a></th><td>Entra MCP execution evidence</td><td><span class="badge PASS">PASS</span></td><td><pre>{
+  &#34;server_total_before&#34;: 1,
+  &#34;server_total_after&#34;: 1,
+  &#34;execution_delta&#34;: 0,
+  &#34;matching_receipts&#34;: 0,
+  &#34;same_server_epoch&#34;: true,
+  &#34;remote_execution_independently_verified&#34;: true
 }</pre></td></tr>
 
 </tbody></table></div>
@@ -1276,21 +1412,21 @@ Definition version: <code>task-flow-definitions-v1</code>. Current definitions m
 <section id="ownership">
 <h2>Which component owns the behavior?</h2>
 <div class="scroll"><table><caption>Capability ownership and support boundaries</caption><thead><tr><th scope="col">Capability</th><th scope="col">Owner / assessment</th></tr></thead>
-<tbody><tr><td>Native MCP pending request and approved continuation</td><td>Foundry-managed provider behavior on the tested hosted path</td></tr><tr><td>Approval configuration and SDK serialization</td><td>Agent Framework / SDK-managed</td></tr><tr><td>Client inspect/decide API, owner binding and evidence tooling</td><td>Custom implementation (Dev Team), backed by platform state</td></tr><tr><td>Foreign session denial and toolbox resource permissions</td><td>Foundry-managed</td></tr><tr><td>Approval enforcement on direct toolbox `tools/call`</td><td>Not enforced on the tested route; documented and observed gap</td></tr><tr><td>Native approval-specific Event Grid/webhook events</td><td>Unverified; not labeled universally unsupported</td></tr><tr><td>Enterprise downstream MCP authorization / original-user delegation</td><td>Not established by this POC</td></tr></tbody></table></div>
+<tbody><tr><td>Native MCP pending request and approved continuation</td><td>Foundry-managed provider behavior on the tested hosted path</td></tr><tr><td>Approval configuration and SDK serialization</td><td>Agent Framework / SDK-managed</td></tr><tr><td>Client inspect/decide API, owner binding and evidence tooling</td><td>Custom implementation (Dev Team), backed by platform state</td></tr><tr><td>Foreign session denial and toolbox resource permissions</td><td>Foundry-managed</td></tr><tr><td>Approval enforcement on direct toolbox `tools/call`</td><td>Not enforced on the tested route; documented and observed gap</td></tr><tr><td>Custom Entra MCP authentication and synthetic receipts</td><td>Custom implementation (Dev Team), using Entra-signed workload tokens; human approval remains runtime-managed</td></tr><tr><td>Native approval-specific Event Grid/webhook events</td><td>Unverified; not labeled universally unsupported</td></tr><tr><td>Enterprise downstream MCP authorization / original-user delegation</td><td>Not established by this POC</td></tr></tbody></table></div>
 <p class="notice gap">Authentication is not approval. The <a href="https://learn.microsoft.com/azure/foundry/agents/how-to/tools/use-toolbox-hosted-agent#enforce-tool-approval">official toolbox guide</a> assigns approval enforcement to the consuming runtime, not the proxy's direct tools/call endpoint. The direct test observed that exact boundary.</p>
 </section>
 <section id="limits">
 <h2>What the results do not prove</h2>
-<ul><li>Direct-call FAIL is an observed enforcement gap, not a failing report generator.</li><li>Foundry toolbox proxy is authenticated; downstream Microsoft Learn is public and read-only.</li><li>Conversation/operation lineage is not a joined distributed trace or downstream original-user delegation.</li><li>Human chat review is distinct from the authenticated API decision caller.</li><li>Recorded scenarios have separate source bindings; they are not a combined rerun on one deployment.</li><li>No new cloud calls, tests or reconstructed history are generated by this report.</li></ul>
+<ul><li>Direct-call FAIL is an observed enforcement gap, not a failing report generator.</li><li>Foundry toolbox proxy is authenticated; downstream Microsoft Learn is public and read-only.</li><li>The separate custom Entra MCP authenticates the workload; it does not enforce human approval on direct calls.</li><li>Conversation/operation lineage is not a joined distributed trace or downstream original-user delegation.</li><li>Human chat review is distinct from the authenticated API decision caller.</li><li>Recorded scenarios have separate source bindings; they are not a combined rerun on one deployment.</li><li>No new cloud calls, tests or reconstructed history are generated by this report.</li></ul>
 <p>Process-loss recovery, interpreter RAM, arbitrary long-lived artifacts and enterprise approver roles are separate scope. No historical failed attempts or local mock qualifications are presented as final hosted results.</p>
 </section>
 <section id="evidence">
 <h2>Evidence and reproducibility</h2>
-<p>Generated offline from the retained eight-observation evidence fixture and the outcome-focused Issue6 Markdown summary. No older reports or credential/private artifact inputs are required after cloning the published branch.</p>
+<p>Generated offline from the retained ten-observation evidence fixture and the outcome-focused Issue6 Markdown summary. No older reports or credential/private artifact inputs are required after cloning the published branch.</p>
 <p>Regenerate: <code>uv run --frozen --no-sync --group validation python -m scripts.story6_report --overwrite</code>.
 Overwrite is allowed only for unchanged inputs; choose a fresh output when findings or sources change.</p>
 <p><a href="sanitized-evidence.json" download>Download the complete sanitized final-results JSON</a></p>
-<p class="muted">Selected evidence only: PASS 31 · FAIL 1. These are check records, not independent scenarios; a check referenced by multiple criteria is stored/counted once.</p>
+<p class="muted">Selected evidence only: PASS 37 · FAIL 1. These are check records, not independent scenarios; a check referenced by multiple criteria is stored/counted once.</p>
 
 <details id="evidence-rejection">
 <summary>Human rejection prevents the selected action · PASS 1 </summary>
@@ -1309,7 +1445,7 @@ Overwrite is allowed only for unchanged inputs; choose a fresh output when findi
   &#34;step&#34;: &#34;step-02-approval-and-rejection&#34;
 }</pre>
 <p>Agent binding: 1 · Recorded checks, no finish-event recorded.</p>
-<p class="source">Retained source-evidence SHA-256: 019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407</p>
+<p class="source">Retained source-evidence SHA-256: fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201</p>
 <pre>[
   {
     &#34;name&#34;: &#34;manifest.json&#34;,
@@ -1343,7 +1479,7 @@ Overwrite is allowed only for unchanged inputs; choose a fresh output when findi
   &#34;step&#34;: &#34;step-02-approval-and-rejection&#34;
 }</pre>
 <p>Agent binding: 2 · Recorded checks, no finish-event recorded.</p>
-<p class="source">Retained source-evidence SHA-256: 019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407</p>
+<p class="source">Retained source-evidence SHA-256: fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201</p>
 <pre>[
   {
     &#34;name&#34;: &#34;manifest.json&#34;,
@@ -1377,7 +1513,7 @@ Overwrite is allowed only for unchanged inputs; choose a fresh output when findi
   &#34;step&#34;: &#34;step-04-pause-and-resume&#34;
 }</pre>
 <p>Agent binding: 2 · Recorded checks, no finish-event recorded.</p>
-<p class="source">Retained source-evidence SHA-256: 019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407</p>
+<p class="source">Retained source-evidence SHA-256: fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201</p>
 <pre>[
   {
     &#34;name&#34;: &#34;manifest.json&#34;,
@@ -1411,7 +1547,7 @@ Overwrite is allowed only for unchanged inputs; choose a fresh output when findi
   &#34;step&#34;: &#34;step-02-approval-and-rejection&#34;
 }</pre>
 <p>Agent binding: 2 · Recorded checks, no finish-event recorded.</p>
-<p class="source">Retained source-evidence SHA-256: 019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407</p>
+<p class="source">Retained source-evidence SHA-256: fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201</p>
 <pre>[
   {
     &#34;name&#34;: &#34;manifest.json&#34;,
@@ -1445,7 +1581,7 @@ Overwrite is allowed only for unchanged inputs; choose a fresh output when findi
   &#34;step&#34;: &#34;step-06-caller-and-approver-access&#34;
 }</pre>
 <p>Agent binding: 1 · Recorded checks, no finish-event recorded.</p>
-<p class="source">Retained source-evidence SHA-256: 019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407</p>
+<p class="source">Retained source-evidence SHA-256: fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201</p>
 <pre>[
   {
     &#34;name&#34;: &#34;manifest.json&#34;,
@@ -1479,7 +1615,7 @@ Overwrite is allowed only for unchanged inputs; choose a fresh output when findi
   &#34;step&#34;: &#34;step-06-caller-and-approver-access&#34;
 }</pre>
 <p>Agent binding: 1 · Recorded checks, no finish-event recorded.</p>
-<p class="source">Retained source-evidence SHA-256: 019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407</p>
+<p class="source">Retained source-evidence SHA-256: fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201</p>
 <pre>[
   {
     &#34;name&#34;: &#34;manifest.json&#34;,
@@ -1513,7 +1649,7 @@ Overwrite is allowed only for unchanged inputs; choose a fresh output when findi
   &#34;step&#34;: &#34;step-02-approval-and-rejection&#34;
 }</pre>
 <p>Agent binding: 2 · Recorded checks, no finish-event recorded.</p>
-<p class="source">Retained source-evidence SHA-256: 019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407</p>
+<p class="source">Retained source-evidence SHA-256: fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201</p>
 <pre>[
   {
     &#34;name&#34;: &#34;manifest.json&#34;,
@@ -1547,7 +1683,7 @@ Overwrite is allowed only for unchanged inputs; choose a fresh output when findi
   &#34;step&#34;: &#34;step-05-direct-mcp-boundary&#34;
 }</pre>
 <p>Agent binding: No agent invoked by direct probe; toolbox v1 · Recorded checks, no finish-event recorded.</p>
-<p class="source">Retained source-evidence SHA-256: 019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407</p>
+<p class="source">Retained source-evidence SHA-256: fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201</p>
 <pre>[
   {
     &#34;name&#34;: &#34;manifest.json&#34;,
@@ -1564,10 +1700,126 @@ Overwrite is allowed only for unchanged inputs; choose a fresh output when findi
 ]</pre>
 </details>
 
-<details><summary>Generator source integrity</summary>
-<p class="source">Markdown SHA-256: 0a316e4e8fa9ee4f0e267ff00b5a3af1b35b64005c492a8ecad82296e8309356<br>Template SHA-256: ca212f403e98c7dc5c08168f20a62352d79a50f2919efccd69a1919ecbfc18be<br>Report source fingerprint: 28654a2e48f992bc68d0f29eb5f16aa41f47ce98ae2576df054858a4c49b920a</p>
+<details id="evidence-entra-approval">
+<summary>Hosted Entra MCP: approval executes once, without toolbox · PASS 3 </summary>
+<p>Actual Hosted coordinator, no toolbox; independent same-epoch server counts and matching execution receipts. Sequential synthetic POC case, not delegated user authority or universal approval.</p>
+<p><strong>Evidence class:</strong> Actual deployed Hosted Agent observation</p>
+<p><a href="evidence/entra-approval.json" download>Download selected evidence JSON</a></p>
+<h3>Source binding (not a version history)</h3>
 <pre>{
-  &#34;docs/validation/story6-final-evidence.json&#34;: &#34;019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407&#34;
+  &#34;scenario&#34;: &#34;story-6-step-2&#34;,
+  &#34;mode&#34;: &#34;hosted&#34;,
+  &#34;started_at&#34;: &#34;2026-10-30T14:08:01.320358+00:00&#34;,
+  &#34;python&#34;: &#34;3.14.8&#34;,
+  &#34;project_version&#34;: &#34;0.1.0&#34;,
+  &#34;maf_version&#34;: &#34;1.19.0&#34;,
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;step&#34;: &#34;step-02-approval-and-rejection&#34;
+}</pre>
+<p>Agent binding: 3 · Actual hosted terminal state and independent server observations reconciled.</p>
+<p class="source">Retained source-evidence SHA-256: fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201</p>
+<pre>[
+  {
+    &#34;name&#34;: &#34;manifest.json&#34;,
+    &#34;sha256&#34;: &#34;e045c2ca10474ea8e9240fc64c2825b81c5e322ee8141de676ba5cbe19aa4d1e&#34;
+  },
+  {
+    &#34;name&#34;: &#34;results.jsonl&#34;,
+    &#34;sha256&#34;: &#34;ba02b4037a266369cebe8d8192afafe762074374237ae3350373c8f4e05c7cfa&#34;
+  },
+  {
+    &#34;name&#34;: &#34;events.jsonl&#34;,
+    &#34;sha256&#34;: &#34;ba02b4037a266369cebe8d8192afafe762074374237ae3350373c8f4e05c7cfa&#34;
+  },
+  {
+    &#34;name&#34;: &#34;pending-results.jsonl&#34;,
+    &#34;sha256&#34;: &#34;beef33c4a7b786ce858b3bd0c831fed4bbabaec5a5850f6dd67df8abebec4d1d&#34;
+  },
+  {
+    &#34;name&#34;: &#34;mcp-health-before.json&#34;,
+    &#34;sha256&#34;: &#34;26f550dea0c5b139b82092576b87846b89d34af7b5e4cbd6c467d5364e1cfd53&#34;
+  },
+  {
+    &#34;name&#34;: &#34;mcp-health-pending.json&#34;,
+    &#34;sha256&#34;: &#34;26f550dea0c5b139b82092576b87846b89d34af7b5e4cbd6c467d5364e1cfd53&#34;
+  },
+  {
+    &#34;name&#34;: &#34;mcp-health-after.json&#34;,
+    &#34;sha256&#34;: &#34;f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252&#34;
+  },
+  {
+    &#34;name&#34;: &#34;mcp-tool-logs.jsonl&#34;,
+    &#34;sha256&#34;: &#34;7bc1febde10064f5e849baf8392b9df95b69b4b7292281753a45048d8c5a034d&#34;
+  },
+  {
+    &#34;name&#34;: &#34;mcp-health-reconciled.json&#34;,
+    &#34;sha256&#34;: &#34;f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252&#34;
+  }
+]</pre>
+</details>
+
+<details id="evidence-entra-rejection">
+<summary>Hosted Entra MCP: rejection prevents execution, without toolbox · PASS 3 </summary>
+<p>Actual Hosted coordinator, no toolbox; independent same-epoch server counts and matching execution receipts. Sequential synthetic POC case, not delegated user authority or universal approval.</p>
+<p><strong>Evidence class:</strong> Actual deployed Hosted Agent observation</p>
+<p><a href="evidence/entra-rejection.json" download>Download selected evidence JSON</a></p>
+<h3>Source binding (not a version history)</h3>
+<pre>{
+  &#34;scenario&#34;: &#34;story-6-step-2&#34;,
+  &#34;mode&#34;: &#34;hosted&#34;,
+  &#34;started_at&#34;: &#34;2026-10-30T14:12:26.599963+00:00&#34;,
+  &#34;python&#34;: &#34;3.14.8&#34;,
+  &#34;project_version&#34;: &#34;0.1.0&#34;,
+  &#34;maf_version&#34;: &#34;1.19.0&#34;,
+  &#34;agentserver_version&#34;: &#34;2.2.0b1&#34;,
+  &#34;step&#34;: &#34;step-02-approval-and-rejection&#34;
+}</pre>
+<p>Agent binding: 3 · Actual hosted terminal state and independent server observations reconciled.</p>
+<p class="source">Retained source-evidence SHA-256: fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201</p>
+<pre>[
+  {
+    &#34;name&#34;: &#34;manifest.json&#34;,
+    &#34;sha256&#34;: &#34;eab83f05765f55992b0a4baf79630a603be421c157c96fc79951d3e87599b0ca&#34;
+  },
+  {
+    &#34;name&#34;: &#34;results.jsonl&#34;,
+    &#34;sha256&#34;: &#34;e744eb6dd4a23eca1e7f6224de35bcd1033ab40b830ed191a6770240c135a141&#34;
+  },
+  {
+    &#34;name&#34;: &#34;events.jsonl&#34;,
+    &#34;sha256&#34;: &#34;e744eb6dd4a23eca1e7f6224de35bcd1033ab40b830ed191a6770240c135a141&#34;
+  },
+  {
+    &#34;name&#34;: &#34;pending-results.jsonl&#34;,
+    &#34;sha256&#34;: &#34;8b366d3cec01780d29490a652aa688d56791ff1e6504d7b84a401b689f5524a6&#34;
+  },
+  {
+    &#34;name&#34;: &#34;mcp-health-before.json&#34;,
+    &#34;sha256&#34;: &#34;f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252&#34;
+  },
+  {
+    &#34;name&#34;: &#34;mcp-health-pending.json&#34;,
+    &#34;sha256&#34;: &#34;f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252&#34;
+  },
+  {
+    &#34;name&#34;: &#34;mcp-health-after.json&#34;,
+    &#34;sha256&#34;: &#34;f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252&#34;
+  },
+  {
+    &#34;name&#34;: &#34;mcp-tool-logs.jsonl&#34;,
+    &#34;sha256&#34;: &#34;7bc1febde10064f5e849baf8392b9df95b69b4b7292281753a45048d8c5a034d&#34;
+  },
+  {
+    &#34;name&#34;: &#34;mcp-health-reconciled.json&#34;,
+    &#34;sha256&#34;: &#34;f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252&#34;
+  }
+]</pre>
+</details>
+
+<details><summary>Generator source integrity</summary>
+<p class="source">Markdown SHA-256: af67986dae7edb38681a96b5c98b18d04c80f548083257aa367d1c01d0d188be<br>Template SHA-256: 2a3f81c5a09ec73f7d175c22d562abd1438ee0e74b808027a6cdb7384a9a1d54<br>Report source fingerprint: 5d6bf6fcdc7a81e55c5f7487df0d7de4041cb0401dd9a8e6050ad59ca0a5a258</p>
+<pre>{
+  &#34;docs/validation/story6-final-evidence.json&#34;: &#34;fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201&#34;
 }</pre>
 </details>
 <p class="muted">POC evidence is provided as-is, not official Microsoft guidance, an SLA or a guarantee. Source completion/identity/trace limitations remain visible. Saving a report does not publish the branch or close the issue.</p>

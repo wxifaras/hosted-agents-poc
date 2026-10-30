@@ -2,16 +2,18 @@
   "schema": "story6-final-results-v1",
   "story": 6,
   "title": "Story6 | Hosted tool approval - final results",
-  "conclusion": "Hosted approval, rejection, discovery and owner controls worked. Direct authorized toolbox calls bypassed human approval. Evaluation complete within the tested proxy scope; universal approval enforcement is not achieved.",
+  "conclusion": "Hosted approval, rejection, discovery and owner controls worked. Direct Entra MCP also paused, executed once after approval and did not execute after rejection. Direct authorized toolbox calls bypassed human approval. Universal approval enforcement is not achieved.",
   "criteria": [
     {
       "number": "1",
       "requirement": "Approve/reject a multi-agent MCP action; identify enforcement ownership",
       "status": "Works, scoped",
-      "works": "Coordinator delegates context to Research, exposes the actual pending MCP request, and continues after approval or rejects without executing the tool",
+      "works": "Coordinator delegates context to Research and exposes the actual pending request. Direct Entra MCP without toolbox independently recorded one approved execution and no rejected execution; Learn/toolbox approval also worked",
       "limitations": "The provider approval path is not a shared server-side gate covering every MCP caller",
       "next_step": "Use this interaction pattern where callers cannot bypass the required runtime",
       "evidence": [
+        "entra-approval",
+        "entra-rejection",
         "rejection",
         "completion-history",
         "proxy-approval"
@@ -21,9 +23,10 @@
         "Coordinator calls unchanged Research for context.",
         "Native provider returns the proposed MCP tool and arguments without dispatching the pending call.",
         "Client reviews the actual request and explicitly approves or rejects.",
-        "The original bound operation completes or rejects; provider-reported calls remain separately counted."
+        "The original bound operation completes or rejects; provider-reported calls remain separately counted.",
+        "Without toolbox, the custom Entra MCP independently records one approved effect and no rejected effect."
       ],
-      "task": "Story6 Step2: start, then approve/reject using the original private case locator."
+      "task": "Story6 MCP - Hosted approval test: start/inspect/approve; new start/reject. Match tool-server counts and receipts. Existing Step2 also reproduces public/toolbox cases."
     },
     {
       "number": "2",
@@ -166,7 +169,7 @@
           "sha256": "f2074bf2c3b723b57745087458b9a4e8b14d6b878f9c8bee6cf02cc16aa97d09"
         }
       ],
-      "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+      "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
       "download": "evidence/rejection.json",
       "task_flow": {
         "available": true,
@@ -366,7 +369,7 @@
           "sha256": "9aeb7e08400c5011338a43930160d9ffa784818b01b3be778dd07740bd1a617f"
         }
       ],
-      "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+      "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
       "download": "evidence/pending-history.json",
       "task_flow": {
         "available": true,
@@ -626,7 +629,7 @@
           "sha256": "d45047f26253ec31842788c5c4ff54a7fc078b3b5fe0efc6818d84a6d90b11f9"
         }
       ],
-      "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+      "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
       "download": "evidence/pause-history.json",
       "task_flow": {
         "available": true,
@@ -889,7 +892,7 @@
           "sha256": "39f2bba9ecbfc603b475ce8497d978eb1b94cfdc5db5a1d1afa6ce2134e1156c"
         }
       ],
-      "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+      "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
       "download": "evidence/completion-history.json",
       "task_flow": {
         "available": true,
@@ -1160,7 +1163,7 @@
           "sha256": "91dd9052e1a027569b5611145be3b9214243ff3b2655c8711cb9bfc7f1e702e6"
         }
       ],
-      "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+      "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
       "download": "evidence/foreign-approver.json",
       "task_flow": {
         "available": true,
@@ -1359,7 +1362,7 @@
           "sha256": "7fbcb55334cca703fb851e850293b9906940394dc4ce2e2bc85ee2677a758b97"
         }
       ],
-      "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+      "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
       "download": "evidence/owner-continuation.json",
       "task_flow": {
         "available": true,
@@ -1470,7 +1473,7 @@
           "sha256": "9d1313f0fa7f3573ffc89137780f80616702a808f2e0cb75d0c4ecf49e20e295"
         }
       ],
-      "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+      "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
       "download": "evidence/proxy-approval.json",
       "task_flow": {
         "available": true,
@@ -1619,7 +1622,7 @@
           "sha256": "4e18abf763841b5716e49599169ef2ef37bbdb66fe2fa40a45d53597f8bb4fb6"
         }
       ],
-      "snapshot_sha256": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407",
+      "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
       "download": "evidence/direct-access.json",
       "task_flow": {
         "available": true,
@@ -1720,6 +1723,378 @@
         "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 811\" role=\"img\" aria-labelledby=\"flow-story6-direct-access-title flow-story6-direct-access-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-story6-direct-access-title\">Story6 Step5: Authenticated direct MCP approval boundary</title><desc id=\"flow-story6-direct-access-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-story6-direct-access-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-direct-access-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-direct-access-arrow)\" /><path d=\"M460 462 V501\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-direct-access-arrow)\" /><path d=\"M460 625 V664\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-direct-access-arrow)\" /><g id=\"flow-story6-direct-access-definition\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Verify the exact isolated immutable search-only toolbox</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Read-only operator metadata</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-direct-access-metadata\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Initialize and verify MCP require_approval=always metadata</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Valid Entra-token client -&gt; first-party Foundry toolbox</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-direct-access-control\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Prove ordinary authorized direct tool access</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Fixed read-only search; no approval message</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-direct-access-direct\"><rect x=\"70\" y=\"508\" width=\"780\" height=\"117\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"537\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">4. Call directly without approval and preserve the enforcement</text><text x=\"88\" y=\"560\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">verdict</text><text x=\"88\" y=\"583\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Same authorized direct route, not a Hosted Agent request</text><text x=\"88\" y=\"607\" fill=\"#a51b26\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: FAIL (FAIL: 1)</text></g><g id=\"flow-story6-direct-access-permission\"><rect x=\"70\" y=\"671\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"700\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">5. Test the existing Consumer user's ordinary proxy access</text><text x=\"88\" y=\"723\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Separate CLI profile; not an approval-denial test</text><text x=\"88\" y=\"747\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
       },
       "primary_criterion": "4"
+    },
+    {
+      "key": "entra-approval",
+      "label": "Hosted Entra MCP: approval executes once, without toolbox",
+      "kind": "hosted",
+      "counts": {
+        "PASS": 3
+      },
+      "checks": [
+        {
+          "ordinal": 1,
+          "name": "Entra MCP approval pause",
+          "status": "PASS",
+          "expected": "Actual pending request, original file retained, no execution during pause",
+          "observed": {
+            "phase": "pending",
+            "mcp_route": "entra-mcp",
+            "file_retained": true,
+            "mcp_calls_reported": 0,
+            "server_total_before": 0,
+            "server_total_pending": 0,
+            "same_server_epoch": true,
+            "case_id_matches_operation": true
+          },
+          "anchor": "check-story6-entra-approval-1"
+        },
+        {
+          "ordinal": 2,
+          "name": "Coordinator command",
+          "status": "PASS",
+          "expected": "Demonstrate actual human approval/rejection on the new coordinator after unchanged Research context.",
+          "observed": {
+            "protocol": "poc-story6-approval-v1",
+            "phase": "completed",
+            "mcp_route": "entra-mcp",
+            "decision": true,
+            "research_response_observed": true,
+            "research_user_context_present": false,
+            "provider_responses_observed": 2,
+            "mcp_calls_reported": 1,
+            "remote_execution_independently_verified": false,
+            "delegated_user_authority_verified": false,
+            "replay_allowed": false,
+            "file_sha256": "{reference-1}",
+            "file_retained": true,
+            "same_process": true
+          },
+          "anchor": "check-story6-entra-approval-2"
+        },
+        {
+          "ordinal": 3,
+          "name": "Entra MCP execution evidence",
+          "status": "PASS",
+          "expected": "One matching execution only on approval; no new execution on rejection",
+          "observed": {
+            "server_total_before": 0,
+            "server_total_after": 1,
+            "execution_delta": 1,
+            "matching_receipts": 1,
+            "same_server_epoch": true,
+            "remote_execution_independently_verified": true
+          },
+          "anchor": "check-story6-entra-approval-3"
+        }
+      ],
+      "scope": "Actual Hosted coordinator, no toolbox; independent same-epoch server counts and matching execution receipts. Sequential synthetic POC case, not delegated user authority or universal approval.",
+      "provenance": {
+        "scenario": "story-6-step-2",
+        "mode": "hosted",
+        "started_at": "2026-10-30T14:08:01.320358+00:00",
+        "python": "3.14.8",
+        "project_version": "0.1.0",
+        "maf_version": "1.19.0",
+        "agentserver_version": "2.2.0b1",
+        "step": "step-02-approval-and-rejection"
+      },
+      "agent_version": "3",
+      "completion": "Actual hosted terminal state and independent server observations reconciled.",
+      "sources": [
+        {
+          "name": "manifest.json",
+          "sha256": "e045c2ca10474ea8e9240fc64c2825b81c5e322ee8141de676ba5cbe19aa4d1e"
+        },
+        {
+          "name": "results.jsonl",
+          "sha256": "ba02b4037a266369cebe8d8192afafe762074374237ae3350373c8f4e05c7cfa"
+        },
+        {
+          "name": "events.jsonl",
+          "sha256": "ba02b4037a266369cebe8d8192afafe762074374237ae3350373c8f4e05c7cfa"
+        },
+        {
+          "name": "pending-results.jsonl",
+          "sha256": "beef33c4a7b786ce858b3bd0c831fed4bbabaec5a5850f6dd67df8abebec4d1d"
+        },
+        {
+          "name": "mcp-health-before.json",
+          "sha256": "26f550dea0c5b139b82092576b87846b89d34af7b5e4cbd6c467d5364e1cfd53"
+        },
+        {
+          "name": "mcp-health-pending.json",
+          "sha256": "26f550dea0c5b139b82092576b87846b89d34af7b5e4cbd6c467d5364e1cfd53"
+        },
+        {
+          "name": "mcp-health-after.json",
+          "sha256": "f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252"
+        },
+        {
+          "name": "mcp-tool-logs.jsonl",
+          "sha256": "7bc1febde10064f5e849baf8392b9df95b69b4b7292281753a45048d8c5a034d"
+        },
+        {
+          "name": "mcp-health-reconciled.json",
+          "sha256": "f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252"
+        }
+      ],
+      "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
+      "download": "evidence/entra-approval.json",
+      "task_flow": {
+        "available": true,
+        "version": "task-flow-definitions-v1",
+        "definition": "story-6-entra-mcp",
+        "title": "Story6: Direct Entra MCP approval or rejection, without toolbox",
+        "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+        "sources": [
+          "scripts.run_scenario.story6_hosted.execute",
+          "app.story6_mcp",
+          "app.services.story6_approval.Coordinator"
+        ],
+        "notes": [
+          "Approval produced one matching receipt; rejection produced no new effect in a separate case.",
+          "Entra authenticates the workload; native Responses enforces approval, not the MCP server."
+        ],
+        "nodes": [
+          {
+            "key": "pending",
+            "title": "Start through Hosted coordinator and inspect the approval pause",
+            "actor": "Requester -> coordinator -> Research context -> native Responses",
+            "evidence_status": "PASS",
+            "counts": {
+              "PASS": 1
+            },
+            "references": [
+              {
+                "name": "Entra MCP approval pause",
+                "status": "PASS",
+                "anchor": "check-story6-entra-approval-1"
+              }
+            ]
+          },
+          {
+            "key": "decision",
+            "title": "Submit the human's explicit bound decision to the same operation",
+            "actor": "Authenticated requester -> Hosted coordinator",
+            "evidence_status": "PASS",
+            "counts": {
+              "PASS": 1
+            },
+            "references": [
+              {
+                "name": "Coordinator command",
+                "status": "PASS",
+                "anchor": "check-story6-entra-approval-2"
+              }
+            ]
+          },
+          {
+            "key": "receipts",
+            "title": "Compare independent server counts and matching execution receipts",
+            "actor": "One Entra-protected MCP tool; same-epoch sequential observations",
+            "evidence_status": "PASS",
+            "counts": {
+              "PASS": 1
+            },
+            "references": [
+              {
+                "name": "Entra MCP execution evidence",
+                "status": "PASS",
+                "anchor": "check-story6-entra-approval-3"
+              }
+            ]
+          }
+        ],
+        "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 508\" role=\"img\" aria-labelledby=\"flow-story6-entra-approval-title flow-story6-entra-approval-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-story6-entra-approval-title\">Story6: Direct Entra MCP approval or rejection, without toolbox</title><desc id=\"flow-story6-entra-approval-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-story6-entra-approval-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-entra-approval-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-entra-approval-arrow)\" /><g id=\"flow-story6-entra-approval-pending\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Start through Hosted coordinator and inspect the approval pause</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Requester -&gt; coordinator -&gt; Research context -&gt; native Responses</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-entra-approval-decision\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Submit the human's explicit bound decision to the same operation</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Authenticated requester -&gt; Hosted coordinator</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-entra-approval-receipts\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Compare independent server counts and matching execution receipts</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: One Entra-protected MCP tool; same-epoch sequential observations</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+      },
+      "primary_criterion": "1"
+    },
+    {
+      "key": "entra-rejection",
+      "label": "Hosted Entra MCP: rejection prevents execution, without toolbox",
+      "kind": "hosted",
+      "counts": {
+        "PASS": 3
+      },
+      "checks": [
+        {
+          "ordinal": 1,
+          "name": "Entra MCP approval pause",
+          "status": "PASS",
+          "expected": "Actual pending request, original file retained, no execution during pause",
+          "observed": {
+            "phase": "pending",
+            "mcp_route": "entra-mcp",
+            "file_retained": true,
+            "mcp_calls_reported": 0,
+            "server_total_before": 1,
+            "server_total_pending": 1,
+            "same_server_epoch": true,
+            "case_id_matches_operation": true
+          },
+          "anchor": "check-story6-entra-rejection-1"
+        },
+        {
+          "ordinal": 2,
+          "name": "Coordinator command",
+          "status": "PASS",
+          "expected": "Demonstrate actual human approval/rejection on the new coordinator after unchanged Research context.",
+          "observed": {
+            "protocol": "poc-story6-approval-v1",
+            "phase": "rejected",
+            "mcp_route": "entra-mcp",
+            "decision": false,
+            "research_response_observed": true,
+            "research_user_context_present": false,
+            "provider_responses_observed": 2,
+            "mcp_calls_reported": 0,
+            "remote_execution_independently_verified": false,
+            "delegated_user_authority_verified": false,
+            "replay_allowed": false,
+            "file_sha256": "{reference-1}",
+            "file_retained": true,
+            "same_process": true
+          },
+          "anchor": "check-story6-entra-rejection-2"
+        },
+        {
+          "ordinal": 3,
+          "name": "Entra MCP execution evidence",
+          "status": "PASS",
+          "expected": "One matching execution only on approval; no new execution on rejection",
+          "observed": {
+            "server_total_before": 1,
+            "server_total_after": 1,
+            "execution_delta": 0,
+            "matching_receipts": 0,
+            "same_server_epoch": true,
+            "remote_execution_independently_verified": true
+          },
+          "anchor": "check-story6-entra-rejection-3"
+        }
+      ],
+      "scope": "Actual Hosted coordinator, no toolbox; independent same-epoch server counts and matching execution receipts. Sequential synthetic POC case, not delegated user authority or universal approval.",
+      "provenance": {
+        "scenario": "story-6-step-2",
+        "mode": "hosted",
+        "started_at": "2026-10-30T14:12:26.599963+00:00",
+        "python": "3.14.8",
+        "project_version": "0.1.0",
+        "maf_version": "1.19.0",
+        "agentserver_version": "2.2.0b1",
+        "step": "step-02-approval-and-rejection"
+      },
+      "agent_version": "3",
+      "completion": "Actual hosted terminal state and independent server observations reconciled.",
+      "sources": [
+        {
+          "name": "manifest.json",
+          "sha256": "eab83f05765f55992b0a4baf79630a603be421c157c96fc79951d3e87599b0ca"
+        },
+        {
+          "name": "results.jsonl",
+          "sha256": "e744eb6dd4a23eca1e7f6224de35bcd1033ab40b830ed191a6770240c135a141"
+        },
+        {
+          "name": "events.jsonl",
+          "sha256": "e744eb6dd4a23eca1e7f6224de35bcd1033ab40b830ed191a6770240c135a141"
+        },
+        {
+          "name": "pending-results.jsonl",
+          "sha256": "8b366d3cec01780d29490a652aa688d56791ff1e6504d7b84a401b689f5524a6"
+        },
+        {
+          "name": "mcp-health-before.json",
+          "sha256": "f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252"
+        },
+        {
+          "name": "mcp-health-pending.json",
+          "sha256": "f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252"
+        },
+        {
+          "name": "mcp-health-after.json",
+          "sha256": "f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252"
+        },
+        {
+          "name": "mcp-tool-logs.jsonl",
+          "sha256": "7bc1febde10064f5e849baf8392b9df95b69b4b7292281753a45048d8c5a034d"
+        },
+        {
+          "name": "mcp-health-reconciled.json",
+          "sha256": "f0ff5d01d50f64d04e0d8949666461a5a2d18915b40f5640137f120857df3252"
+        }
+      ],
+      "snapshot_sha256": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201",
+      "download": "evidence/entra-rejection.json",
+      "task_flow": {
+        "available": true,
+        "version": "task-flow-definitions-v1",
+        "definition": "story-6-entra-mcp",
+        "title": "Story6: Direct Entra MCP approval or rejection, without toolbox",
+        "notice": "Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.",
+        "sources": [
+          "scripts.run_scenario.story6_hosted.execute",
+          "app.story6_mcp",
+          "app.services.story6_approval.Coordinator"
+        ],
+        "notes": [
+          "Approval produced one matching receipt; rejection produced no new effect in a separate case.",
+          "Entra authenticates the workload; native Responses enforces approval, not the MCP server."
+        ],
+        "nodes": [
+          {
+            "key": "pending",
+            "title": "Start through Hosted coordinator and inspect the approval pause",
+            "actor": "Requester -> coordinator -> Research context -> native Responses",
+            "evidence_status": "PASS",
+            "counts": {
+              "PASS": 1
+            },
+            "references": [
+              {
+                "name": "Entra MCP approval pause",
+                "status": "PASS",
+                "anchor": "check-story6-entra-rejection-1"
+              }
+            ]
+          },
+          {
+            "key": "decision",
+            "title": "Submit the human's explicit bound decision to the same operation",
+            "actor": "Authenticated requester -> Hosted coordinator",
+            "evidence_status": "PASS",
+            "counts": {
+              "PASS": 1
+            },
+            "references": [
+              {
+                "name": "Coordinator command",
+                "status": "PASS",
+                "anchor": "check-story6-entra-rejection-2"
+              }
+            ]
+          },
+          {
+            "key": "receipts",
+            "title": "Compare independent server counts and matching execution receipts",
+            "actor": "One Entra-protected MCP tool; same-epoch sequential observations",
+            "evidence_status": "PASS",
+            "counts": {
+              "PASS": 1
+            },
+            "references": [
+              {
+                "name": "Entra MCP execution evidence",
+                "status": "PASS",
+                "anchor": "check-story6-entra-rejection-3"
+              }
+            ]
+          }
+        ],
+        "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 508\" role=\"img\" aria-labelledby=\"flow-story6-entra-rejection-title flow-story6-entra-rejection-description\" style=\"width:100%;height:auto;display:block\"><title id=\"flow-story6-entra-rejection-title\">Story6: Direct Entra MCP approval or rejection, without toolbox</title><desc id=\"flow-story6-entra-rejection-description\">Reviewed code-defined test plan, not an execution trace. Arrows do not prove requests, identity propagation, span linkage, or successful authorization. Badges summarize only the explicitly linked recorded checks; missing checks remain NOT RECORDED.</desc><defs><marker id=\"flow-story6-entra-rejection-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#516477\" /></marker></defs><text x=\"70\" y=\"35\" fill=\"#19314b\" font-size=\"19\" font-family=\"system-ui\">CODE-DEFINED PLAN \u2014 NOT AN EXECUTION TRACE</text><text x=\"70\" y=\"60\" fill=\"#516477\" font-size=\"16\" font-family=\"system-ui\">Badges describe linked check records, not inferred actions or identity propagation.</text><path d=\"M460 182 V221\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-entra-rejection-arrow)\" /><path d=\"M460 322 V361\" fill=\"none\" stroke=\"#516477\" stroke-width=\"2\" stroke-dasharray=\"5 4\" marker-end=\"url(#flow-story6-entra-rejection-arrow)\" /><g id=\"flow-story6-entra-rejection-pending\"><rect x=\"70\" y=\"88\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"117\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">1. Start through Hosted coordinator and inspect the approval pause</text><text x=\"88\" y=\"140\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Requester -&gt; coordinator -&gt; Research context -&gt; native Responses</text><text x=\"88\" y=\"164\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-entra-rejection-decision\"><rect x=\"70\" y=\"228\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"257\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">2. Submit the human's explicit bound decision to the same operation</text><text x=\"88\" y=\"280\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: Authenticated requester -&gt; Hosted coordinator</text><text x=\"88\" y=\"304\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g><g id=\"flow-story6-entra-rejection-receipts\"><rect x=\"70\" y=\"368\" width=\"780\" height=\"94\" rx=\"10\" fill=\"#f3f6fa\" stroke=\"#a4b3c3\" stroke-width=\"2\" /><text x=\"88\" y=\"397\" fill=\"#19314b\" font-size=\"18\" font-family=\"system-ui\" font-weight=\"600\">3. Compare independent server counts and matching execution receipts</text><text x=\"88\" y=\"420\" fill=\"#516477\" font-size=\"15\" font-family=\"system-ui\">Actor: One Entra-protected MCP tool; same-epoch sequential observations</text><text x=\"88\" y=\"444\" fill=\"#176538\" font-size=\"15\" font-family=\"system-ui\" font-weight=\"600\">Mapped check evidence: PASS (PASS: 1)</text></g></svg>"
+      },
+      "primary_criterion": "1"
     }
   ],
   "notification_headers": [
@@ -1776,6 +2151,10 @@
       "Not enforced on the tested route; documented and observed gap"
     ],
     [
+      "Custom Entra MCP authentication and synthetic receipts",
+      "Custom implementation (Dev Team), using Entra-signed workload tokens; human approval remains runtime-managed"
+    ],
+    [
       "Native approval-specific Event Grid/webhook events",
       "Unverified; not labeled universally unsupported"
     ],
@@ -1784,22 +2163,23 @@
       "Not established by this POC"
     ]
   ],
-  "report_sha256": "0a316e4e8fa9ee4f0e267ff00b5a3af1b35b64005c492a8ecad82296e8309356",
+  "report_sha256": "af67986dae7edb38681a96b5c98b18d04c80f548083257aa367d1c01d0d188be",
   "source_evidence": {
-    "docs/validation/story6-final-evidence.json": "019109ed6b444bb8fe862f5dea2fabbc5732b2e385b72722b71579c1ae5f3407"
+    "docs/validation/story6-final-evidence.json": "fddbd0c60f37e251acc800ab1831ba5673b564a3a217aeaa9fa20b7b9e0e2201"
   },
-  "template_sha256": "ca212f403e98c7dc5c08168f20a62352d79a50f2919efccd69a1919ecbfc18be",
+  "template_sha256": "2a3f81c5a09ec73f7d175c22d562abd1438ee0e74b808027a6cdb7384a9a1d54",
   "counts": {
-    "PASS": 31,
+    "PASS": 37,
     "FAIL": 1
   },
   "limitations": [
     "Direct-call FAIL is an observed enforcement gap, not a failing report generator.",
     "Foundry toolbox proxy is authenticated; downstream Microsoft Learn is public and read-only.",
+    "The separate custom Entra MCP authenticates the workload; it does not enforce human approval on direct calls.",
     "Conversation/operation lineage is not a joined distributed trace or downstream original-user delegation.",
     "Human chat review is distinct from the authenticated API decision caller.",
     "Recorded scenarios have separate source bindings; they are not a combined rerun on one deployment.",
     "No new cloud calls, tests or reconstructed history are generated by this report."
   ],
-  "source_fingerprint": "28654a2e48f992bc68d0f29eb5f16aa41f47ce98ae2576df054858a4c49b920a"
+  "source_fingerprint": "5d6bf6fcdc7a81e55c5f7487df0d7de4041cb0401dd9a8e6050ad59ca0a5a258"
 }

@@ -39,19 +39,25 @@ BINDINGS = (
     ("owner-continuation", "Original authenticated owner continues", "hosted"),
     ("proxy-approval", "Hosted approval through authenticated toolbox", "hosted"),
     ("direct-access", "Direct token access and ordinary permission control", "direct"),
+    ("entra-approval", "Hosted Entra MCP: approval executes once, without toolbox", "hosted"),
+    ("entra-rejection", "Hosted Entra MCP: rejection prevents execution, without toolbox", "hosted"),
 )
 CRITERIA = (
     {
         "number": "1",
-        "evidence": ["rejection", "completion-history", "proxy-approval"],
+        "evidence": ["entra-approval", "entra-rejection", "rejection", "completion-history", "proxy-approval"],
         "flow": [
             "Requester invokes the dedicated Hosted coordinator.",
             "Coordinator calls unchanged Research for context.",
             "Native provider returns the proposed MCP tool and arguments without dispatching the pending call.",
             "Client reviews the actual request and explicitly approves or rejects.",
             "The original bound operation completes or rejects; provider-reported calls remain separately counted.",
+            "Without toolbox, the custom Entra MCP independently records one approved effect and no rejected effect.",
         ],
-        "task": "Story6 Step2: start, then approve/reject using the original private case locator.",
+        "task": (
+            "Story6 MCP - Hosted approval test: start/inspect/approve; new start/reject. "
+            "Match tool-server counts and receipts. Existing Step2 also reproduces public/toolbox cases."
+        ),
     },
     {
         "number": "2",
@@ -179,7 +185,17 @@ def checked_run(
     references: list[JsonValue] = []
     for reference in objects(source.get("sources"), "Source references"):
         name, checksum = reference.get("name"), reference.get("sha256")
-        if name not in {"manifest.json", "results.jsonl", "events.jsonl"} or not isinstance(checksum, str):
+        if name not in {
+            "manifest.json",
+            "results.jsonl",
+            "events.jsonl",
+            "pending-results.jsonl",
+            "mcp-health-before.json",
+            "mcp-health-pending.json",
+            "mcp-health-after.json",
+            "mcp-tool-logs.jsonl",
+            "mcp-health-reconciled.json",
+        } or not isinstance(checksum, str):
             raise ReportError("Unexpected source reference in retained evidence.")
         if not re.fullmatch(r"[a-f0-9]{64}", checksum):
             raise ReportError("Source reference must retain its checksum.")
@@ -257,6 +273,36 @@ def validate_final_findings(runs: list[JsonValue]) -> None:
     for key in ("foreign-approver", "owner-continuation"):
         if any(check["status"] != "PASS" for check in objects(indexed[key]["checks"], "Checks")):
             raise ReportError("Owner/foreign-user conclusion disagrees with recorded access checks.")
+    for key, phase, expected_before, expected_delta in (
+        ("entra-approval", "completed", 0, 1),
+        ("entra-rejection", "rejected", 1, 0),
+    ):
+        command = observation(key, "Coordinator command")
+        pause = observation(key, "Entra MCP approval pause")
+        receipts = observation(key, "Entra MCP execution evidence")
+        result, pending, effects = command["observed"], pause["observed"], receipts["observed"]
+        if (
+            any(check["status"] != "PASS" for check in (command, pause, receipts))
+            or not isinstance(result, dict)
+            or not isinstance(pending, dict)
+            or not isinstance(effects, dict)
+            or result.get("mcp_route") != "entra-mcp"
+            or result.get("phase") != phase
+            or result.get("decision") is not bool(expected_delta)
+            or result.get("mcp_calls_reported") != expected_delta
+            or pending.get("phase") != "pending"
+            or pending.get("server_total_before") != expected_before
+            or pending.get("server_total_pending") != expected_before
+            or pending.get("same_server_epoch") is not True
+            or pending.get("case_id_matches_operation") is not True
+            or effects.get("server_total_before") != expected_before
+            or effects.get("server_total_after") != expected_before + expected_delta
+            or effects.get("execution_delta") != expected_delta
+            or effects.get("matching_receipts") != expected_delta
+            or effects.get("same_server_epoch") is not True
+            or effects.get("remote_execution_independently_verified") is not True
+        ):
+            raise ReportError("Custom Entra MCP conclusion requires actual terminal state and independent receipts.")
 
 
 def build_report(root: Path) -> dict[str, JsonValue]:
@@ -327,8 +373,9 @@ def build_report(root: Path) -> dict[str, JsonValue]:
         "title": "Story6 | Hosted tool approval - final results",
         "conclusion": (
             "Hosted approval, rejection, discovery and owner controls worked. "
+            "Direct Entra MCP also paused, executed once after approval and did not execute after rejection. "
             "Direct authorized toolbox calls bypassed human approval. "
-            "Evaluation complete within the tested proxy scope; universal approval enforcement is not achieved."
+            "Universal approval enforcement is not achieved."
         ),
         "criteria": criteria,
         "runs": runs,
@@ -355,6 +402,10 @@ def build_report(root: Path) -> dict[str, JsonValue]:
         "limitations": [
             "Direct-call FAIL is an observed enforcement gap, not a failing report generator.",
             "Foundry toolbox proxy is authenticated; downstream Microsoft Learn is public and read-only.",
+            (
+                "The separate custom Entra MCP authenticates the workload; "
+                "it does not enforce human approval on direct calls."
+            ),
             "Conversation/operation lineage is not a joined distributed trace or downstream original-user delegation.",
             "Human chat review is distinct from the authenticated API decision caller.",
             "Recorded scenarios have separate source bindings; they are not a combined rerun on one deployment.",

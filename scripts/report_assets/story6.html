@@ -26,7 +26,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6fa;padding:12px;
 <body>
 <header>
 <h1>Story6: Hosted tool approval</h1>
-<p>Final results deep dive · synthetic POC · authenticated Foundry toolbox proxy</p>
+<p>Final results deep dive · synthetic POC · direct Entra MCP and Foundry toolbox</p>
 <p>{{ conclusion }}</p>
 </header>
 <main>
@@ -40,9 +40,9 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6fa;padding:12px;
 <section id="summary">
 <h2>What worked and what did not</h2>
 <div class="result">
-<div><h3>Worked through Hosted Agents</h3><p>Human approve/reject, fresh-client pending discovery, original-owner continuation, conversation/file continuity and authenticated toolbox access.</p></div>
+<div><h3>Worked through Hosted Agents</h3><p>Direct Entra MCP approval executed once; rejection produced no new effect, independently confirmed by server counts and receipts. Pending discovery, owner controls, conversation/file continuity and authenticated toolbox access also worked.</p></div>
 <div><h3>Unauthorized user denied</h3><p>Another real authenticated user could reach its own route but could not inspect or decide the owner's operation. The owner remained able to continue.</p></div>
-<div class="gap"><h3>Direct approval gate did not work</h3><p>An otherwise authorized caller executed the proxy tool without approval despite <code>require_approval=always</code>. This recorded check remains <strong>FAIL</strong>.</p></div>
+<div><h3>Boundary: approval is runtime-scoped</h3><p>The Hosted <code>require_approval=always</code> tests passed. A separate authorized direct toolbox call executed outside that runtime gate. This is not a failure of Hosted approval. The original server-side enforcement check remains <strong>FAIL</strong> in the detailed evidence; neither Entra authentication nor the MCP endpoint supplies a universal human-approval gate.</p></div>
 </div>
 <p class="notice">Evaluation coverage is not the same as a passing control. These are final selected observations, not a deployment/version timeline, not a combined rerun on one release, and not a production certification.</p>
 <div class="scroll"><table>
@@ -104,7 +104,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6fa;padding:12px;
 </section>
 <section id="evidence">
 <h2>Evidence and reproducibility</h2>
-<p>Generated offline from the retained eight-observation evidence fixture and the outcome-focused Issue6 Markdown summary. No older reports or credential/private artifact inputs are required after cloning the published branch.</p>
+<p>Generated offline from the retained ten-observation evidence fixture and the outcome-focused Issue6 Markdown summary. No older reports or credential/private artifact inputs are required after cloning the published branch.</p>
 <p>Regenerate: <code>uv run --frozen --no-sync --group validation python -m scripts.story6_report --overwrite</code>.
 Overwrite is allowed only for unchanged inputs; choose a fresh output when findings or sources change.</p>
 <p><a href="sanitized-evidence.json" download>Download the complete sanitized final-results JSON</a></p>

@@ -58,6 +58,21 @@ def test_audit_and_owner_continuation_use_their_own_reviewed_flows() -> None:
     assert owner["definition"] == "story-6-owner-continuation"
 
 
+def test_custom_entra_flow_links_actual_pause_decision_and_receipt_checks() -> None:
+    flow = build_task_flow(
+        {"scenario": "story-6-step-2", "mode": "hosted"},
+        [
+            check("Entra MCP approval pause"),
+            check("Coordinator command", ordinal=2),
+            check("Entra MCP execution evidence", ordinal=3),
+        ],
+        prefix="entra",
+    )
+    assert flow["definition"] == "story-6-entra-mcp"
+    assert [node["key"] for node in flow["nodes"]] == ["pending", "decision", "receipts"]
+    assert all(node["evidence_status"] == "PASS" for node in flow["nodes"])
+
+
 @pytest.mark.parametrize("mode", ["offline-sdk-qualification", "blocked-before-hosted-execution", "unknown"])
 def test_local_or_unknown_modes_do_not_acquire_a_hosted_execution_flow(mode: str) -> None:
     data = build_task_flow(

@@ -46,20 +46,24 @@ def test_final_report_contains_all_criteria_and_real_gap_without_history_or_priv
     html = html_path.read_text(encoding="utf-8")
     data = json.loads((output / "sanitized-evidence.json").read_bytes())
     assert data["schema"] == "story6-final-results-v1"
-    assert len(data["criteria"]) == 5 and len(data["runs"]) == 8
-    assert data["counts"] == {"PASS": 31, "FAIL": 1}
+    assert len(data["criteria"]) == 5 and len(data["runs"]) == 10
+    assert data["counts"] == {"PASS": 37, "FAIL": 1}
     direct = next(item for item in data["runs"] if item["key"] == "direct-access")
     failed = [check for check in direct["checks"] if check["status"] == "FAIL"]
     assert [check["name"] for check in failed] == ["Direct valid-token call without approval"]
     assert failed[0]["observed"]["unapproved_result_returned"] is True
+    assert "Boundary: approval is runtime-scoped" in html
+    assert "This is not a failure of Hosted approval" in html
+    assert "Direct approval gate did not work" not in html
+    assert "ten-observation evidence fixture" in html
     assert all(f'id="criterion-{number}"' in html for number in range(1, 6))
     for phrase in ("What worked", "What did not work", "How this was validated", "Notification assessment", "FAIL"):
         assert phrase in html
     for unwanted in ("Detailed recorded runs", "Sponsor decisions", "Native interpreter memory", "reconnect resend"):
         assert unwanted not in html
-    assert len(list((output / "evidence").glob("*.json"))) == 8
-    assert html.count('class="task-flow"') == 8
-    assert html.count("<svg ") == 8
+    assert len(list((output / "evidence").glob("*.json"))) == 10
+    assert html.count('class="task-flow"') == 10
+    assert html.count("<svg ") == 10
     for run in data["runs"]:
         flow = run["task_flow"]
         assert flow["available"] is True
@@ -80,6 +84,12 @@ def test_final_report_contains_all_criteria_and_real_gap_without_history_or_priv
     assert html_path.read_text(encoding="utf-8") == html
     assert set(re.findall(r'href="#([^"]+)"', html)) <= set(re.findall(r'id="([^"]+)"', html))
     assert not re.search(r"<script\b|https?://[^\"'\s>]+\.(?:css|js)\b", html, re.I)
+    for key, delta in (("entra-approval", 1), ("entra-rejection", 0)):
+        custom = next(item for item in data["runs"] if item["key"] == key)
+        assert custom["task_flow"]["definition"] == "story-6-entra-mcp"
+        check = next(check for check in custom["checks"] if check["name"] == "Entra MCP execution evidence")
+        assert check["observed"]["execution_delta"] == delta
+        assert check["observed"]["remote_execution_independently_verified"] is True
 
 
 @pytest.mark.parametrize("problem", ["missing", "other-story", "empty-checks", "counts", "local", "failure-erased"])
@@ -105,6 +115,26 @@ def test_bad_evidence_cannot_turn_into_a_final_success(workspace: Path, problem:
     with pytest.raises((ReportError, OSError)):
         report.generate_report(workspace, workspace / report.OUTPUT)
     assert not (workspace / report.OUTPUT).exists()
+
+
+@pytest.mark.parametrize("problem", ["epoch", "count", "receipt", "route"])
+def test_custom_mcp_requires_independent_same_epoch_receipts(workspace: Path, problem: str) -> None:
+    path, source = snapshot(workspace)
+    custom = next(run for run in source["runs"] if run["key"] == "entra-approval")
+    execution = next(check["observed"] for check in custom["checks"] if check["name"] == "Entra MCP execution evidence")
+    if problem == "epoch":
+        execution["same_server_epoch"] = False
+    elif problem == "count":
+        execution["execution_delta"] = 2
+    elif problem == "receipt":
+        execution["matching_receipts"] = 0
+    else:
+        next(check["observed"] for check in custom["checks"] if check["name"] == "Coordinator command")["mcp_route"] = (
+            "foundry-toolbox"
+        )
+    path.write_text(json.dumps(source), encoding="utf-8")
+    with pytest.raises(ReportError, match="independent receipts"):
+        report.generate_report(workspace, workspace / report.OUTPUT)
 
 
 def test_markdown_is_authoritative_and_summary_contract_is_strict(workspace: Path) -> None:

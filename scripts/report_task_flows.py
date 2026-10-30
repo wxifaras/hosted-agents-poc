@@ -774,6 +774,36 @@ STORY6_OWNER = TaskFlow(
     ("scripts.run_scenario.story6_users.execute",),
     ("The user's explicit choice precedes this task; no automatic owner approval is inferred.",),
 )
+STORY6_ENTRA = TaskFlow(
+    "story-6-entra-mcp",
+    "Story6: Direct Entra MCP approval or rejection, without toolbox",
+    (
+        _step(
+            "pending",
+            "Start through Hosted coordinator and inspect the approval pause",
+            "Requester -> coordinator -> Research context -> native Responses",
+            "Entra MCP approval pause",
+        ),
+        _step(
+            "decision",
+            "Submit the human's explicit bound decision to the same operation",
+            "Authenticated requester -> Hosted coordinator",
+            "Coordinator command",
+        ),
+        _step(
+            "receipts",
+            "Compare independent server counts and matching execution receipts",
+            "One Entra-protected MCP tool; same-epoch sequential observations",
+            "Entra MCP execution evidence",
+        ),
+    ),
+    ("scripts.run_scenario.story6_hosted.execute", "app.story6_mcp", "app.services.story6_approval.Coordinator"),
+    (
+        "Approval produced one matching receipt; rejection produced no new effect in a separate case.",
+        "Entra authenticates the workload; native Responses enforces approval, not the MCP server.",
+    ),
+)
+
 STORY6: dict[int, TaskFlow] = {
     1: TaskFlow(
         "story-6-step-1",
@@ -963,6 +993,8 @@ def select_task_flow(provenance: Mapping[str, object], checks: Sequence[Mapping[
             return None
         if number in (2, 3, 4) and "Conversation history before command" in names:
             return STORY6_AUDIT
+        if number == 2 and "Entra MCP execution evidence" in names:
+            return STORY6_ENTRA
         if number == 6 and "User A owner continuation" in names:
             return STORY6_OWNER
         return STORY6.get(number)

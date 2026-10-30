@@ -12,18 +12,20 @@ Status report: what works, what does not and why, and next steps for each
 requirement of [issue #6](https://github.com/wxifaras/hosted-agents-poc/issues/6).
 
 **Conclusion:** approval and rejection work through the Hosted Agent, and
-another authenticated user cannot decide the owner's operation. However, an
+also work without toolbox against a custom Entra MCP: approval produced one
+independently observed execution; rejection produced none. Another authenticated
+user cannot decide the owner's operation. However, an
 authorized caller can execute the toolbox tool directly without approval.
 **The evaluation is complete within the tested scope; universal approval
 enforcement is not achieved.**
 
 | Field | Scope |
 |---|---|
-| Report date | 2026-10-29 |
+| Report date | 2026-10-30 |
 | Environment | `hosted-agents-poc-dev`, `northcentralus`, `gpt-5-mini` |
-| Agent scenario | Dedicated Story6 Hosted coordinator calls unchanged Research for context, then requests approval for its MCP search |
-| Tool boundary | Entra-authenticated Foundry toolbox proxy; downstream Microsoft Learn is public and read-only |
-| Data and actors | Fixed synthetic query, synthetic HOME file, operator and two distinct authenticated test users |
+| Agent scenario | Dedicated Story6 Hosted coordinator calls unchanged Research for context, then requests approval for the selected MCP tool |
+| Tool boundary | Direct custom Entra MCP with one synthetic receipt tool; separately tested authenticated Foundry toolbox proxy over public Learn |
+| Data and actors | Synthetic case IDs/actions, fixed Learn query, synthetic HOME file, operator and two distinct authenticated test users |
 | Existing stories | Story1/3/4 agents, toolboxes and behavior were preserved |
 
 **Final-results HTML deep dive:**
@@ -52,7 +54,7 @@ Completing an evaluation does not turn a failed enforcement check into a pass.
 
 | # | Requirement | Status | What works | What does not work, and why | Next step |
 |---|---|---|---|---|---|
-| 1 | Approve/reject a multi-agent MCP action; identify enforcement ownership | Works, scoped | Coordinator delegates context to Research, exposes the actual pending MCP request, and continues after approval or rejects without executing the tool | The provider approval path is not a shared server-side gate covering every MCP caller | Use this interaction pattern where callers cannot bypass the required runtime |
+| 1 | Approve/reject a multi-agent MCP action; identify enforcement ownership | Works, scoped | Coordinator delegates context to Research and exposes the actual pending request. Direct Entra MCP without toolbox independently recorded one approved execution and no rejected execution; Learn/toolbox approval also worked | The provider approval path is not a shared server-side gate covering every MCP caller | Use this interaction pattern where callers cannot bypass the required runtime |
 | 2 | Discover pending approvals, submit decisions, and assess notification options | Works, with notification limitations | A fresh client discovers the pending operation through custom `inspect`; explicit decisions resume it. Polling, webhook and Event Grid options were assessed | No native approval-specific webhook/Event Grid contract was established; generic completion is not approval | Keep the tested inspect/decide path; add notifications only if needed |
 | 3 | Observe execution, conversation/session and files during pause; resume | Works, scoped | Actual stored conversation items progress from empty to pending, inspected and completed. The same operation/session continues and the original HOME file/hash remains | This does not prove interpreter RAM survival, arbitrary file retention or injected process-loss recovery | Reuse the observed state/history/file behavior; keep process recovery under #7 |
 | 4 | Call MCP directly with a valid token but no approval | Gap demonstrated | Ordinary authorized direct access works, making the no-approval probe meaningful | The direct call returns a result despite `require_approval=always`; the proxy does not enforce that flag on `tools/call` | Accept/document the boundary, or separately design shared enforcement if all routes must be gated |
@@ -61,13 +63,13 @@ Completing an evaluation does not turn a failed enforcement check into a pass.
 ## Acceptance review
 
 These are **evaluation-coverage verdicts**, not claims that every security
-control passed. The requester accepted the selected authenticated Foundry-proxy
-evaluation and documented limitations on 2026-10-29. The GitHub issue has not
-been closed.
+control passed. Coverage includes the custom Entra MCP approve/reject cases
+and the separate toolbox, two-user and history observations. The GitHub issue
+has not been closed.
 
 | Issue criterion | Coverage verdict | Evidence | Reproduction tasks | Ownership and acceptance boundary |
 |---|---|---|---|---|
-| 1. Approve/reject a multi-agent tool action; identify enforcing component and shared-enforcement feasibility | Met within tested scope | [Approval/rejection and authenticated call](reports/story-6/human-in-the-loop-approval/final-results/index.html#criterion-1) | Story6 Step2: start, then explicit approve/reject against saved cases | Foundry-managed native provider approval; custom coordinator owns client/operation binding. Research has no duplicated approval handler. Direct proxy access is outside this gate. |
+| 1. Approve/reject a multi-agent tool action; identify enforcing component and shared-enforcement feasibility | Met within tested scope | [Approval/rejection and authenticated call](reports/story-6/human-in-the-loop-approval/final-results/index.html#criterion-1) | Story6 MCP hosted task: start/inspect/approve; separate start/reject; compare tool receipts. Step2 also covers Learn/toolbox | Foundry-managed native provider approval; custom coordinator owns binding. Direct Entra MCP independently confirmed execution counts; Entra authenticates the workload, not human approval. |
 | 2. Discover pending approval, submit a decision and assess Event Grid/webhook/polling | Met as an evaluation | [Discovery and stored decision linkage](reports/story-6/human-in-the-loop-approval/final-results/index.html#criterion-2), plus [notification assessment](#notification-availability) | Step3 inspect; Step2 explicit decision | Tested custom polling/commands backed by platform state. Other notification capabilities are documentation assessments, not live integrations; no native approval-event guarantee. |
 | 3. Observe execution, conversation/session and generated files during pause; resume | Met within observed state/file scope | [Actual history and file continuity](reports/story-6/human-in-the-loop-approval/final-results/index.html#criterion-3) | Step2 `--capture-history`; Step4 inspect; Step2 explicit decision | Actual stored history, pinned binding, pending/terminal state and backend-generated HOME file observed. Provider counts are not independent effects; interpreter RAM, arbitrary artifacts and crash recovery are not claimed. |
 | 4. Direct valid-token/no-approval test; record blocking, enforcing component and bypass | Met as an evaluation; enforcement **FAIL** | [Direct proxy boundary](reports/story-6/human-in-the-loop-approval/final-results/index.html#criterion-4) | Step5 with the fixed isolated toolbox and existing Consumer profile | Authenticated Foundry proxy returned an unapproved result; approval flag is not a server-side gate. Downstream Learn is public. The failed control remains visible. |
@@ -96,12 +98,26 @@ execute or be rejected, without putting approval logic in every specialist?
 - An explicit rejection completes a separate operation as `rejected` with
   **zero provider-reported MCP calls**.
 - The authenticated toolbox route also pauses and completes after approval.
+- The direct custom Entra MCP route, **without toolbox**, passed both cases
+  with independent tool-server observations:
+
+| Case | During approval pause | After explicit decision | Independent server evidence |
+|---|---|---|---|
+| Approve | Pending, zero reported tool calls, server total `0 -> 0` | Completed, one reported tool call, server total `0 -> 1` | Exactly one execution receipt matching the approved case |
+| Reject | Separate pending case, zero reported calls, server total `1 -> 1` | Rejected, zero reported calls, server total stays `1` | No receipt for the rejected case; same epoch and unchanged global total |
+
+Both custom-MCP cases used the same single-process server epoch and sequential
+requests. A fresh-client inspect confirmed the pending state without execution.
+Rechecking a pending operation does not supply a human decision: it remains
+pending until the requester explicitly approves or rejects.
 
 **What does not work, and why**
 
 This only gates calls using the selected provider/runtime path. An authorized
 direct toolbox caller can bypass that path, as demonstrated in section 4.
-Provider-reported calls are also not an independent downstream execution ledger.
+Provider-reported calls alone are not an execution ledger. The separate custom
+MCP cases additionally have server counts and matching receipts; they do not
+establish a shared server-side approval gate or original-user delegation.
 
 **Next step:** use the coordinator interaction where appropriate, but do not
 describe it as universal shared approval enforcement.
@@ -118,7 +134,8 @@ describe it as universal shared approval enforcement.
 - The requester can explicitly approve or reject its bound pending request.
   Self-approval is allowed by this POC's policy.
 - Provider continuation references remain private. Clients receive a
-  structured pending reference, tool and fixed query.
+  structured pending reference, tool and fixed arguments (Learn query or the
+  synthetic action's case ID).
 
 ### Client contract
 
@@ -219,9 +236,12 @@ states that toolbox `tools/call` does not block when `require_approval` is
 `always`; the consuming runtime must enforce the setting before invocation.
 The live result matches that documented boundary.
 
-**Scope:** the endpoint is an Entra-authenticated Foundry proxy. Its downstream
-Learn MCP service is public. No credential was sent directly to public Learn,
-and no protected enterprise downstream server was tested.
+**Scope of this direct-call probe:** the endpoint is an Entra-authenticated
+Foundry proxy over public Learn. No credential was sent directly to public
+Learn. The separate custom Entra MCP was tested for hosted approve/reject, not
+as a new direct-call bypass probe. It authenticates/authorizes the workload but
+has no human-approval-proof validation; do not infer universal enforcement from
+the hosted passes. No enterprise business tool was tested.
 
 **Next step:** treat the bypass as an architecture finding. If every authorized
 route must require human approval, separately design a shared server/gateway
@@ -251,6 +271,7 @@ per-agent workarounds or relabel the failed control as passing.
 | A explicitly approves | Original operation completes with one reported MCP call | Authenticated owner continuation |
 | Workload/operator accesses authenticated toolbox | Allowed | Foundry proxy token/permission checks |
 | Consumer user accesses toolbox directly | HTTP403 | Foundry proxy resource authorization |
+| Hosted workload accesses custom Entra MCP | Native discovery and approved action succeed; unauthenticated direct request gets HTTP401 | Custom API audience/signature/issuer/lifetime, actual workload principal and Invoke-role checks |
 
 **Caller-to-tool correlation**
 
@@ -263,10 +284,12 @@ per-agent workarounds or relabel the failed control as passing.
 | Decision -> terminal tool observation | Same conversation stores the completed reply reporting one MCP call on the authenticated toolbox route; original file retained |
 | Research/downstream original user | Research reports no nested original-user context; downstream original-user authority and an independent tool invocation span remain unverified |
 
-This is **application-protocol correlation**, not a joined distributed trace
-or independent downstream execution receipt. A correlation alias does not
-grant authorization. The private raw bindings remain local, and the human
-chat decision is distinguished from the authenticated API caller.
+These history/toolbox links are **application-protocol correlation**, not a
+joined distributed trace. Separately, the custom MCP execution receipt matches
+the approved case, while the rejected case has no effect; this is independent
+execution evidence, not downstream end-user authority. A correlation alias does
+not grant authorization. Private raw bindings remain local, and human chat
+review is distinct from the authenticated API decision caller.
 
 **What is not established**
 
@@ -291,12 +314,14 @@ those become explicit requirements.
 | Client inspect/decide API, owner binding and evidence tooling | Custom implementation (Dev Team), backed by platform state |
 | Foreign session denial and toolbox resource permissions | Foundry-managed |
 | Approval enforcement on direct toolbox `tools/call` | Not enforced on the tested route; documented and observed gap |
+| Custom Entra MCP authentication and synthetic receipts | Custom implementation (Dev Team), using Entra-signed workload tokens; human approval remains runtime-managed |
 | Native approval-specific Event Grid/webhook events | Unverified; not labeled universally unsupported |
 | Enterprise downstream MCP authorization / original-user delegation | Not established by this POC |
 
 ## Conclusion and next steps
 
-Hosted approval, rejection, discovery, pause/state/file continuity and
+Hosted approval/rejection against a custom Entra MCP without toolbox,
+discovery, pause/state/file continuity and
 unauthorized-user ownership controls are demonstrated. The direct-call
 approval gate is **not** enforced by the toolbox endpoint.
 
@@ -305,6 +330,8 @@ approval gate is **not** enforced by the toolbox endpoint.
    [two-user flow](tasks-detailed.md#story6-two-user-unauthorized-approver-flow)
    and [direct proxy test](tasks-detailed.md#story6-authenticated-proxy-setup-and-direct-call-test)
    to reproduce the selected cases.
+   The [simple Entra MCP flow](tasks-detailed.md#story6-simple-custom-entra-mcp-test-no-toolbox)
+   reproduces approval/rejection with independent execution evidence.
 3. Keep existing Story1/3/4 behavior unchanged; no broad retest or extra service
    is required merely to close this evaluation.
 4. Treat universal approval enforcement and #7 process recovery as separate
@@ -312,23 +339,26 @@ approval gate is **not** enforced by the toolbox endpoint.
 
 ## Final validation sign-off
 
-- **Current local regression gate: 295 tests passed**, covering all Story6
-  modules, task/report wiring, affected existing Story1/3/4 contracts and
-  environment-source declarations.
-- Repository-configured mypy passed for 77 source files; targeted Ruff lint
+- Focused fixture/authentication, coordinator, client, packaging, editor and
+  report regression checks passed.
+- Repository-configured mypy passed; targeted Ruff lint
   and formatting checks passed.
-- The single final report retains eight selected observations containing
-  **31 PASS checks and 1 FAIL**. The FAIL is
+- The single final report retains ten selected observations containing
+  **37 PASS checks and 1 FAIL**. The FAIL is
   `Direct valid-token call without approval` in the proxy-boundary evidence.
-  These are recorded checks, not 32 independent end-to-end scenarios.
-- No new hosted scenario, role grant or deployment was needed for this
-  sign-off. Earlier hosted findings remain scoped to their recorded bindings;
-  passing local regressions does not recertify every prior hosted story.
+  These are recorded checks, not 38 independent end-to-end scenarios.
+- The actual direct-Entra hosted approval and rejection cases passed with
+  independent same-epoch server evidence. Only the dedicated coordinator was
+  updated; Supervisor, Research and Data Analysis remain unchanged.
+- Existing toolbox, two-user and history results retain their original
+  evidence bindings; local checks do not recertify every previous story.
 
-**Owner review:** accepted on 2026-10-29, including the direct-call enforcement
-FAIL and the stated limitations. **Pending:** publication and issue update.
-Acceptance does not imply a commit, push, PR or closure of #6, and does not
-authorize a custom enforcement redesign.
+**Human review:** the requester explicitly approved the custom MCP's first
+pending action and explicitly rejected the second. The direct toolbox
+enforcement FAIL and limitations remain visible.
+**Pending:** final report review, publication and issue update. Test decisions
+do not imply a commit, push, PR, closure of #6 or authorization for a custom
+enforcement redesign.
 
 ## Regenerate the final-results HTML
 
