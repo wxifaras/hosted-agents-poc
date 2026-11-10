@@ -1,14 +1,14 @@
 # Story 13 - Hosted-agent cold starts and memory snapshots
 
 **Detailed HTML report with task walkthroughs, graphs, and recorded evidence:**
-[View with HTML Preview](https://htmlpreview.github.io/?https://raw.githubusercontent.com/wxifaras/hosted-agents-poc/refs/heads/main/docs/reports/story-13/cold-start-validation/2026-11-09/index.html).
+[View with HTML Preview](https://htmlpreview.github.io/?https://raw.githubusercontent.com/wxifaras/hosted-agents-poc/refs/heads/feature/story13-cold-start/docs/reports/story-13/cold-start-validation/2026-11-09/index.html).
 The repository snapshot is at
 `docs/reports/story-13/cold-start-validation/2026-11-09/index.html`.
 It reuses the retained campaign results; no hosted validation is rerun to
 generate it. Project/session hashes, response IDs, registry URLs, image digests,
 and absolute machine paths are excluded from this publication. Like Story 1,
 the new GitHub preview requires the snapshot and this link to be committed,
-pushed, and available on `main`; the local HTML works immediately.
+pushed to `feature/story13-cold-start`; no merge to `main` is required. The local HTML works immediately.
 
 ## Project Context
 
