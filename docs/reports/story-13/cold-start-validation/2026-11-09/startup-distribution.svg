@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 619" role="img" aria-labelledby="title description">
+<title id="title">Client useful response: native cold, warm, and resume</title>
+<desc id="description">Each dot is one passing measured attempt. A thick tick marks the median; a whisker spans minimum to maximum. Missing data is unavailable, not zero.</desc>
+<rect width="1200" height="619" fill="white"/>
+<g font-family="sans-serif" font-size="12" fill="#242424">
+<text x="12" y="24" font-size="18">Client useful response: native cold, warm, and resume</text>
+<path d="M205.00 50 V584" stroke="#e1dfdd"/>
+<text x="205.00" y="607" text-anchor="middle">0 ms</text>
+<path d="M313.75 50 V584" stroke="#e1dfdd"/>
+<text x="313.75" y="607" text-anchor="middle">2,256 ms</text>
+<path d="M422.50 50 V584" stroke="#e1dfdd"/>
+<text x="422.50" y="607" text-anchor="middle">4,512 ms</text>
+<path d="M531.25 50 V584" stroke="#e1dfdd"/>
+<text x="531.25" y="607" text-anchor="middle">6,768 ms</text>
+<path d="M640.00 50 V584" stroke="#e1dfdd"/>
+<text x="640.00" y="607" text-anchor="middle">9,023 ms</text>
+<text x="12" y="79">baseline / cold</text>
+<path d="M489.79 75 H640.00" stroke="#005a9e" stroke-width="2"/>
+<circle cx="640.00" cy="69" r="4" fill="#005a9e" fill-opacity="0.7"><title>9,023.40 ms</title></circle>
+<circle cx="489.79" cy="72" r="4" fill="#005a9e" fill-opacity="0.7"><title>5,907.46 ms</title></circle>
+<circle cx="496.38" cy="75" r="4" fill="#005a9e" fill-opacity="0.7"><title>6,044.22 ms</title></circle>
+<circle cx="521.56" cy="78" r="4" fill="#005a9e" fill-opacity="0.7"><title>6,566.53 ms</title></circle>
+<circle cx="511.63" cy="81" r="4" fill="#005a9e" fill-opacity="0.7"><title>6,360.52 ms</title></circle>
+<circle cx="514.52" cy="69" r="4" fill="#005a9e" fill-opacity="0.7"><title>6,420.46 ms</title></circle>
+<circle cx="497.61" cy="72" r="4" fill="#005a9e" fill-opacity="0.7"><title>6,069.68 ms</title></circle>
+<circle cx="515.65" cy="75" r="4" fill="#005a9e" fill-opacity="0.7"><title>6,444.02 ms</title></circle>
+<circle cx="536.37" cy="78" r="4" fill="#005a9e" fill-opacity="0.7"><title>6,873.77 ms</title></circle>
+<circle cx="489.94" cy="81" r="4" fill="#005a9e" fill-opacity="0.7"><title>5,910.73 ms</title></circle>
+<path d="M513.07 64 V86" stroke="#005a9e" stroke-width="4"/>
+<text x="665" y="79">n=10; median 6,390.5; range 5,907.5-9,023.4 ms</text>
+<text x="12" y="135">baseline / warm</text>
+<path d="M226.79 131 H236.06" stroke="#008272" stroke-width="2"/>
+<circle cx="228.92" cy="125" r="4" fill="#008272" fill-opacity="0.7"><title>496.16 ms</title></circle>
+<circle cx="227.77" cy="128" r="4" fill="#008272" fill-opacity="0.7"><title>472.35 ms</title></circle>
+<circle cx="230.84" cy="131" r="4" fill="#008272" fill-opacity="0.7"><title>535.94 ms</title></circle>
+<circle cx="231.12" cy="134" r="4" fill="#008272" fill-opacity="0.7"><title>541.86 ms</title></circle>
+<circle cx="227.44" cy="137" r="4" fill="#008272" fill-opacity="0.7"><title>465.58 ms</title></circle>
+<circle cx="229.30" cy="125" r="4" fill="#008272" fill-opacity="0.7"><title>503.97 ms</title></circle>
+<circle cx="228.05" cy="128" r="4" fill="#008272" fill-opacity="0.7"><title>478.14 ms</title></circle>
+<circle cx="226.79" cy="131" r="4" fill="#008272" fill-opacity="0.7"><title>452.00 ms</title></circle>
+<circle cx="228.11" cy="134" r="4" fill="#008272" fill-opacity="0.7"><title>479.34 ms</title></circle>
+<circle cx="236.06" cy="137" r="4" fill="#008272" fill-opacity="0.7"><title>644.29 ms</title></circle>
+<path d="M228.51 120 V142" stroke="#008272" stroke-width="4"/>
+<text x="665" y="135">n=10; median 487.8; range 452.0-644.3 ms</text>
+<text x="12" y="191">baseline / resume</text>
+<path d="M530.41 187 H530.41" stroke="#8764b8" stroke-width="2"/>
+<circle cx="530.41" cy="181" r="4" fill="#8764b8" fill-opacity="0.7"><title>6,750.16 ms</title></circle>
+<path d="M530.41 176 V198" stroke="#8764b8" stroke-width="4"/>
+<text x="665" y="191">n=1; median 6,750.2; range 6,750.2-6,750.2 ms</text>
+<text x="12" y="247">snapshot / cold</text>
+<path d="M265.94 243 H443.47" stroke="#ca5010" stroke-width="2"/>
+<circle cx="443.47" cy="237" r="4" fill="#ca5010" fill-opacity="0.7"><title>4,946.59 ms</title></circle>
+<circle cx="287.67" cy="240" r="4" fill="#ca5010" fill-opacity="0.7"><title>1,714.94 ms</title></circle>
+<circle cx="265.94" cy="243" r="4" fill="#ca5010" fill-opacity="0.7"><title>1,264.03 ms</title></circle>
+<circle cx="276.92" cy="246" r="4" fill="#ca5010" fill-opacity="0.7"><title>1,491.77 ms</title></circle>
+<circle cx="278.01" cy="249" r="4" fill="#ca5010" fill-opacity="0.7"><title>1,514.38 ms</title></circle>
+<circle cx="275.57" cy="237" r="4" fill="#ca5010" fill-opacity="0.7"><title>1,463.94 ms</title></circle>
+<circle cx="274.01" cy="240" r="4" fill="#ca5010" fill-opacity="0.7"><title>1,431.47 ms</title></circle>
+<circle cx="275.33" cy="243" r="4" fill="#ca5010" fill-opacity="0.7"><title>1,458.91 ms</title></circle>
+<circle cx="267.97" cy="246" r="4" fill="#ca5010" fill-opacity="0.7"><title>1,306.16 ms</title></circle>
+<circle cx="271.41" cy="249" r="4" fill="#ca5010" fill-opacity="0.7"><title>1,377.47 ms</title></circle>
+<path d="M275.45 232 V254" stroke="#ca5010" stroke-width="4"/>
+<text x="665" y="247">n=10; median 1,461.4; range 1,264.0-4,946.6 ms</text>
+<text x="12" y="303">snapshot / warm</text>
+<path d="M226.74 299 H242.29" stroke="#498205" stroke-width="2"/>
+<circle cx="242.29" cy="293" r="4" fill="#498205" fill-opacity="0.7"><title>773.43 ms</title></circle>
+<circle cx="227.40" cy="296" r="4" fill="#498205" fill-opacity="0.7"><title>464.59 ms</title></circle>
+<circle cx="231.53" cy="299" r="4" fill="#498205" fill-opacity="0.7"><title>550.42 ms</title></circle>
+<circle cx="232.50" cy="302" r="4" fill="#498205" fill-opacity="0.7"><title>570.43 ms</title></circle>
+<circle cx="228.53" cy="305" r="4" fill="#498205" fill-opacity="0.7"><title>488.19 ms</title></circle>
+<circle cx="226.74" cy="293" r="4" fill="#498205" fill-opacity="0.7"><title>451.02 ms</title></circle>
+<circle cx="227.44" cy="296" r="4" fill="#498205" fill-opacity="0.7"><title>465.39 ms</title></circle>
+<circle cx="228.37" cy="299" r="4" fill="#498205" fill-opacity="0.7"><title>484.72 ms</title></circle>
+<circle cx="231.38" cy="302" r="4" fill="#498205" fill-opacity="0.7"><title>547.16 ms</title></circle>
+<circle cx="227.13" cy="305" r="4" fill="#498205" fill-opacity="0.7"><title>458.99 ms</title></circle>
+<path d="M228.45 288 V310" stroke="#498205" stroke-width="4"/>
+<text x="665" y="303">n=10; median 486.5; range 451.0-773.4 ms</text>
+<text x="12" y="359">snapshot / resume</text>
+<path d="M396.80 355 H396.80" stroke="#a4262c" stroke-width="2"/>
+<circle cx="396.80" cy="349" r="4" fill="#a4262c" fill-opacity="0.7"><title>3,978.53 ms</title></circle>
+<path d="M396.80 344 V366" stroke="#a4262c" stroke-width="4"/>
+<text x="665" y="359">n=1; median 3,978.5; range 3,978.5-3,978.5 ms</text>
+<text x="12" y="415">optimized / cold</text>
+<path d="M261.45 411 H460.87" stroke="#486860" stroke-width="2"/>
+<circle cx="460.87" cy="405" r="4" fill="#486860" fill-opacity="0.7"><title>5,307.72 ms</title></circle>
+<circle cx="273.44" cy="408" r="4" fill="#486860" fill-opacity="0.7"><title>1,419.64 ms</title></circle>
+<circle cx="273.60" cy="411" r="4" fill="#486860" fill-opacity="0.7"><title>1,423.02 ms</title></circle>
+<circle cx="270.17" cy="414" r="4" fill="#486860" fill-opacity="0.7"><title>1,351.94 ms</title></circle>
+<circle cx="265.50" cy="417" r="4" fill="#486860" fill-opacity="0.7"><title>1,255.05 ms</title></circle>
+<circle cx="261.45" cy="405" r="4" fill="#486860" fill-opacity="0.7"><title>1,170.88 ms</title></circle>
+<circle cx="271.09" cy="408" r="4" fill="#486860" fill-opacity="0.7"><title>1,370.93 ms</title></circle>
+<circle cx="276.28" cy="411" r="4" fill="#486860" fill-opacity="0.7"><title>1,478.58 ms</title></circle>
+<circle cx="269.88" cy="414" r="4" fill="#486860" fill-opacity="0.7"><title>1,345.82 ms</title></circle>
+<circle cx="267.55" cy="417" r="4" fill="#486860" fill-opacity="0.7"><title>1,297.43 ms</title></circle>
+<path d="M270.63 400 V422" stroke="#486860" stroke-width="4"/>
+<text x="665" y="415">n=10; median 1,361.4; range 1,170.9-5,307.7 ms</text>
+<text x="12" y="471">optimized / warm</text>
+<path d="M227.36 467 H238.89" stroke="#7a4780" stroke-width="2"/>
+<circle cx="227.65" cy="461" r="4" fill="#7a4780" fill-opacity="0.7"><title>469.80 ms</title></circle>
+<circle cx="238.89" cy="464" r="4" fill="#7a4780" fill-opacity="0.7"><title>703.07 ms</title></circle>
+<circle cx="227.43" cy="467" r="4" fill="#7a4780" fill-opacity="0.7"><title>465.26 ms</title></circle>
+<circle cx="236.53" cy="470" r="4" fill="#7a4780" fill-opacity="0.7"><title>654.04 ms</title></circle>
+<circle cx="227.59" cy="473" r="4" fill="#7a4780" fill-opacity="0.7"><title>468.55 ms</title></circle>
+<circle cx="228.60" cy="461" r="4" fill="#7a4780" fill-opacity="0.7"><title>489.48 ms</title></circle>
+<circle cx="227.63" cy="464" r="4" fill="#7a4780" fill-opacity="0.7"><title>469.41 ms</title></circle>
+<circle cx="227.36" cy="467" r="4" fill="#7a4780" fill-opacity="0.7"><title>463.87 ms</title></circle>
+<circle cx="228.14" cy="470" r="4" fill="#7a4780" fill-opacity="0.7"><title>479.98 ms</title></circle>
+<circle cx="227.87" cy="473" r="4" fill="#7a4780" fill-opacity="0.7"><title>474.50 ms</title></circle>
+<path d="M227.76 456 V478" stroke="#7a4780" stroke-width="4"/>
+<text x="665" y="471">n=10; median 472.2; range 463.9-703.1 ms</text>
+<text x="12" y="527">optimized / resume</text>
+<path d="M322.39 523 H322.39" stroke="#605e5c" stroke-width="2"/>
+<circle cx="322.39" cy="517" r="4" fill="#605e5c" fill-opacity="0.7"><title>2,435.08 ms</title></circle>
+<path d="M322.39 512 V534" stroke="#605e5c" stroke-width="4"/>
+<text x="665" y="527">n=1; median 2,435.1; range 2,435.1-2,435.1 ms</text>
+</g></svg>

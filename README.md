@@ -8,6 +8,17 @@ Built with Python 3.14, uv, and Microsoft Agent Framework (MAF).
 
 See the [decision, feature, and status record](docs/adr/0001-hosted-agents-poc.md).
 
+**Story 13:** [cold-start and memory-snapshot plan/runbook](docs/issue-13-validate-hosted-agent-cold-start.md)
+and [isolated no-model experiment](experiments/story13/). Includes native timing
+capture and HTML/SVG analysis graphs. Local validation is separate from
+approval-gated hosted deployment and paid measurement; existing agents are unchanged.
+Use **Terminal > Run Task > Agents: Story 13** for the three scenario validations
+and graph generation. Scenario tasks default to read-only verification; the
+[runbook](docs/issue-13-validate-hosted-agent-cold-start.md#vs-code-scenario-validation-tasks)
+explains preview/run modes, native version routing, and evidence folders.
+Reports include a summary and conclusion, two simple comparison
+graphs, and an expandable technical appendix with the full evidence.
+
 ## 1. Infrastructure diagram
 
 Three separate hosted-agent deployments share one Foundry project and model

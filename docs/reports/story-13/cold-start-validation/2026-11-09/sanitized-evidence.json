@@ -1,0 +1,2210 @@
+{
+  "schema": "story13-published-evidence-v1",
+  "generated_at": "2026-11-10T01:46:35.204526+00:00",
+  "source_binding": "Retained hosted records; implementation is a working-tree snapshot, not a commit binding.",
+  "privacy": "Project/session hashes, response IDs, run IDs, registry URLs, image digests, and local paths omitted.",
+  "controls": "Original project, agent, SDK, compute, configuration, and image comparisons validated before redaction.",
+  "recorded_distinct_session_bindings": 41,
+  "runs": [
+    {
+      "role": "comparison",
+      "condition": "baseline",
+      "agent_version": "1",
+      "recording_timestamp": "2026-11-09T22:56:48.754250+00:00",
+      "image_alias": "image-1",
+      "cpu": "0.5",
+      "memory": "1Gi",
+      "snapshots": false,
+      "core_version": "2.3.0",
+      "responses_version": "2.4.0",
+      "planned_cold_sessions": 10,
+      "planned_resume_checks": 1,
+      "idle_wait_seconds": 210.0,
+      "samples": [
+        {
+          "trial": 1,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:56:48.976546+00:00",
+          "session_alias": "session-001",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 9023.314899997786,
+            "platform-preprocessing-ms": 435.0,
+            "infra-setup-ms": 1098.0,
+            "container-readiness-ms": 4255.0,
+            "container-response-ms": 558.0,
+            "response-begin-ms": 6346.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 6346.0,
+            "client_first_chunk_ms": 9023.394700023346,
+            "client_complete_ms": 9023.396000033244,
+            "client_journey_ms": 9023.396000033244
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "435",
+            "x-ms-debug-latency-infra-setup-ms": "1098",
+            "x-ms-debug-latency-container-readiness-ms": "4255",
+            "x-ms-debug-latency-container-response-ms": "558",
+            "x-ms-debug-latency-response-begin-ms": "6346",
+            "x-ms-debug-latency-total-last-byte-ms": "6346",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 1,
+          "phase": "warm",
+          "timestamp": "2026-11-09T22:56:59.603698+00:00",
+          "session_alias": "session-001",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 496.1052000289783,
+            "platform-preprocessing-ms": 121.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 230.0,
+            "response-begin-ms": 351.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 351.0,
+            "client_first_chunk_ms": 496.1611001053825,
+            "client_complete_ms": 496.16249999962747,
+            "client_journey_ms": 496.16249999962747
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "121",
+            "x-ms-debug-latency-container-response-ms": "230",
+            "x-ms-debug-latency-response-begin-ms": "351",
+            "x-ms-debug-latency-total-last-byte-ms": "351",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 1,
+          "phase": "resume",
+          "timestamp": "2026-11-09T23:00:30.934768+00:00",
+          "session_alias": "session-001",
+          "observed_start": "resume",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 6750.066100037657,
+            "platform-preprocessing-ms": 158.0,
+            "infra-setup-ms": 960.0,
+            "container-readiness-ms": 4297.0,
+            "container-response-ms": 539.0,
+            "response-begin-ms": 5954.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 5954.0,
+            "client_first_chunk_ms": 6750.158000038937,
+            "client_complete_ms": 6750.1595000503585,
+            "client_journey_ms": 6750.1595000503585
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "158",
+            "x-ms-debug-latency-infra-setup-ms": "960",
+            "x-ms-debug-latency-container-readiness-ms": "4297",
+            "x-ms-debug-latency-container-response-ms": "539",
+            "x-ms-debug-latency-response-begin-ms": "5954",
+            "x-ms-debug-latency-total-last-byte-ms": "5954",
+            "x-ms-debug-latency-session-start-type": "resume"
+          }
+        },
+        {
+          "trial": 2,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:00:38.556314+00:00",
+          "session_alias": "session-002",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 5907.357199932449,
+            "platform-preprocessing-ms": 102.0,
+            "infra-setup-ms": 973.0,
+            "container-readiness-ms": 4174.0,
+            "container-response-ms": 460.0,
+            "response-begin-ms": 5709.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 5709.0,
+            "client_first_chunk_ms": 5907.4561999877915,
+            "client_complete_ms": 5907.4582000030205,
+            "client_journey_ms": 5907.4582000030205
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "102",
+            "x-ms-debug-latency-infra-setup-ms": "973",
+            "x-ms-debug-latency-container-readiness-ms": "4174",
+            "x-ms-debug-latency-container-response-ms": "460",
+            "x-ms-debug-latency-response-begin-ms": "5709",
+            "x-ms-debug-latency-total-last-byte-ms": "5709",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 2,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:00:46.094154+00:00",
+          "session_alias": "session-002",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 471.8569000251591,
+            "platform-preprocessing-ms": 91.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 188.0,
+            "response-begin-ms": 279.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 279.0,
+            "client_first_chunk_ms": 472.34159999061376,
+            "client_complete_ms": 472.34789992216974,
+            "client_journey_ms": 472.34789992216974
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "91",
+            "x-ms-debug-latency-container-response-ms": "188",
+            "x-ms-debug-latency-response-begin-ms": "279",
+            "x-ms-debug-latency-total-last-byte-ms": "279",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 3,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:00:47.359144+00:00",
+          "session_alias": "session-003",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 6044.138199998997,
+            "platform-preprocessing-ms": 138.0,
+            "infra-setup-ms": 1081.0,
+            "container-readiness-ms": 4262.0,
+            "container-response-ms": 365.0,
+            "response-begin-ms": 5846.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 5847.0,
+            "client_first_chunk_ms": 6044.214099994861,
+            "client_complete_ms": 6044.215300003998,
+            "client_journey_ms": 6044.215300003998
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "138",
+            "x-ms-debug-latency-infra-setup-ms": "1081",
+            "x-ms-debug-latency-container-readiness-ms": "4262",
+            "x-ms-debug-latency-container-response-ms": "365",
+            "x-ms-debug-latency-response-begin-ms": "5846",
+            "x-ms-debug-latency-total-last-byte-ms": "5847",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 3,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:00:54.454506+00:00",
+          "session_alias": "session-003",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 535.8648999826983,
+            "platform-preprocessing-ms": 95.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 269.0,
+            "response-begin-ms": 364.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 364.0,
+            "client_first_chunk_ms": 535.9417999861762,
+            "client_complete_ms": 535.9431999968365,
+            "client_journey_ms": 535.9431999968365
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "95",
+            "x-ms-debug-latency-container-response-ms": "269",
+            "x-ms-debug-latency-response-begin-ms": "364",
+            "x-ms-debug-latency-total-last-byte-ms": "364",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 4,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:00:55.780879+00:00",
+          "session_alias": "session-004",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 6566.449300036766,
+            "platform-preprocessing-ms": 103.0,
+            "infra-setup-ms": 1422.0,
+            "container-readiness-ms": 4057.0,
+            "container-response-ms": 823.0,
+            "response-begin-ms": 6405.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 6405.0,
+            "client_first_chunk_ms": 6566.5324999718,
+            "client_complete_ms": 6566.533799981698,
+            "client_journey_ms": 6566.533799981698
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "103",
+            "x-ms-debug-latency-infra-setup-ms": "1422",
+            "x-ms-debug-latency-container-readiness-ms": "4057",
+            "x-ms-debug-latency-container-response-ms": "823",
+            "x-ms-debug-latency-response-begin-ms": "6405",
+            "x-ms-debug-latency-total-last-byte-ms": "6405",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 4,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:01:03.375238+00:00",
+          "session_alias": "session-004",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 541.7210999876261,
+            "platform-preprocessing-ms": 102.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 276.0,
+            "response-begin-ms": 378.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 378.0,
+            "client_first_chunk_ms": 541.8574999785051,
+            "client_complete_ms": 541.8599999975413,
+            "client_journey_ms": 541.8599999975413
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "102",
+            "x-ms-debug-latency-container-response-ms": "276",
+            "x-ms-debug-latency-response-begin-ms": "378",
+            "x-ms-debug-latency-total-last-byte-ms": "378",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 5,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:01:04.719760+00:00",
+          "session_alias": "session-005",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 6360.427000094205,
+            "platform-preprocessing-ms": 115.0,
+            "infra-setup-ms": 1174.0,
+            "container-readiness-ms": 4534.0,
+            "container-response-ms": 394.0,
+            "response-begin-ms": 6217.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 6218.0,
+            "client_first_chunk_ms": 6360.522400005721,
+            "client_complete_ms": 6360.524100018665,
+            "client_journey_ms": 6360.524100018665
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "115",
+            "x-ms-debug-latency-infra-setup-ms": "1174",
+            "x-ms-debug-latency-container-readiness-ms": "4534",
+            "x-ms-debug-latency-container-response-ms": "394",
+            "x-ms-debug-latency-response-begin-ms": "6217",
+            "x-ms-debug-latency-total-last-byte-ms": "6218",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 5,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:01:12.179019+00:00",
+          "session_alias": "session-005",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 465.4529000399634,
+            "platform-preprocessing-ms": 104.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 219.0,
+            "response-begin-ms": 323.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 323.0,
+            "client_first_chunk_ms": 465.5702000018209,
+            "client_complete_ms": 465.5787000665441,
+            "client_journey_ms": 465.5787000665441
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "104",
+            "x-ms-debug-latency-container-response-ms": "219",
+            "x-ms-debug-latency-response-begin-ms": "323",
+            "x-ms-debug-latency-total-last-byte-ms": "323",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 6,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:01:13.486645+00:00",
+          "session_alias": "session-006",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 6420.347000006586,
+            "platform-preprocessing-ms": 477.0,
+            "infra-setup-ms": 1167.0,
+            "container-readiness-ms": 4211.0,
+            "container-response-ms": 421.0,
+            "response-begin-ms": 6276.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 6276.0,
+            "client_first_chunk_ms": 6420.453500002623,
+            "client_complete_ms": 6420.455300016329,
+            "client_journey_ms": 6420.455300016329
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "477",
+            "x-ms-debug-latency-infra-setup-ms": "1167",
+            "x-ms-debug-latency-container-readiness-ms": "4211",
+            "x-ms-debug-latency-container-response-ms": "421",
+            "x-ms-debug-latency-response-begin-ms": "6276",
+            "x-ms-debug-latency-total-last-byte-ms": "6276",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 6,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:01:20.917026+00:00",
+          "session_alias": "session-006",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 503.858600044623,
+            "platform-preprocessing-ms": 117.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 204.0,
+            "response-begin-ms": 321.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 321.0,
+            "client_first_chunk_ms": 503.96660005208105,
+            "client_complete_ms": 503.96869995165616,
+            "client_journey_ms": 503.96869995165616
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "117",
+            "x-ms-debug-latency-container-response-ms": "204",
+            "x-ms-debug-latency-response-begin-ms": "321",
+            "x-ms-debug-latency-total-last-byte-ms": "321",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 7,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:01:22.265419+00:00",
+          "session_alias": "session-007",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 6069.627300021239,
+            "platform-preprocessing-ms": 106.0,
+            "infra-setup-ms": 1126.0,
+            "container-readiness-ms": 4300.0,
+            "container-response-ms": 387.0,
+            "response-begin-ms": 5919.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 5919.0,
+            "client_first_chunk_ms": 6069.68269997742,
+            "client_complete_ms": 6069.683499983512,
+            "client_journey_ms": 6069.683499983512
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "106",
+            "x-ms-debug-latency-infra-setup-ms": "1126",
+            "x-ms-debug-latency-container-readiness-ms": "4300",
+            "x-ms-debug-latency-container-response-ms": "387",
+            "x-ms-debug-latency-response-begin-ms": "5919",
+            "x-ms-debug-latency-total-last-byte-ms": "5919",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 7,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:01:29.367847+00:00",
+          "session_alias": "session-007",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 478.09059999417514,
+            "platform-preprocessing-ms": 99.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 232.0,
+            "response-begin-ms": 331.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 331.0,
+            "client_first_chunk_ms": 478.14229992218316,
+            "client_complete_ms": 478.1429999275133,
+            "client_journey_ms": 478.1429999275133
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "99",
+            "x-ms-debug-latency-container-response-ms": "232",
+            "x-ms-debug-latency-response-begin-ms": "331",
+            "x-ms-debug-latency-total-last-byte-ms": "331",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 8,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:01:30.664653+00:00",
+          "session_alias": "session-008",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 6443.8902999972925,
+            "platform-preprocessing-ms": 95.0,
+            "infra-setup-ms": 1104.0,
+            "container-readiness-ms": 4572.0,
+            "container-response-ms": 523.0,
+            "response-begin-ms": 6294.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 6294.0,
+            "client_first_chunk_ms": 6444.020100054331,
+            "client_complete_ms": 6444.022799958475,
+            "client_journey_ms": 6444.022799958475
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "95",
+            "x-ms-debug-latency-infra-setup-ms": "1104",
+            "x-ms-debug-latency-container-readiness-ms": "4572",
+            "x-ms-debug-latency-container-response-ms": "523",
+            "x-ms-debug-latency-response-begin-ms": "6294",
+            "x-ms-debug-latency-total-last-byte-ms": "6294",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 8,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:01:38.475667+00:00",
+          "session_alias": "session-008",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 451.94690010976046,
+            "platform-preprocessing-ms": 99.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 196.0,
+            "response-begin-ms": 295.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 295.0,
+            "client_first_chunk_ms": 451.9994000438601,
+            "client_complete_ms": 452.00040005147457,
+            "client_journey_ms": 452.00040005147457
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "99",
+            "x-ms-debug-latency-container-response-ms": "196",
+            "x-ms-debug-latency-response-begin-ms": "295",
+            "x-ms-debug-latency-total-last-byte-ms": "295",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 9,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:01:39.797064+00:00",
+          "session_alias": "session-009",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 6873.667700099759,
+            "platform-preprocessing-ms": 98.0,
+            "infra-setup-ms": 1209.0,
+            "container-readiness-ms": 4286.0,
+            "container-response-ms": 1119.0,
+            "response-begin-ms": 6712.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 6712.0,
+            "client_first_chunk_ms": 6873.766600037925,
+            "client_complete_ms": 6873.7685000523925,
+            "client_journey_ms": 6873.7685000523925
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "98",
+            "x-ms-debug-latency-infra-setup-ms": "1209",
+            "x-ms-debug-latency-container-readiness-ms": "4286",
+            "x-ms-debug-latency-container-response-ms": "1119",
+            "x-ms-debug-latency-response-begin-ms": "6712",
+            "x-ms-debug-latency-total-last-byte-ms": "6712",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 9,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:01:47.770406+00:00",
+          "session_alias": "session-009",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 479.2549000121653,
+            "platform-preprocessing-ms": 109.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 227.0,
+            "response-begin-ms": 336.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 336.0,
+            "client_first_chunk_ms": 479.3380999471992,
+            "client_complete_ms": 479.3394999578595,
+            "client_journey_ms": 479.3394999578595
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "109",
+            "x-ms-debug-latency-container-response-ms": "227",
+            "x-ms-debug-latency-response-begin-ms": "336",
+            "x-ms-debug-latency-total-last-byte-ms": "336",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 10,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:01:49.060472+00:00",
+          "session_alias": "session-010",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 5910.598200047389,
+            "platform-preprocessing-ms": 101.0,
+            "infra-setup-ms": 981.0,
+            "container-readiness-ms": 4266.0,
+            "container-response-ms": 402.0,
+            "response-begin-ms": 5750.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 5750.0,
+            "client_first_chunk_ms": 5910.7310000108555,
+            "client_complete_ms": 5910.733300028369,
+            "client_journey_ms": 5910.733300028369
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "101",
+            "x-ms-debug-latency-infra-setup-ms": "981",
+            "x-ms-debug-latency-container-readiness-ms": "4266",
+            "x-ms-debug-latency-container-response-ms": "402",
+            "x-ms-debug-latency-response-begin-ms": "5750",
+            "x-ms-debug-latency-total-last-byte-ms": "5750",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 10,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:01:56.053569+00:00",
+          "session_alias": "session-010",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 644.1942000528798,
+            "platform-preprocessing-ms": 100.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 218.0,
+            "response-begin-ms": 318.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 319.0,
+            "client_first_chunk_ms": 644.2925999872386,
+            "client_complete_ms": 644.2945000017062,
+            "client_journey_ms": 644.2945000017062
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "100",
+            "x-ms-debug-latency-container-response-ms": "218",
+            "x-ms-debug-latency-response-begin-ms": "318",
+            "x-ms-debug-latency-total-last-byte-ms": "319",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        }
+      ]
+    },
+    {
+      "role": "comparison",
+      "condition": "snapshot",
+      "agent_version": "2",
+      "recording_timestamp": "2026-11-09T23:48:59.100098+00:00",
+      "image_alias": "image-1",
+      "cpu": "0.5",
+      "memory": "1Gi",
+      "snapshots": true,
+      "core_version": "2.3.0",
+      "responses_version": "2.4.0",
+      "planned_cold_sessions": 10,
+      "planned_resume_checks": 1,
+      "idle_wait_seconds": 210.0,
+      "samples": [
+        {
+          "trial": 1,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:48:59.359090+00:00",
+          "session_alias": "session-011",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 4946.406200062484,
+            "platform-preprocessing-ms": 651.0,
+            "infra-setup-ms": 633.0,
+            "container-readiness-ms": 110.0,
+            "container-response-ms": 645.0,
+            "response-begin-ms": 2039.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 2039.0,
+            "client_first_chunk_ms": 4946.589300059713,
+            "client_complete_ms": 4946.592700085603,
+            "client_journey_ms": 4946.592700085603
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "651",
+            "x-ms-debug-latency-infra-setup-ms": "633",
+            "x-ms-debug-latency-container-readiness-ms": "110",
+            "x-ms-debug-latency-container-response-ms": "645",
+            "x-ms-debug-latency-response-begin-ms": "2039",
+            "x-ms-debug-latency-total-last-byte-ms": "2039",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 1,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:49:05.584636+00:00",
+          "session_alias": "session-011",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 773.3736999798566,
+            "platform-preprocessing-ms": 105.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 494.0,
+            "response-begin-ms": 599.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 599.0,
+            "client_first_chunk_ms": 773.4287000494078,
+            "client_complete_ms": 773.4300000593066,
+            "client_journey_ms": 773.4300000593066
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "105",
+            "x-ms-debug-latency-container-response-ms": "494",
+            "x-ms-debug-latency-response-begin-ms": "599",
+            "x-ms-debug-latency-total-last-byte-ms": "599",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 1,
+          "phase": "resume",
+          "timestamp": "2026-11-09T23:52:37.207337+00:00",
+          "session_alias": "session-011",
+          "observed_start": "resume",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 3978.4215000690892,
+            "platform-preprocessing-ms": 134.0,
+            "infra-setup-ms": 2170.0,
+            "container-readiness-ms": 202.0,
+            "container-response-ms": 768.0,
+            "response-begin-ms": 3274.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 3274.0,
+            "client_first_chunk_ms": 3978.52900007274,
+            "client_complete_ms": 3978.530800086446,
+            "client_journey_ms": 3978.530800086446
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "134",
+            "x-ms-debug-latency-infra-setup-ms": "2170",
+            "x-ms-debug-latency-container-readiness-ms": "202",
+            "x-ms-debug-latency-container-response-ms": "768",
+            "x-ms-debug-latency-response-begin-ms": "3274",
+            "x-ms-debug-latency-total-last-byte-ms": "3274",
+            "x-ms-debug-latency-session-start-type": "resume"
+          }
+        },
+        {
+          "trial": 2,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:52:41.977014+00:00",
+          "session_alias": "session-012",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1714.8557000327855,
+            "platform-preprocessing-ms": 444.0,
+            "infra-setup-ms": 617.0,
+            "container-readiness-ms": 117.0,
+            "container-response-ms": 386.0,
+            "response-begin-ms": 1564.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1564.0,
+            "client_first_chunk_ms": 1714.9399999761954,
+            "client_complete_ms": 1714.9414999876171,
+            "client_journey_ms": 1714.9414999876171
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "444",
+            "x-ms-debug-latency-infra-setup-ms": "617",
+            "x-ms-debug-latency-container-readiness-ms": "117",
+            "x-ms-debug-latency-container-response-ms": "386",
+            "x-ms-debug-latency-response-begin-ms": "1564",
+            "x-ms-debug-latency-total-last-byte-ms": "1564",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 2,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:52:45.306991+00:00",
+          "session_alias": "session-012",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 464.46480008307844,
+            "platform-preprocessing-ms": 108.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 214.0,
+            "response-begin-ms": 322.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 322.0,
+            "client_first_chunk_ms": 464.5863000769168,
+            "client_complete_ms": 464.5884999772534,
+            "client_journey_ms": 464.5884999772534
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "108",
+            "x-ms-debug-latency-container-response-ms": "214",
+            "x-ms-debug-latency-response-begin-ms": "322",
+            "x-ms-debug-latency-total-last-byte-ms": "322",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 3,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:52:46.613681+00:00",
+          "session_alias": "session-013",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1263.9329000376165,
+            "platform-preprocessing-ms": 105.0,
+            "infra-setup-ms": 486.0,
+            "container-readiness-ms": 120.0,
+            "container-response-ms": 412.0,
+            "response-begin-ms": 1123.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1123.0,
+            "client_first_chunk_ms": 1264.031899976544,
+            "client_complete_ms": 1264.033899991773,
+            "client_journey_ms": 1264.033899991773
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "105",
+            "x-ms-debug-latency-infra-setup-ms": "486",
+            "x-ms-debug-latency-container-readiness-ms": "120",
+            "x-ms-debug-latency-container-response-ms": "412",
+            "x-ms-debug-latency-response-begin-ms": "1123",
+            "x-ms-debug-latency-total-last-byte-ms": "1123",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 3,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:52:48.952573+00:00",
+          "session_alias": "session-013",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 550.2842999994755,
+            "platform-preprocessing-ms": 120.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 274.0,
+            "response-begin-ms": 394.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 394.0,
+            "client_first_chunk_ms": 550.4203999880701,
+            "client_complete_ms": 550.4230000078678,
+            "client_journey_ms": 550.4230000078678
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "120",
+            "x-ms-debug-latency-container-response-ms": "274",
+            "x-ms-debug-latency-response-begin-ms": "394",
+            "x-ms-debug-latency-total-last-byte-ms": "394",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 4,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:52:50.357149+00:00",
+          "session_alias": "session-014",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1491.7111000977457,
+            "platform-preprocessing-ms": 119.0,
+            "infra-setup-ms": 643.0,
+            "container-readiness-ms": 141.0,
+            "container-response-ms": 384.0,
+            "response-begin-ms": 1287.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1287.0,
+            "client_first_chunk_ms": 1491.7687000706792,
+            "client_complete_ms": 1491.7696000775322,
+            "client_journey_ms": 1491.7696000775322
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "119",
+            "x-ms-debug-latency-infra-setup-ms": "643",
+            "x-ms-debug-latency-container-readiness-ms": "141",
+            "x-ms-debug-latency-container-response-ms": "384",
+            "x-ms-debug-latency-response-begin-ms": "1287",
+            "x-ms-debug-latency-total-last-byte-ms": "1287",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 4,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:52:52.848369+00:00",
+          "session_alias": "session-014",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 570.2737000538036,
+            "platform-preprocessing-ms": 116.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 287.0,
+            "response-begin-ms": 403.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 403.0,
+            "client_first_chunk_ms": 570.4232000280172,
+            "client_complete_ms": 570.4260000493377,
+            "client_journey_ms": 570.4260000493377
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "116",
+            "x-ms-debug-latency-container-response-ms": "287",
+            "x-ms-debug-latency-response-begin-ms": "403",
+            "x-ms-debug-latency-total-last-byte-ms": "403",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 5,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:52:54.231743+00:00",
+          "session_alias": "session-015",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1514.3043000716716,
+            "platform-preprocessing-ms": 94.0,
+            "infra-setup-ms": 757.0,
+            "container-readiness-ms": 120.0,
+            "container-response-ms": 394.0,
+            "response-begin-ms": 1365.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1365.0,
+            "client_first_chunk_ms": 1514.3754000309855,
+            "client_complete_ms": 1514.3766000401229,
+            "client_journey_ms": 1514.3766000401229
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "94",
+            "x-ms-debug-latency-infra-setup-ms": "757",
+            "x-ms-debug-latency-container-readiness-ms": "120",
+            "x-ms-debug-latency-container-response-ms": "394",
+            "x-ms-debug-latency-response-begin-ms": "1365",
+            "x-ms-debug-latency-total-last-byte-ms": "1365",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 5,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:52:56.930355+00:00",
+          "session_alias": "session-015",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 488.11800009571016,
+            "platform-preprocessing-ms": 104.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 236.0,
+            "response-begin-ms": 340.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 340.0,
+            "client_first_chunk_ms": 488.189100055024,
+            "client_complete_ms": 488.1905000656843,
+            "client_journey_ms": 488.1905000656843
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "104",
+            "x-ms-debug-latency-container-response-ms": "236",
+            "x-ms-debug-latency-response-begin-ms": "340",
+            "x-ms-debug-latency-total-last-byte-ms": "340",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 6,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:52:58.285396+00:00",
+          "session_alias": "session-016",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1463.859700015746,
+            "platform-preprocessing-ms": 118.0,
+            "infra-setup-ms": 662.0,
+            "container-readiness-ms": 172.0,
+            "container-response-ms": 367.0,
+            "response-begin-ms": 1319.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1319.0,
+            "client_first_chunk_ms": 1463.9382000314072,
+            "client_complete_ms": 1463.9393000397831,
+            "client_journey_ms": 1463.9393000397831
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "118",
+            "x-ms-debug-latency-infra-setup-ms": "662",
+            "x-ms-debug-latency-container-readiness-ms": "172",
+            "x-ms-debug-latency-container-response-ms": "367",
+            "x-ms-debug-latency-response-begin-ms": "1319",
+            "x-ms-debug-latency-total-last-byte-ms": "1319",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 6,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:53:00.753447+00:00",
+          "session_alias": "session-016",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 450.91240003239363,
+            "platform-preprocessing-ms": 114.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 194.0,
+            "response-begin-ms": 308.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 308.0,
+            "client_first_chunk_ms": 451.0209000436589,
+            "client_complete_ms": 451.0231000604108,
+            "client_journey_ms": 451.0231000604108
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "114",
+            "x-ms-debug-latency-container-response-ms": "194",
+            "x-ms-debug-latency-response-begin-ms": "308",
+            "x-ms-debug-latency-total-last-byte-ms": "308",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 7,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:53:02.020325+00:00",
+          "session_alias": "session-017",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1431.321099982597,
+            "platform-preprocessing-ms": 98.0,
+            "infra-setup-ms": 551.0,
+            "container-readiness-ms": 297.0,
+            "container-response-ms": 347.0,
+            "response-begin-ms": 1293.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1293.0,
+            "client_first_chunk_ms": 1431.4706000732258,
+            "client_complete_ms": 1431.4736000960693,
+            "client_journey_ms": 1431.4736000960693
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "98",
+            "x-ms-debug-latency-infra-setup-ms": "551",
+            "x-ms-debug-latency-container-readiness-ms": "297",
+            "x-ms-debug-latency-container-response-ms": "347",
+            "x-ms-debug-latency-response-begin-ms": "1293",
+            "x-ms-debug-latency-total-last-byte-ms": "1293",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 7,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:53:04.450765+00:00",
+          "session_alias": "session-017",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 465.3351999586448,
+            "platform-preprocessing-ms": 106.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 179.0,
+            "response-begin-ms": 285.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 285.0,
+            "client_first_chunk_ms": 465.38529999088496,
+            "client_complete_ms": 465.3859999962151,
+            "client_journey_ms": 465.3859999962151
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "106",
+            "x-ms-debug-latency-container-response-ms": "179",
+            "x-ms-debug-latency-response-begin-ms": "285",
+            "x-ms-debug-latency-total-last-byte-ms": "285",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 8,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:53:05.701033+00:00",
+          "session_alias": "session-018",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1458.8176000397652,
+            "platform-preprocessing-ms": 105.0,
+            "infra-setup-ms": 478.0,
+            "container-readiness-ms": 301.0,
+            "container-response-ms": 424.0,
+            "response-begin-ms": 1308.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1308.0,
+            "client_first_chunk_ms": 1458.9086000341922,
+            "client_complete_ms": 1458.9103000471368,
+            "client_journey_ms": 1458.9103000471368
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "105",
+            "x-ms-debug-latency-infra-setup-ms": "478",
+            "x-ms-debug-latency-container-readiness-ms": "301",
+            "x-ms-debug-latency-container-response-ms": "424",
+            "x-ms-debug-latency-response-begin-ms": "1308",
+            "x-ms-debug-latency-total-last-byte-ms": "1308",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 8,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:53:08.484168+00:00",
+          "session_alias": "session-018",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 484.62879995349795,
+            "platform-preprocessing-ms": 109.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 203.0,
+            "response-begin-ms": 312.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 312.0,
+            "client_first_chunk_ms": 484.714699909091,
+            "client_complete_ms": 484.71659992355853,
+            "client_journey_ms": 484.71659992355853
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "109",
+            "x-ms-debug-latency-container-response-ms": "203",
+            "x-ms-debug-latency-response-begin-ms": "312",
+            "x-ms-debug-latency-total-last-byte-ms": "312",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 9,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:53:09.803378+00:00",
+          "session_alias": "session-019",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1306.0137000866234,
+            "platform-preprocessing-ms": 128.0,
+            "infra-setup-ms": 475.0,
+            "container-readiness-ms": 129.0,
+            "container-response-ms": 409.0,
+            "response-begin-ms": 1141.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1141.0,
+            "client_first_chunk_ms": 1306.1588000273332,
+            "client_complete_ms": 1306.1611000448465,
+            "client_journey_ms": 1306.1611000448465
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "128",
+            "x-ms-debug-latency-infra-setup-ms": "475",
+            "x-ms-debug-latency-container-readiness-ms": "129",
+            "x-ms-debug-latency-container-response-ms": "409",
+            "x-ms-debug-latency-response-begin-ms": "1141",
+            "x-ms-debug-latency-total-last-byte-ms": "1141",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 9,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:53:12.136990+00:00",
+          "session_alias": "session-019",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 547.1087999176234,
+            "platform-preprocessing-ms": 104.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 224.0,
+            "response-begin-ms": 328.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 328.0,
+            "client_first_chunk_ms": 547.1588999498636,
+            "client_complete_ms": 547.1596999559551,
+            "client_journey_ms": 547.1596999559551
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "104",
+            "x-ms-debug-latency-container-response-ms": "224",
+            "x-ms-debug-latency-response-begin-ms": "328",
+            "x-ms-debug-latency-total-last-byte-ms": "328",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 10,
+          "phase": "cold",
+          "timestamp": "2026-11-09T23:53:13.493181+00:00",
+          "session_alias": "session-020",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1377.3835999891162,
+            "platform-preprocessing-ms": 111.0,
+            "infra-setup-ms": 521.0,
+            "container-readiness-ms": 146.0,
+            "container-response-ms": 438.0,
+            "response-begin-ms": 1216.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1216.0,
+            "client_first_chunk_ms": 1377.46679992415,
+            "client_complete_ms": 1377.468099934049,
+            "client_journey_ms": 1377.468099934049
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "111",
+            "x-ms-debug-latency-infra-setup-ms": "521",
+            "x-ms-debug-latency-container-readiness-ms": "146",
+            "x-ms-debug-latency-container-response-ms": "438",
+            "x-ms-debug-latency-response-begin-ms": "1216",
+            "x-ms-debug-latency-total-last-byte-ms": "1216",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 10,
+          "phase": "warm",
+          "timestamp": "2026-11-09T23:53:15.873953+00:00",
+          "session_alias": "session-020",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 458.8874999899417,
+            "platform-preprocessing-ms": 98.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 216.0,
+            "response-begin-ms": 314.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 314.0,
+            "client_first_chunk_ms": 458.98539992049336,
+            "client_complete_ms": 458.9878999395296,
+            "client_journey_ms": 458.9878999395296
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "98",
+            "x-ms-debug-latency-container-response-ms": "216",
+            "x-ms-debug-latency-response-begin-ms": "314",
+            "x-ms-debug-latency-total-last-byte-ms": "314",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        }
+      ]
+    },
+    {
+      "role": "comparison",
+      "condition": "optimized",
+      "agent_version": "3",
+      "recording_timestamp": "2026-11-10T00:51:47.608337+00:00",
+      "image_alias": "image-2",
+      "cpu": "0.5",
+      "memory": "1Gi",
+      "snapshots": true,
+      "core_version": "2.3.0",
+      "responses_version": "2.4.0",
+      "planned_cold_sessions": 10,
+      "planned_resume_checks": 1,
+      "idle_wait_seconds": 210.0,
+      "samples": [
+        {
+          "trial": 1,
+          "phase": "cold",
+          "timestamp": "2026-11-10T00:51:47.837054+00:00",
+          "session_alias": "session-021",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 5307.5179000152275,
+            "platform-preprocessing-ms": 664.0,
+            "infra-setup-ms": 976.0,
+            "container-readiness-ms": 108.0,
+            "container-response-ms": 875.0,
+            "response-begin-ms": 2623.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 2623.0,
+            "client_first_chunk_ms": 5307.7139999950305,
+            "client_complete_ms": 5307.717900024727,
+            "client_journey_ms": 5307.717900024727
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "664",
+            "x-ms-debug-latency-infra-setup-ms": "976",
+            "x-ms-debug-latency-container-readiness-ms": "108",
+            "x-ms-debug-latency-container-response-ms": "875",
+            "x-ms-debug-latency-response-begin-ms": "2623",
+            "x-ms-debug-latency-total-last-byte-ms": "2623",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 1,
+          "phase": "warm",
+          "timestamp": "2026-11-10T00:51:54.337152+00:00",
+          "session_alias": "session-021",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 469.74100009538233,
+            "platform-preprocessing-ms": 107.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 226.0,
+            "response-begin-ms": 333.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 334.0,
+            "client_first_chunk_ms": 469.80020008049905,
+            "client_complete_ms": 469.80180009268224,
+            "client_journey_ms": 469.80180009268224
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "107",
+            "x-ms-debug-latency-container-response-ms": "226",
+            "x-ms-debug-latency-response-begin-ms": "333",
+            "x-ms-debug-latency-total-last-byte-ms": "334",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 1,
+          "phase": "resume",
+          "timestamp": "2026-11-10T00:55:25.581342+00:00",
+          "session_alias": "session-021",
+          "observed_start": "resume",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 2435.0150999380276,
+            "platform-preprocessing-ms": 136.0,
+            "infra-setup-ms": 776.0,
+            "container-readiness-ms": 119.0,
+            "container-response-ms": 632.0,
+            "response-begin-ms": 1663.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1663.0,
+            "client_first_chunk_ms": 2435.077599948272,
+            "client_complete_ms": 2435.078699956648,
+            "client_journey_ms": 2435.078699956648
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "136",
+            "x-ms-debug-latency-infra-setup-ms": "776",
+            "x-ms-debug-latency-container-readiness-ms": "119",
+            "x-ms-debug-latency-container-response-ms": "632",
+            "x-ms-debug-latency-response-begin-ms": "1663",
+            "x-ms-debug-latency-total-last-byte-ms": "1663",
+            "x-ms-debug-latency-session-start-type": "resume"
+          }
+        },
+        {
+          "trial": 2,
+          "phase": "cold",
+          "timestamp": "2026-11-10T00:55:28.851401+00:00",
+          "session_alias": "session-022",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1419.5673000067472,
+            "platform-preprocessing-ms": 127.0,
+            "infra-setup-ms": 565.0,
+            "container-readiness-ms": 110.0,
+            "container-response-ms": 375.0,
+            "response-begin-ms": 1177.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1177.0,
+            "client_first_chunk_ms": 1419.6389999706298,
+            "client_complete_ms": 1419.6400999790058,
+            "client_journey_ms": 1419.6400999790058
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "127",
+            "x-ms-debug-latency-infra-setup-ms": "565",
+            "x-ms-debug-latency-container-readiness-ms": "110",
+            "x-ms-debug-latency-container-response-ms": "375",
+            "x-ms-debug-latency-response-begin-ms": "1177",
+            "x-ms-debug-latency-total-last-byte-ms": "1177",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 2,
+          "phase": "warm",
+          "timestamp": "2026-11-10T00:55:31.936548+00:00",
+          "session_alias": "session-022",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 702.9649000614882,
+            "platform-preprocessing-ms": 155.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 398.0,
+            "response-begin-ms": 553.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 554.0,
+            "client_first_chunk_ms": 703.068400034681,
+            "client_complete_ms": 703.07040004991,
+            "client_journey_ms": 703.07040004991
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "155",
+            "x-ms-debug-latency-container-response-ms": "398",
+            "x-ms-debug-latency-response-begin-ms": "553",
+            "x-ms-debug-latency-total-last-byte-ms": "554",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 3,
+          "phase": "cold",
+          "timestamp": "2026-11-10T00:55:33.501210+00:00",
+          "session_alias": "session-023",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1422.9045000392944,
+            "platform-preprocessing-ms": 117.0,
+            "infra-setup-ms": 644.0,
+            "container-readiness-ms": 168.0,
+            "container-response-ms": 316.0,
+            "response-begin-ms": 1245.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1245.0,
+            "client_first_chunk_ms": 1423.0185000924394,
+            "client_complete_ms": 1423.0205999920145,
+            "client_journey_ms": 1423.0205999920145
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "117",
+            "x-ms-debug-latency-infra-setup-ms": "644",
+            "x-ms-debug-latency-container-readiness-ms": "168",
+            "x-ms-debug-latency-container-response-ms": "316",
+            "x-ms-debug-latency-response-begin-ms": "1245",
+            "x-ms-debug-latency-total-last-byte-ms": "1245",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 3,
+          "phase": "warm",
+          "timestamp": "2026-11-10T00:55:35.952873+00:00",
+          "session_alias": "session-023",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 465.1772000361234,
+            "platform-preprocessing-ms": 95.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 230.0,
+            "response-begin-ms": 325.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 325.0,
+            "client_first_chunk_ms": 465.2569000609219,
+            "client_complete_ms": 465.2581000700593,
+            "client_journey_ms": 465.2581000700593
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "95",
+            "x-ms-debug-latency-container-response-ms": "230",
+            "x-ms-debug-latency-response-begin-ms": "325",
+            "x-ms-debug-latency-total-last-byte-ms": "325",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 4,
+          "phase": "cold",
+          "timestamp": "2026-11-10T00:55:37.193300+00:00",
+          "session_alias": "session-024",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1351.8680999986827,
+            "platform-preprocessing-ms": 117.0,
+            "infra-setup-ms": 587.0,
+            "container-readiness-ms": 116.0,
+            "container-response-ms": 379.0,
+            "response-begin-ms": 1199.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1199.0,
+            "client_first_chunk_ms": 1351.9427001010627,
+            "client_complete_ms": 1351.9438999937847,
+            "client_journey_ms": 1351.9438999937847
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "117",
+            "x-ms-debug-latency-infra-setup-ms": "587",
+            "x-ms-debug-latency-container-readiness-ms": "116",
+            "x-ms-debug-latency-container-response-ms": "379",
+            "x-ms-debug-latency-response-begin-ms": "1199",
+            "x-ms-debug-latency-total-last-byte-ms": "1199",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 4,
+          "phase": "warm",
+          "timestamp": "2026-11-10T00:55:39.619998+00:00",
+          "session_alias": "session-024",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 653.9518999634311,
+            "platform-preprocessing-ms": 109.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 377.0,
+            "response-begin-ms": 486.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 486.0,
+            "client_first_chunk_ms": 654.0336000034586,
+            "client_complete_ms": 654.0352000156417,
+            "client_journey_ms": 654.0352000156417
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "109",
+            "x-ms-debug-latency-container-response-ms": "377",
+            "x-ms-debug-latency-response-begin-ms": "486",
+            "x-ms-debug-latency-total-last-byte-ms": "486",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 5,
+          "phase": "cold",
+          "timestamp": "2026-11-10T00:55:41.072746+00:00",
+          "session_alias": "session-025",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1254.975700052455,
+            "platform-preprocessing-ms": 102.0,
+            "infra-setup-ms": 515.0,
+            "container-readiness-ms": 129.0,
+            "container-response-ms": 363.0,
+            "response-begin-ms": 1109.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1109.0,
+            "client_first_chunk_ms": 1255.0512000452727,
+            "client_complete_ms": 1255.0525000551715,
+            "client_journey_ms": 1255.0525000551715
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "102",
+            "x-ms-debug-latency-infra-setup-ms": "515",
+            "x-ms-debug-latency-container-readiness-ms": "129",
+            "x-ms-debug-latency-container-response-ms": "363",
+            "x-ms-debug-latency-response-begin-ms": "1109",
+            "x-ms-debug-latency-total-last-byte-ms": "1109",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 5,
+          "phase": "warm",
+          "timestamp": "2026-11-10T00:55:43.626077+00:00",
+          "session_alias": "session-025",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 468.36280007846653,
+            "platform-preprocessing-ms": 87.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 233.0,
+            "response-begin-ms": 320.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 320.0,
+            "client_first_chunk_ms": 468.54520007036626,
+            "client_complete_ms": 468.5479000909254,
+            "client_journey_ms": 468.5479000909254
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "87",
+            "x-ms-debug-latency-container-response-ms": "233",
+            "x-ms-debug-latency-response-begin-ms": "320",
+            "x-ms-debug-latency-total-last-byte-ms": "320",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 6,
+          "phase": "cold",
+          "timestamp": "2026-11-10T00:55:45.094102+00:00",
+          "session_alias": "session-026",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1170.8215000107884,
+            "platform-preprocessing-ms": 105.0,
+            "infra-setup-ms": 492.0,
+            "container-readiness-ms": 99.0,
+            "container-response-ms": 330.0,
+            "response-begin-ms": 1026.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1026.0,
+            "client_first_chunk_ms": 1170.8784999791533,
+            "client_complete_ms": 1170.8794999867678,
+            "client_journey_ms": 1170.8794999867678
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "105",
+            "x-ms-debug-latency-infra-setup-ms": "492",
+            "x-ms-debug-latency-container-readiness-ms": "99",
+            "x-ms-debug-latency-container-response-ms": "330",
+            "x-ms-debug-latency-response-begin-ms": "1026",
+            "x-ms-debug-latency-total-last-byte-ms": "1026",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 6,
+          "phase": "warm",
+          "timestamp": "2026-11-10T00:55:47.283405+00:00",
+          "session_alias": "session-026",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 489.35410007834435,
+            "platform-preprocessing-ms": 118.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 228.0,
+            "response-begin-ms": 346.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 346.0,
+            "client_first_chunk_ms": 489.47490006685257,
+            "client_complete_ms": 489.47689996566623,
+            "client_journey_ms": 489.47689996566623
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "118",
+            "x-ms-debug-latency-container-response-ms": "228",
+            "x-ms-debug-latency-response-begin-ms": "346",
+            "x-ms-debug-latency-total-last-byte-ms": "346",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 7,
+          "phase": "cold",
+          "timestamp": "2026-11-10T00:55:48.553544+00:00",
+          "session_alias": "session-027",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1370.790799963288,
+            "platform-preprocessing-ms": 95.0,
+            "infra-setup-ms": 621.0,
+            "container-readiness-ms": 192.0,
+            "container-response-ms": 306.0,
+            "response-begin-ms": 1214.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1214.0,
+            "client_first_chunk_ms": 1370.9241000469774,
+            "client_complete_ms": 1370.9265000652522,
+            "client_journey_ms": 1370.9265000652522
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "95",
+            "x-ms-debug-latency-infra-setup-ms": "621",
+            "x-ms-debug-latency-container-readiness-ms": "192",
+            "x-ms-debug-latency-container-response-ms": "306",
+            "x-ms-debug-latency-response-begin-ms": "1214",
+            "x-ms-debug-latency-total-last-byte-ms": "1214",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 7,
+          "phase": "warm",
+          "timestamp": "2026-11-10T00:55:50.925532+00:00",
+          "session_alias": "session-027",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 469.3555999547243,
+            "platform-preprocessing-ms": 97.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 232.0,
+            "response-begin-ms": 329.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 330.0,
+            "client_first_chunk_ms": 469.40609999001026,
+            "client_complete_ms": 469.40709999762475,
+            "client_journey_ms": 469.40709999762475
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "97",
+            "x-ms-debug-latency-container-response-ms": "232",
+            "x-ms-debug-latency-response-begin-ms": "329",
+            "x-ms-debug-latency-total-last-byte-ms": "330",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 8,
+          "phase": "cold",
+          "timestamp": "2026-11-10T00:55:52.170787+00:00",
+          "session_alias": "session-028",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1478.4447000129148,
+            "platform-preprocessing-ms": 135.0,
+            "infra-setup-ms": 692.0,
+            "container-readiness-ms": 117.0,
+            "container-response-ms": 395.0,
+            "response-begin-ms": 1339.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1339.0,
+            "client_first_chunk_ms": 1478.5759000806138,
+            "client_complete_ms": 1478.5783000988886,
+            "client_journey_ms": 1478.5783000988886
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "135",
+            "x-ms-debug-latency-infra-setup-ms": "692",
+            "x-ms-debug-latency-container-readiness-ms": "117",
+            "x-ms-debug-latency-container-response-ms": "395",
+            "x-ms-debug-latency-response-begin-ms": "1339",
+            "x-ms-debug-latency-total-last-byte-ms": "1339",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 8,
+          "phase": "warm",
+          "timestamp": "2026-11-10T00:55:54.628993+00:00",
+          "session_alias": "session-028",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 463.7612000806257,
+            "platform-preprocessing-ms": 98.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 212.0,
+            "response-begin-ms": 310.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 310.0,
+            "client_first_chunk_ms": 463.86920008808374,
+            "client_complete_ms": 463.8716001063585,
+            "client_journey_ms": 463.8716001063585
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "98",
+            "x-ms-debug-latency-container-response-ms": "212",
+            "x-ms-debug-latency-response-begin-ms": "310",
+            "x-ms-debug-latency-total-last-byte-ms": "310",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 9,
+          "phase": "cold",
+          "timestamp": "2026-11-10T00:55:55.870317+00:00",
+          "session_alias": "session-029",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1345.7590999314561,
+            "platform-preprocessing-ms": 106.0,
+            "infra-setup-ms": 580.0,
+            "container-readiness-ms": 128.0,
+            "container-response-ms": 388.0,
+            "response-begin-ms": 1202.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1202.0,
+            "client_first_chunk_ms": 1345.8192000398412,
+            "client_complete_ms": 1345.8200000459328,
+            "client_journey_ms": 1345.8200000459328
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "106",
+            "x-ms-debug-latency-infra-setup-ms": "580",
+            "x-ms-debug-latency-container-readiness-ms": "128",
+            "x-ms-debug-latency-container-response-ms": "388",
+            "x-ms-debug-latency-response-begin-ms": "1202",
+            "x-ms-debug-latency-total-last-byte-ms": "1202",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 9,
+          "phase": "warm",
+          "timestamp": "2026-11-10T00:55:58.308675+00:00",
+          "session_alias": "session-029",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 479.8985000234097,
+            "platform-preprocessing-ms": 94.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 215.0,
+            "response-begin-ms": 309.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 310.0,
+            "client_first_chunk_ms": 479.9805999500677,
+            "client_complete_ms": 479.98209996148944,
+            "client_journey_ms": 479.98209996148944
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "94",
+            "x-ms-debug-latency-container-response-ms": "215",
+            "x-ms-debug-latency-response-begin-ms": "309",
+            "x-ms-debug-latency-total-last-byte-ms": "310",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        },
+        {
+          "trial": 10,
+          "phase": "cold",
+          "timestamp": "2026-11-10T00:55:59.624735+00:00",
+          "session_alias": "session-030",
+          "observed_start": "cold",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 1297.3302999744192,
+            "platform-preprocessing-ms": 103.0,
+            "infra-setup-ms": 524.0,
+            "container-readiness-ms": 129.0,
+            "container-response-ms": 332.0,
+            "response-begin-ms": 1088.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 1088.0,
+            "client_first_chunk_ms": 1297.4256000015885,
+            "client_complete_ms": 1297.4272000137717,
+            "client_journey_ms": 1297.4272000137717
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "103",
+            "x-ms-debug-latency-infra-setup-ms": "524",
+            "x-ms-debug-latency-container-readiness-ms": "129",
+            "x-ms-debug-latency-container-response-ms": "332",
+            "x-ms-debug-latency-response-begin-ms": "1088",
+            "x-ms-debug-latency-total-last-byte-ms": "1088",
+            "x-ms-debug-latency-session-start-type": "cold"
+          }
+        },
+        {
+          "trial": 10,
+          "phase": "warm",
+          "timestamp": "2026-11-10T00:56:01.929279+00:00",
+          "session_alias": "session-030",
+          "observed_start": "warm",
+          "passed": true,
+          "errors": [],
+          "timings_ms": {
+            "client_headers_ms": 474.4039000943303,
+            "platform-preprocessing-ms": 102.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 188.0,
+            "response-begin-ms": 290.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 290.0,
+            "client_first_chunk_ms": 474.50240002945065,
+            "client_complete_ms": 474.50400004163384,
+            "client_journey_ms": 474.50400004163384
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "102",
+            "x-ms-debug-latency-container-response-ms": "188",
+            "x-ms-debug-latency-response-begin-ms": "290",
+            "x-ms-debug-latency-total-last-byte-ms": "290",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        }
+      ]
+    },
+    {
+      "role": "diagnostic",
+      "condition": "baseline",
+      "agent_version": "1",
+      "recording_timestamp": "2026-11-09T22:46:50.778991+00:00",
+      "image_alias": "image-1",
+      "cpu": "0.5",
+      "memory": "1Gi",
+      "snapshots": false,
+      "core_version": "2.3.0",
+      "responses_version": "2.4.0",
+      "planned_cold_sessions": 10,
+      "planned_resume_checks": 1,
+      "idle_wait_seconds": 150.0,
+      "samples": [
+        {
+          "trial": 1,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:46:57.166940+00:00",
+          "session_alias": "session-031",
+          "observed_start": null,
+          "passed": false,
+          "errors": [
+            "Invocation/diagnostic failure: ValidationError; no POST retry attempted."
+          ],
+          "timings_ms": {
+            "session_create_ms": 6351.6415999038145,
+            "client_headers_ms": 3857.0961999939755,
+            "client_first_chunk_ms": 3857.1044999407604,
+            "client_complete_ms": 3857.1057999506593,
+            "client_journey_ms": 10208.747399854474
+          },
+          "native_latency_headers": {}
+        },
+        {
+          "trial": 2,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:47:06.740289+00:00",
+          "session_alias": "session-032",
+          "observed_start": null,
+          "passed": false,
+          "errors": [
+            "Invocation/diagnostic failure: ValidationError; no POST retry attempted."
+          ],
+          "timings_ms": {
+            "session_create_ms": 5685.884900041856,
+            "client_headers_ms": 1276.2843000236899,
+            "client_first_chunk_ms": 1276.2899999506772,
+            "client_complete_ms": 1276.2909999582916,
+            "client_journey_ms": 6962.1759000001475
+          },
+          "native_latency_headers": {}
+        },
+        {
+          "trial": 3,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:47:13.641901+00:00",
+          "session_alias": "session-033",
+          "observed_start": null,
+          "passed": false,
+          "errors": [
+            "Invocation/diagnostic failure: ValidationError; no POST retry attempted."
+          ],
+          "timings_ms": {
+            "session_create_ms": 5623.954099952243,
+            "client_headers_ms": 1169.9962000129744,
+            "client_first_chunk_ms": 1170.0079999864101,
+            "client_complete_ms": 1170.0096999993548,
+            "client_journey_ms": 6793.963799951598
+          },
+          "native_latency_headers": {}
+        },
+        {
+          "trial": 4,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:47:20.320012+00:00",
+          "session_alias": "session-034",
+          "observed_start": null,
+          "passed": false,
+          "errors": [
+            "Invocation/diagnostic failure: ValidationError; no POST retry attempted."
+          ],
+          "timings_ms": {
+            "session_create_ms": 5504.871399956755,
+            "client_headers_ms": 1776.415599975735,
+            "client_first_chunk_ms": 1776.4210000168532,
+            "client_complete_ms": 1776.4218000229448,
+            "client_journey_ms": 7281.2931999797
+          },
+          "native_latency_headers": {}
+        },
+        {
+          "trial": 5,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:47:28.448247+00:00",
+          "session_alias": "session-035",
+          "observed_start": null,
+          "passed": false,
+          "errors": [
+            "Invocation/diagnostic failure: ValidationError; no POST retry attempted."
+          ],
+          "timings_ms": {
+            "session_create_ms": 6349.573999992572,
+            "client_headers_ms": 1135.9134999802336,
+            "client_first_chunk_ms": 1135.9311999985948,
+            "client_complete_ms": 1135.9342000214383,
+            "client_journey_ms": 7485.50820001401
+          },
+          "native_latency_headers": {}
+        },
+        {
+          "trial": 6,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:47:35.149758+00:00",
+          "session_alias": "session-036",
+          "observed_start": null,
+          "passed": false,
+          "errors": [
+            "Invocation/diagnostic failure: ValidationError; no POST retry attempted."
+          ],
+          "timings_ms": {
+            "session_create_ms": 5560.917500057258,
+            "client_headers_ms": 1409.7335999831557,
+            "client_first_chunk_ms": 1409.7456999588758,
+            "client_complete_ms": 1409.747299971059,
+            "client_journey_ms": 6970.664800028317
+          },
+          "native_latency_headers": {}
+        },
+        {
+          "trial": 7,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:47:42.736521+00:00",
+          "session_alias": "session-037",
+          "observed_start": null,
+          "passed": false,
+          "errors": [
+            "Invocation/diagnostic failure: ValidationError; no POST retry attempted."
+          ],
+          "timings_ms": {
+            "session_create_ms": 6174.236499937251,
+            "client_headers_ms": 1317.6043999847025,
+            "client_first_chunk_ms": 1317.609200021252,
+            "client_complete_ms": 1317.6099000265822,
+            "client_journey_ms": 7491.846399963833
+          },
+          "native_latency_headers": {}
+        },
+        {
+          "trial": 8,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:47:49.908146+00:00",
+          "session_alias": "session-038",
+          "observed_start": null,
+          "passed": false,
+          "errors": [
+            "Invocation/diagnostic failure: ValidationError; no POST retry attempted."
+          ],
+          "timings_ms": {
+            "session_create_ms": 5852.809299947694,
+            "client_headers_ms": 1591.8886000290513,
+            "client_first_chunk_ms": 1591.8976999819279,
+            "client_complete_ms": 1591.8996999971569,
+            "client_journey_ms": 7444.708999944851
+          },
+          "native_latency_headers": {}
+        },
+        {
+          "trial": 9,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:47:57.765257+00:00",
+          "session_alias": "session-039",
+          "observed_start": null,
+          "passed": false,
+          "errors": [
+            "Invocation/diagnostic failure: ValidationError; no POST retry attempted."
+          ],
+          "timings_ms": {
+            "session_create_ms": 6263.05010006763,
+            "client_headers_ms": 1366.8567000422627,
+            "client_first_chunk_ms": 1366.865099989809,
+            "client_complete_ms": 1366.866199998185,
+            "client_journey_ms": 7629.916300065815
+          },
+          "native_latency_headers": {}
+        },
+        {
+          "trial": 10,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:48:04.769242+00:00",
+          "session_alias": "session-040",
+          "observed_start": null,
+          "passed": false,
+          "errors": [
+            "Invocation/diagnostic failure: ValidationError; no POST retry attempted."
+          ],
+          "timings_ms": {
+            "session_create_ms": 5634.419200010598,
+            "client_headers_ms": 1280.853100004606,
+            "client_first_chunk_ms": 1280.8627999620512,
+            "client_complete_ms": 1280.8644999749959,
+            "client_journey_ms": 6915.283699985594
+          },
+          "native_latency_headers": {}
+        }
+      ]
+    },
+    {
+      "role": "diagnostic",
+      "condition": "baseline",
+      "agent_version": "1",
+      "recording_timestamp": "2026-11-09T22:51:39.498625+00:00",
+      "image_alias": "image-1",
+      "cpu": "0.5",
+      "memory": "1Gi",
+      "snapshots": false,
+      "core_version": "2.3.0",
+      "responses_version": "2.4.0",
+      "planned_cold_sessions": 10,
+      "planned_resume_checks": 1,
+      "idle_wait_seconds": 150.0,
+      "samples": [
+        {
+          "trial": 1,
+          "phase": "cold",
+          "timestamp": "2026-11-09T22:51:45.432419+00:00",
+          "session_alias": "session-041",
+          "observed_start": "warm",
+          "passed": false,
+          "errors": [
+            "Expected cold; native classification was warm."
+          ],
+          "timings_ms": {
+            "session_create_ms": 5852.434600004926,
+            "client_headers_ms": 2795.378700015135,
+            "platform-preprocessing-ms": 98.0,
+            "infra-setup-ms": null,
+            "container-readiness-ms": null,
+            "container-response-ms": 428.0,
+            "response-begin-ms": 526.0,
+            "first-byte-ms": null,
+            "total-last-byte-ms": 526.0,
+            "client_first_chunk_ms": 2795.5254999687895,
+            "client_complete_ms": 2795.529199996963,
+            "client_journey_ms": 8647.96380000189
+          },
+          "native_latency_headers": {
+            "x-ms-debug-latency-platform-preprocessing-ms": "98",
+            "x-ms-debug-latency-container-response-ms": "428",
+            "x-ms-debug-latency-response-begin-ms": "526",
+            "x-ms-debug-latency-total-last-byte-ms": "526",
+            "x-ms-debug-latency-session-start-type": "warm"
+          }
+        }
+      ]
+    }
+  ]
+}
