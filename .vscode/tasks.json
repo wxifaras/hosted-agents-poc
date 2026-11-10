@@ -3,6 +3,158 @@
   "options": { "cwd": "${workspaceFolder}" },
   "tasks": [
     {
+      "label": "Setup: Sync Story 13 dependencies",
+      "type": "process",
+      "command": "uv",
+      "args": ["sync", "--frozen", "--link-mode", "copy"],
+      "options": { "cwd": "${workspaceFolder}\\experiments\\story13" },
+      "detail": "Isolated snapshot-capable SDK environment; does not upgrade the existing agents.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Run Story 13 tests",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "pytest", "-q"],
+      "options": { "cwd": "${workspaceFolder}\\experiments\\story13" },
+      "detail": "Offline unit/transport tests and a temporary real local HTTP host. No Azure invocations.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Check Story 13 lint",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "ruff", "check", "."],
+      "options": { "cwd": "${workspaceFolder}\\experiments\\story13" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Check Story 13 formatting",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "ruff", "format", "--check", "."],
+      "options": { "cwd": "${workspaceFolder}\\experiments\\story13" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Check Story 13 types",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "mypy"],
+      "options": { "cwd": "${workspaceFolder}\\experiments\\story13" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Quality: Run all Story 13 local checks",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Quality: Check Story 13 lint", "Quality: Check Story 13 formatting", "Quality: Check Story 13 types", "Quality: Run Story 13 tests"],
+      "detail": "Local-only checks; never invokes Azure, deploys, grants access, or changes endpoint routing.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 13 - 0. Inspect endpoint routing",
+      "type": "process",
+      "command": "azd",
+      "args": ["ai", "agent", "endpoint", "show", "story13-probe", "--environment", "${input:story13Environment}", "--output", "json"],
+      "options": {
+        "cwd": "${workspaceFolder}\\experiments\\story13",
+        "env": { "AZD_ALPHA_ENABLE_AGENTS_MEMORY_SNAPSHOT": "true" }
+      },
+      "detail": "Read-only native endpoint/version selection for the isolated Story 13 agent.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 13 - Apply configured endpoint routing",
+      "type": "process",
+      "command": "azd",
+      "args": ["ai", "agent", "endpoint", "update", "story13-probe", "--environment", "${input:story13Environment}", "--force", "--no-prompt"],
+      "options": {
+        "cwd": "${workspaceFolder}\\experiments\\story13",
+        "env": { "AZD_ALPHA_ENABLE_AGENTS_MEMORY_SNAPSHOT": "true" }
+      },
+      "detail": "Explicit change: apply agentEndpoint from experiments/story13/azure.yaml to Story 13 only. Set the tested version first. No build, deployment, grant, or new version.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 13 - 1. Baseline cold/warm/resume",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "python", "measure.py", "--environment", "${input:story13Environment}", "--condition", "baseline", "--version", "${input:story13BaselineVersion}", "--execution", "${input:story13Execution}", "--idle-seconds", "210", "--output", "${workspaceFolder}\\artifacts\\story-13\\${input:story13RunName}\\baseline.jsonl"],
+      "options": { "cwd": "${workspaceFolder}\\experiments\\story13" },
+      "detail": "Default verify = metadata GETs only. Preview = no Azure calls. Run = 10 implicit cold sessions, 10 warm calls, 1 resume; paid, no POST retries. Requires endpoint already pinned to this version.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 13 - 2. Snapshots cold/warm/resume",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "python", "measure.py", "--environment", "${input:story13Environment}", "--condition", "snapshot", "--version", "${input:story13SnapshotVersion}", "--execution", "${input:story13Execution}", "--idle-seconds", "210", "--output", "${workspaceFolder}\\artifacts\\story-13\\${input:story13RunName}\\snapshot.jsonl"],
+      "options": { "cwd": "${workspaceFolder}\\experiments\\story13" },
+      "detail": "Same-image snapshot scenario. Read-only verify by default; run incurs up to 21 invocations and checks clean restored state, unique IDs, and idle reset. Requires exact version routing.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 13 - 3. Optimized snapshots cold/warm/resume",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "python", "measure.py", "--environment", "${input:story13Environment}", "--condition", "optimized", "--version", "${input:story13OptimizedVersion}", "--execution", "${input:story13Execution}", "--idle-seconds", "210", "--output", "${workspaceFolder}\\artifacts\\story-13\\${input:story13RunName}\\optimized.jsonl"],
+      "options": { "cwd": "${workspaceFolder}\\experiments\\story13" },
+      "detail": "Optimized-image snapshot scenario. Read-only verify by default; run incurs up to 21 invocations. No automatic deployment/routing changes, retries, or evidence overwrite.",
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Agents: Story 13 - 4. Generate startup analysis graphs",
+      "type": "process",
+      "command": "uv",
+      "args": ["run", "--frozen", "--no-sync", "python", "report.py", "--input", "${workspaceFolder}\\artifacts\\story-13\\${input:story13RunName}\\baseline.jsonl", "${workspaceFolder}\\artifacts\\story-13\\${input:story13RunName}\\snapshot.jsonl", "${workspaceFolder}\\artifacts\\story-13\\${input:story13RunName}\\optimized.jsonl", "--output", "${workspaceFolder}\\artifacts\\story-13\\${input:story13RunName}\\${input:story13ReportName}"],
+      "options": { "cwd": "${workspaceFolder}\\experiments\\story13" },
+      "detail": "Offline customer-friendly HTML, two simple comparison graphs, detailed SVG plots, summary/conclusion Markdown, and sanitized JSON. Refuses mixed controls and overwrites; failures remain visible.",
+      "problemMatcher": []
+    },
+    {
+      "label": "Debug: Check Story 13 ports",
+      "type": "aitk",
+      "command": "debug-check-prerequisites",
+      "args": { "portOccupancy": [5683, 8093] }
+    },
+    {
+      "label": "Debug: Start Story 13 for Inspector",
+      "type": "process",
+      "command": "${workspaceFolder}\\experiments\\story13\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "debugpy", "--listen", "127.0.0.1:5683", "main.py", "--port", "8093"],
+      "isBackground": true,
+      "options": { "cwd": "${workspaceFolder}\\experiments\\story13" },
+      "dependsOn": ["Debug: Check Story 13 ports"],
+      "problemMatcher": {
+        "owner": "story13",
+        "pattern": {
+          "regexp": "^(.+):(\\d+):(\\d+): (error|warning): (.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Running on http://127\\.0\\.0\\.1:8093(?:\\s|$)"
+        }
+      }
+    },
+    {
+      "label": "Debug: Open Story 13 Inspector",
+      "type": "process",
+      "command": "${workspaceFolder}\\experiments\\story13\\.venv\\Scripts\\python.exe",
+      "args": ["-c", "print('Story 13 Inspector requested.')", "${input:openStory13Inspector}"],
+      "presentation": { "reveal": "never" },
+      "dependsOn": ["Debug: Start Story 13 for Inspector"],
+      "problemMatcher": []
+    },
+    {
       "label": "Setup: Sync dependencies",
       "type": "process",
       "command": "uv",
@@ -479,6 +631,55 @@
     }
   ],
   "inputs": [
+    {
+      "id": "story13Execution",
+      "type": "pickString",
+      "description": "preview = budget only/no Azure; verify = read-only active-version/routing checks; run = explicitly approved paid cold/warm/resume scenario",
+      "options": ["verify", "preview", "run"],
+      "default": "verify"
+    },
+    {
+      "id": "story13Environment",
+      "type": "promptString",
+      "description": "Isolated Story 13 azd environment; never the root agents' environment",
+      "default": "story13-cold-start"
+    },
+    {
+      "id": "story13RunName",
+      "type": "promptString",
+      "description": "Use the same new run folder for all three conditions and graph generation. Existing evidence is never overwritten.",
+      "default": "tasks-run-01"
+    },
+    {
+      "id": "story13ReportName",
+      "type": "promptString",
+      "description": "New report folder inside the selected run; choose a different name to regenerate without overwriting",
+      "default": "report-01"
+    },
+    {
+      "id": "story13BaselineVersion",
+      "type": "promptString",
+      "description": "Explicit active snapshot-disabled version; the isolated endpoint must already be pinned to it",
+      "default": "1"
+    },
+    {
+      "id": "story13SnapshotVersion",
+      "type": "promptString",
+      "description": "Explicit active snapshot version using exactly the baseline image digest",
+      "default": "2"
+    },
+    {
+      "id": "story13OptimizedVersion",
+      "type": "promptString",
+      "description": "Explicit active snapshot version using the distinct optimized image digest",
+      "default": "3"
+    },
+    {
+      "id": "openStory13Inspector",
+      "type": "command",
+      "command": "ai-mlstudio.openTestTool",
+      "args": { "triggeredFrom": "tasks", "port": 8093 }
+    },
     {
       "id": "story1Execution",
       "type": "pickString",

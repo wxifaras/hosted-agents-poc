@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+name: story13-cold-start
+requiredVersions:
+  azd: '>=1.37.0'
+  extensions:
+    azure.ai.agents: '>=1.0.0-beta.23'
+services:
+  story13-probe:
+    host: azure.ai.agent
+    kind: hosted
+    name: story13-cold-start-probe
+    description: Isolated no-model Story 13 cold-start and synthetic state probe.
+    project: .
+    language: docker
+    image: ${STORY13_IMAGE}
+    docker:
+      imagePassthrough: true
+      remoteBuild: false
+    enableMemorySnapshot: true
+    agentEndpoint:
+      protocols:
+        - responses
+      authorizationSchemes:
+        - type: Entra
+      versionSelector:
+        versionSelectionRules:
+          - type: FixedRatio
+            agentVersion: '3'
+            trafficPercentage: 100
+    sessionConfiguration:
+      idleTimeoutSeconds: 120
+    protocols:
+      - protocol: responses
+        version: 2.0.0
+    container:
+      resources:
+        cpu: '0.5'
+        memory: 1Gi

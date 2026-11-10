@@ -1,0 +1,10 @@
+.venv
+.azure
+__pycache__
+.pytest_cache
+.ruff_cache
+.mypy_cache
+tests
+artifacts
+.env
+*.jsonl

@@ -133,3 +133,49 @@ def test_inspector_task_does_not_wait_for_attachment_before_readiness() -> None:
     launch = json.loads((ROOT / ".vscode" / "launch.json").read_text(encoding="utf-8"))
     attach = next(config for config in launch["configurations"] if config["request"] == "attach")
     assert attach["connect"] == {"host": "127.0.0.1", "port": 5679}
+
+
+def test_story13_debugging_uses_its_own_environment_and_ports() -> None:
+    launch = json.loads((ROOT / ".vscode" / "launch.json").read_text(encoding="utf-8"))
+    config = next(item for item in launch["configurations"] if item["name"].startswith("Story 13"))
+    assert config["request"] == "attach"
+    assert config["connect"] == {"host": "127.0.0.1", "port": 5683}
+    document = json.loads((ROOT / ".vscode" / "tasks.json").read_text(encoding="utf-8"))
+    tasks = {item["label"]: item for item in document["tasks"]}
+    host = tasks["Debug: Start Story 13 for Inspector"]
+    assert host["command"] == "${workspaceFolder}\\experiments\\story13\\.venv\\Scripts\\python.exe"
+    assert host["options"]["cwd"] == "${workspaceFolder}\\experiments\\story13"
+    assert "--wait-for-client" not in host["args"]
+    assert host["args"][-2:] == ["--port", "8093"]
+    assert tasks[config["preLaunchTask"]]["dependsOn"] == ["Debug: Start Story 13 for Inspector"]
+    inspector = next(item for item in document["inputs"] if item["id"] == "openStory13Inspector")
+    assert inspector["args"] == {"triggeredFrom": "tasks", "port": 8093}
+
+
+def test_story13_scenarios_default_to_read_only_and_preserve_environment_isolation() -> None:
+    document = json.loads((ROOT / ".vscode" / "tasks.json").read_text(encoding="utf-8"))
+    tasks = {item["label"]: item for item in document["tasks"]}
+    inputs = {item["id"]: item for item in document["inputs"]}
+    assert inputs["story13Execution"]["default"] == "verify"
+    assert set(inputs["story13Execution"]["options"]) == {"preview", "verify", "run"}
+    assert inputs["story13Environment"]["default"] == "story13-cold-start"
+    scenarios = [
+        tasks["Agents: Story 13 - 1. Baseline cold/warm/resume"],
+        tasks["Agents: Story 13 - 2. Snapshots cold/warm/resume"],
+        tasks["Agents: Story 13 - 3. Optimized snapshots cold/warm/resume"],
+    ]
+    for task, condition in zip(scenarios, ("baseline", "snapshot", "optimized"), strict=True):
+        assert task["command"] == "uv"
+        assert task["options"]["cwd"] == "${workspaceFolder}\\experiments\\story13"
+        assert task["args"][task["args"].index("--condition") + 1] == condition
+        assert task["args"][task["args"].index("--execution") + 1] == "${input:story13Execution}"
+        assert "--apply" not in task["args"] and "dependsOn" not in task
+        assert task["args"][-1].endswith(f"\\{condition}.jsonl")
+    quality = tasks["Quality: Run all Story 13 local checks"]
+    assert quality["dependsOrder"] == "sequence"
+    assert all(label.startswith("Quality: ") for label in quality["dependsOn"])
+    route = tasks["Agents: Story 13 - Apply configured endpoint routing"]
+    assert route["args"][:5] == ["ai", "agent", "endpoint", "update", "story13-probe"]
+    assert route["options"]["cwd"] == "${workspaceFolder}\\experiments\\story13"
+    report = tasks["Agents: Story 13 - 4. Generate startup analysis graphs"]
+    assert "report.py" in report["args"] and "--apply" not in report["args"]
